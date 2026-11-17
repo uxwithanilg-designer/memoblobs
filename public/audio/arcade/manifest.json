@@ -1,0 +1,123 @@
+{
+ "music": {
+  "fish_calm": {
+   "loop": 20.0,
+   "tail": 1.5,
+   "bpm": 96
+  },
+  "fish_action": {
+   "loop": 16.99115,
+   "tail": 1.5,
+   "bpm": 113
+  },
+  "sneak_calm": {
+   "loop": 17.777778,
+   "tail": 1.5,
+   "bpm": 108
+  },
+  "sneak_action": {
+   "loop": 15.11811,
+   "tail": 1.5,
+   "bpm": 127
+  },
+  "clash_calm": {
+   "loop": 16.0,
+   "tail": 1.5,
+   "bpm": 120
+  },
+  "clash_action": {
+   "loop": 13.617021,
+   "tail": 1.5,
+   "bpm": 141
+  },
+  "blink_calm": {
+   "loop": 20.869565,
+   "tail": 1.5,
+   "bpm": 92
+  },
+  "blink_action": {
+   "loop": 17.777778,
+   "tail": 1.5,
+   "bpm": 108
+  },
+  "zib_calm": {
+   "loop": 18.461538,
+   "tail": 1.5,
+   "bpm": 104
+  },
+  "zib_action": {
+   "loop": 15.737705,
+   "tail": 1.5,
+   "bpm": 122
+  }
+ },
+ "sfx": [
+  "bubble",
+  "bubbles",
+  "splash",
+  "gulp",
+  "slap",
+  "ding",
+  "chime",
+  "bwomp",
+  "squelch",
+  "splat",
+  "wobble",
+  "honk",
+  "kazoo",
+  "slideUp",
+  "slideDown",
+  "whistle",
+  "scratch",
+  "chalk",
+  "bell",
+  "page",
+  "snore",
+  "zap",
+  "ufo",
+  "teleport",
+  "blink",
+  "tink",
+  "shutter",
+  "heartbeat",
+  "coin",
+  "blip",
+  "levelup",
+  "perfect",
+  "fail",
+  "whooshIn",
+  "whooshOut",
+  "scramble",
+  "poof",
+  "drip",
+  "tickHi",
+  "go",
+  "applause",
+  "ooh",
+  "aww",
+  "giggle"
+ ],
+ "voice": [
+  "pip_happy",
+  "pip_wow",
+  "pip_sad",
+  "pip_laugh",
+  "gloop_happy",
+  "gloop_wow",
+  "gloop_sad",
+  "gloop_laugh",
+  "hoot_happy",
+  "hoot_wow",
+  "hoot_sad",
+  "hoot_laugh",
+  "hoot_talk",
+  "noodle_happy",
+  "noodle_wow",
+  "noodle_sad",
+  "noodle_laugh",
+  "zib_happy",
+  "zib_wow",
+  "zib_sad",
+  "zib_laugh"
+ ]
+}

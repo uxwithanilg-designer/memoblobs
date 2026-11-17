@@ -1,0 +1,54 @@
+# MOMOBLOBS
+
+> MOMOBLOBS (momoblobs.com) is a free website of claymation brain games for kids and families, starring Momo (an orange clay blob who hides), Kranky (a crab in a top hat), Tiki (a teal bird), Pip (a forgetful penguin), Gloop (a one-toothed slime), Prof. Hoot (a sleepy owl), Noodle (a very long sausage dog), Zib (a one-eyed alien), Bolt (a beeping robot), Bonbon (a hippo cake chef) and Turbo (a snail with a rocket shell). No sign-up, no downloads; progress is saved in the browser.
+
+## Games
+- [Nitro Rush](https://momoblobs.com/games/nitro-rush): big 3D car racing game — 29 themed worlds, 34 unlockable cars and trucks (F1 car, monster truck, buggy, bus, fire truck and more), career, quick race, Coin Rush single-drive mode, elimination, time trial and boss duels; nitro, drifting, slipstream and takedowns. Racing.
+- [Drift Kings](https://momoblobs.com/games/drift-kings): 3D drifting and rally game — drift chains with a ×5 multiplier, tandem Drift Battles against a rival, rally stages on dirt, sand and snow with co-driver pace notes, Coin Rush and races; 27 venues (touge passes, harbour at night, neon highway, desert and snow rallies, the Moon) and 33 unlockable drift and rally cars. Racing.
+- [Highway Heat](https://momoblobs.com/games/highway-heat): 3D highway traffic and police chase game — weave through cars, vans, buses and big rigs for near-miss combos, outrun police with roadblocks and a BUSTED meter, or be the cop and ram the suspects in Takedown; 27 highways and 32 unlockable cars. Racing.
+- [Moto Rush GP](https://momoblobs.com/games/moto-rush): 3D motorbike Grand Prix game — bikes lean into corners with the rider hanging off, wheelies on the straights (Wheelie Challenge), slipstream and nitro; qualifying, Grands Prix and title duels on 27 circuits with 32 unlockable bikes (sport, naked, supermoto, scooter, cruiser, café racer, chopper, electric). Racing.
+- [Blob Brigade](https://momoblobs.com/games/blob-brigade): 3D crowd game — start with one Momo blob, walk onto +1 tiles and pick the best math gate (+10 or ×2) to grow a brigade, merge 10 blobs into Big Blobs, break bonus jars, free caged blobs and bubble a marching crowd of Grumpies back to happy; 100 fast stages across 10 worlds (Garden Path, Candy Kitchen, Snowy Peaks, Toy Room, Beach Day, Spooky Night, Jungle Ruins, Lava Land, Space Station, Kranky's Castle), each world with its own twist (ice, toy blocks, surf waves, darkness, boulders, lava vents, meteors) and every stage ending with a villain to dodge; 11 leaders with POWER moves, a coin upgrade shop, power-up tiles, hats and bubble colours; after stage 100 an endless Remix Loop, plus a Daily Challenge, Boss Rush and Endless Waves.
+- [Momo Shuffle](https://momoblobs.com/games/momo-shuffle): free online cup game (shell game). Momo hides under a cup, Kranky shuffles, the player taps the right cup. Easy = 3 cups, Medium = 4 cups, Hard = 6 cups. Unlimited levels, coins for each correct find, streak bonuses, twists (Zigzag, Fake-Out, Triple Spin, Lights Off) and bonus rounds every 5th level. Ages 4+.
+- [Fish Watch](https://momoblobs.com/games/fish-watch): multiple-object tracking with Pip the penguin — remember the golden fish, follow them through the shuffle, tap them. Focus/memory.
+- [Spot the Sneak](https://momoblobs.com/games/spot-the-sneak): find the one Gloop slime that is different in a dancing crowd. Focus.
+- [Color Clash](https://momoblobs.com/games/color-clash): Stroop game with Prof. Hoot — tap the INK colour or the WORD colour. Focus/brain.
+- [Blink!](https://momoblobs.com/games/blink-change): spot what changed in Noodle the sausage dog's room after he blinks. Focus/memory.
+- [Where's Zib?](https://momoblobs.com/games/where-is-zib): find Zib, the one-eyed purple alien, in a busy space party. Focus.
+- [Memory Bridge](https://momoblobs.com/games/memory-bridge): sequence memory with Tiki the bird — stones light up with musical notes, hop across in the same order (Backwards, Decoy and Fog twists). Memory.
+- [Pip's Pantry](https://momoblobs.com/games/pips-pantry): pairs memory behind fridge doors full of clay food; Kranky swaps closed doors on harder levels. Memory.
+- [Bolt's Beep Boop](https://momoblobs.com/games/bolt-beeps): Simon-style sound and colour sequence game with Bolt the robot (Backwards and Glitch-shuffle twists; every button also has a shape for colour-blind players). Memory.
+- [Order Up!](https://momoblobs.com/games/order-up): remember a customer's cake and build it layer by layer in Bonbon the hippo's cake shop; toppings and double orders at higher levels. Memory.
+- [Glow Grid](https://momoblobs.com/games/grid-glow): visual pattern memory — tap the squares that glowed on a 3×3 to 7×7 neon grid (In Order and Rotate twists). Memory.
+- [Shadow Snap](https://momoblobs.com/games/shadow-match): Match the clay shadow to the right character. Host: Noodle. Category: focus.
+- [Gloop Guard](https://momoblobs.com/games/gloop-guard): You're the party door guard. Green Gloops in, red Gloops out! Host: Gloop. Category: focus/speed.
+- [Who Said It?](https://momoblobs.com/games/who-said-it): Characters make funny noises — tap them in the same order. Host: Gloop. Category: memory.
+- [What's Missing?](https://momoblobs.com/games/whats-missing): Kranky stole something from the shelf. What is it? Host: Kranky. Category: memory.
+- [Pick the Door](https://momoblobs.com/games/pick-the-door): Kranky hides Momo behind a door. Read the clues and pick the right one! Host: Kranky. Category: brain/puzzle.
+- [Pattern Parade](https://momoblobs.com/games/pattern-parade): Shapes march in a pattern. Pick what comes next. Host: Prof. Hoot. Category: brain.
+- [Odd Blob Out](https://momoblobs.com/games/odd-blob-out): One blob breaks the rule. Find it! Host: Zib. Category: brain.
+- [Balance Buddies](https://momoblobs.com/games/balance-buddies): See-saws show who is heavier. Who's heaviest of all? Host: Prof. Hoot. Category: brain.
+- [Whack-a-Gloop](https://momoblobs.com/games/whack-a-gloop): Bonk every Gloop — but never bonk Momo! Host: Gloop. Category: speed.
+- [Turbo Dash](https://momoblobs.com/games/turbo-dash): The slowest snail with the fastest rocket. Host: Turbo. Category: speed.
+- [Bake Drop](https://momoblobs.com/games/bake-drop): Catch the cake bits, dodge the chilli peppers! Host: Bonbon. Category: speed.
+- [Quick Draw](https://momoblobs.com/games/quick-hoot): Wait… wait… NOW! Don't fall for the fakes. Host: Prof. Hoot. Category: speed/focus.
+- [Count Fast](https://momoblobs.com/games/count-fast): Momos bounce onto the stage. Count them before the curtain drops! Host: Momo. Category: numbers.
+- [Sum Slices](https://momoblobs.com/games/sum-slices): Tap cake slices that add up to Bonbon's number. Host: Bonbon. Category: numbers.
+- [Number Ninja](https://momoblobs.com/games/number-ninja): Find the numbers in order as fast as you can. Host: Noodle. Category: numbers/focus.
+- [More or Less](https://momoblobs.com/games/more-or-less): Two jelly jars — pick the one with more beans before Turbo reaches the flag! Host: Turbo. Category: numbers.
+- [Slide Ship](https://momoblobs.com/games/slide-ship): Slide the tiles to fix Zib's crashed UFO. Host: Zib. Category: puzzle.
+- [Gloop Pipes](https://momoblobs.com/games/gloop-pipes): Rotate the pipes so slime reaches every cup. Host: Gloop. Category: puzzle.
+- [Firefly Switch](https://momoblobs.com/games/firefly-switch): Each jar flips its neighbours. Light them all! Host: Noodle. Category: puzzle.
+- [Maze Munch](https://momoblobs.com/games/maze-munch): Guide Momo through the clay maze. Host: Momo. Category: puzzle.
+- All 36 games are live. Every game has Easy/Medium/Hard, unlimited levels that never repeat, scores, combos and coins.
+
+## Key pages
+- [All games](https://momoblobs.com/games)
+- [Characters](https://momoblobs.com/characters): Momo, Kranky, Tiki, Pip, Gloop, Prof. Hoot, Noodle, Zib, Bolt, Bonbon and Turbo
+- [Parents & teachers](https://momoblobs.com/parents): safety, privacy and learning benefits (visual tracking, working memory, attention)
+- [Help & FAQ](https://momoblobs.com/help)
+- [Privacy](https://momoblobs.com/privacy)
+
+## Facts
+- Price: free. Platforms: any modern browser on phone, tablet or computer; installable as a home-screen app.
+- Data: no accounts; coins/levels/settings stored in localStorage on the player's device.
+- Channels: YouTube @momoblobs, Instagram @momoblobs (daily cup-challenge videos with the same characters).

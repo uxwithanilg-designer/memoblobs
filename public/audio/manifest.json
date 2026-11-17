@@ -1,0 +1,76 @@
+{
+ "sfx": [
+  "boing",
+  "clack",
+  "confetti",
+  "drumroll",
+  "gibberK",
+  "gibberKShort",
+  "gibberT",
+  "hmm",
+  "hop",
+  "impact",
+  "lift",
+  "lightsOff",
+  "lightsOn",
+  "pop",
+  "popBig",
+  "rewind",
+  "sadtrombone",
+  "slide",
+  "snicker",
+  "sparkle",
+  "squish",
+  "sting",
+  "swoosh",
+  "tada",
+  "thud",
+  "tick",
+  "tock",
+  "whoosh",
+  "whooshLong",
+  "whooshShort"
+ ],
+ "music": {
+  "playful": {
+   "loop": 17.142857,
+   "tail": 1.5,
+   "bpm": 112
+  },
+  "think": {
+   "loop": 18.461538,
+   "tail": 1.5,
+   "bpm": 104
+  },
+  "shuffle_easy": {
+   "loop": 15.0,
+   "tail": 1.5,
+   "bpm": 128.0
+  },
+  "shuffle_medium": {
+   "loop": 13.241379,
+   "tail": 1.5,
+   "bpm": 145.0
+  },
+  "shuffle_hard": {
+   "loop": 11.851852,
+   "tail": 1.5,
+   "bpm": 162.0
+  },
+  "tension": {
+   "loop": 10.666667,
+   "tail": 1.5,
+   "bpm": 90
+  },
+  "celebrate": {
+   "loop": 7.741935,
+   "tail": 1.5,
+   "bpm": 124
+  },
+  "replay": {
+   "loop": 20.869565,
+   "tail": 1.5,
+   "bpm": 92
+  }
+ }
+}

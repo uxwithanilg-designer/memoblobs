@@ -1,0 +1,452 @@
+// Game catalogue. Add a new game here (status "live" + a player module) and every page,
+// menu, search, sitemap and JSON-LD entry picks it up.
+
+export type GameStatus = "live" | "soon";
+export type Category = "racing" | "brain" | "focus" | "memory" | "speed" | "puzzle" | "numbers";
+
+export const CATEGORIES: { id: Category; label: string; emoji: string; blurb: string }[] = [
+  { id: "racing", label: "Racing", emoji: "🏎️", blurb: "Big 3D races, nitro and 30+ cars." },
+  { id: "focus", label: "Focus", emoji: "🎯", blurb: "Keep your eyes on the prize." },
+  { id: "brain", label: "Brain", emoji: "🧠", blurb: "Think fast, think smart." },
+  { id: "memory", label: "Memory", emoji: "🧩", blurb: "Remember the pattern." },
+  { id: "speed", label: "Speed", emoji: "⚡", blurb: "Quick hands, quick eyes." },
+  { id: "numbers", label: "Numbers", emoji: "🔢", blurb: "Count it up." },
+  { id: "puzzle", label: "Puzzle", emoji: "🚪", blurb: "Pick the right path." },
+];
+
+export interface GameMode { id: string; label: string; cups?: number; color: string; desc: string; coins: number }
+
+export interface Game {
+  slug: string;
+  title: string;
+  short: string;
+  tagline: string;
+  description: string;
+  status: GameStatus;
+  categories: Category[];
+  ages: string;
+  accent: string;
+  accent2: string;
+  cover: string;
+  hero: string;
+  character: string;
+  shots: string[];
+  modes: GameMode[];
+  howTo: { title: string; text: string }[];
+  controls: { keys: string; action: string }[];
+  faq: { q: string; a: string }[];
+  skills: string[];
+  released?: string;
+  /** "cover" = screenshot cover art, "character" = clay character on a colour card */
+  art?: "cover" | "character";
+  engine?: "momo" | "arcade" | "racing" | "brigade";
+  host?: string;
+}
+
+import { ARCADE_GAMES } from "./arcade-catalog";
+
+export const GAMES: Game[] = [
+  {
+    slug: "momo-shuffle",
+    title: "Momo Shuffle",
+    short: "Track Momo under the cups",
+    tagline: "Momo hides. Kranky shuffles. Can you keep up?",
+    description:
+      "Momo Shuffle is a free claymation cup game (the classic shell game) starring Momo, Kranky the crab and Tiki the bird. Momo hops under a cup, Kranky shuffles the cups faster and faster, and you tap the cup you think Momo is hiding under. Every correct answer earns coins, levels never end, and twists like Zigzag, Fake-Out, Triple Spin and Lights Off keep every round fresh. Play Easy with 3 cups, Medium with 4 cups or Hard with 6 cups.",
+    status: "live",
+    categories: ["focus", "brain", "speed"],
+    ages: "4+",
+    accent: "#8E6CE0",
+    accent2: "#FF8A3D",
+    cover: "/games/momo-shuffle/cover-1.webp",
+    hero: "/games/momo-shuffle/hero.webp",
+    character: "/brand/momo-cheer.webp",
+    shots: [
+      "/games/momo-shuffle/shot-main-stage.webp",
+      "/games/momo-shuffle/shot-short-freeze.webp",
+      "/games/momo-shuffle/shot-short-reveal.webp",
+      "/games/momo-shuffle/shot-cast.webp",
+    ],
+    modes: [
+      { id: "easy", label: "Easy", cups: 3, color: "#2FA866", desc: "3 cups · gentle swaps", coins: 10 },
+      { id: "medium", label: "Medium", cups: 4, color: "#D99A1E", desc: "4 cups · spins & fake-outs", coins: 20 },
+      { id: "hard", label: "Hard", cups: 6, color: "#E8504F", desc: "6 cups · lights off!", coins: 40 },
+    ],
+    howTo: [
+      { title: "Watch Momo hide", text: "Kranky lifts a cup and Momo hops underneath. Remember which cup!" },
+      { title: "Follow the shuffle", text: "Kranky swaps the cups. Keep your eyes on Momo's cup — it gets faster every level." },
+      { title: "Tap the cup", text: "When the shuffle stops, tap the cup (or press its number) where Momo is hiding." },
+      { title: "Win coins, level up", text: "Find Momo to earn coins and go to the next level. Streaks give bonus coins. It never ends!" },
+    ],
+    controls: [
+      { keys: "Tap / Click", action: "Pick a cup" },
+      { keys: "1 – 6", action: "Pick cup by number" },
+      { keys: "← → + Enter", action: "Move & pick (keyboard / gamepad)" },
+      { keys: "Space / P / Esc", action: "Pause" },
+      { keys: "M", action: "Mute" },
+      { keys: "F", action: "Fullscreen" },
+    ],
+    faq: [
+      { q: "Is Momo Shuffle free?", a: "Yes. Momo Shuffle is completely free to play in your browser. There is no sign-up and nothing to download." },
+      { q: "How many cups are there?", a: "Easy mode has 3 cups, Medium mode has 4 cups and Hard mode has 6 cups. Every level adds more swaps and more speed." },
+      { q: "Does the game ever end?", a: "No. Every mode has unlimited levels. Find Momo to level up; miss and you simply try that level again with a new shuffle." },
+      { q: "Where are my coins saved?", a: "Coins, levels and trophies are saved in your own browser on this device. No account or personal data is needed." },
+      { q: "Is it good for kids?", a: "Yes. Momo Shuffle trains focus and visual tracking. It has big buttons, a slower Kid Mode and no chat." },
+    ],
+    skills: ["Focus", "Visual tracking", "Attention", "Reaction"],
+    released: "2026-11-16",
+  },
+  {
+    slug: "nitro-rush",
+    title: "Nitro Rush",
+    short: "3D car racing with nitro",
+    tagline: "Race the MOMOBLOBS gang across giant 3D worlds. Hit the nitro!",
+    description:
+      "Nitro Rush is a free 3D car racing game in your browser. Race Kranky, Turbo, Zib and the whole MOMOBLOBS gang across 29 huge themed worlds — sunny circuits, neon cities, snowy Alps, deserts, volcanoes, the Moon and more. Drift to charge your nitro, slipstream rivals, smash them with takedowns and grab coins in Coin Rush. Win career stars to unlock 34 cars and trucks — from a go-kart to a monster truck and an F1 car — upgrade them in the garage and paint them your colour.",
+    status: "live",
+    categories: ["racing", "speed"],
+    ages: "6+",
+    accent: "#FF5A1F",
+    accent2: "#2E86FF",
+    cover: "/games/nitro-rush/card.webp",
+    hero: "/games/nitro-rush/hero.webp",
+    character: "/brand/chars/turbo-happy.webp",
+    shots: [],
+    modes: [
+      { id: "race", label: "Race", color: "#E8504F", desc: "Up to 7 rivals · 1–5 laps", coins: 0 },
+      { id: "coinrush", label: "Coin Rush", color: "#D99A1E", desc: "Solo · coins, nitro & fire hazards", coins: 0 },
+      { id: "elimination", label: "Elimination", color: "#2FA866", desc: "Last place is knocked out", coins: 0 },
+    ],
+    howTo: [
+      { title: "Steer and race", text: "Use the arrow buttons (or tilt your phone) to steer. The car accelerates by itself — brake for tight corners." },
+      { title: "Hit the nitro", text: "Fill the blue bar by drifting, slipstreaming and grabbing nitro bottles, then hold NITRO for a huge boost." },
+      { title: "Take them down", text: "Boost into rivals to wreck them, dodge oil and fire, and finish in the top 3 to win stars." },
+      { title: "Unlock cars", text: "Career stars unlock more than 30 cars and trucks. Upgrade speed, acceleration, handling and nitro in the garage." },
+    ],
+    controls: [
+      { keys: "← → / A D", action: "Steer" },
+      { keys: "▲ W / ▼ S", action: "Gas / brake" },
+      { keys: "Shift / Space", action: "Nitro" },
+      { keys: "X", action: "Drift" },
+      { keys: "C", action: "Change camera" },
+      { keys: "P / Esc", action: "Pause" },
+    ],
+    faq: [
+      { q: "Is Nitro Rush free?", a: "Yes. Nitro Rush is free to play in your browser with no sign-up and nothing to download." },
+      { q: "How do I unlock new cars?", a: "Win stars in Career mode. Every car shows how many stars it needs; your first three cars are free." },
+      { q: "Does it work on phones?", a: "Yes. It has big touch buttons, optional tilt steering and automatic graphics settings for phones, tablets and computers." },
+      { q: "Where is my progress saved?", a: "Stars, cars, upgrades and settings are saved in your browser on this device. Coins are shared with the rest of MOMOBLOBS." },
+    ],
+    skills: ["Reaction", "Hand-eye coordination", "Planning", "Focus"],
+    released: "2026-11-17",
+    art: "cover",
+    engine: "racing",
+    host: "turbo",
+  },
+  {
+    slug: "drift-kings",
+    title: "Drift Kings",
+    short: "3D drift & rally racing",
+    tagline: "Slide sideways, link drift chains and battle the MOMOBLOBS gang to become the Drift King!",
+    description:
+      "Drift Kings is a free 3D drifting and rally game in your browser. Hold DRIFT and steer to slide through the bends: the longer and wilder the slide, the bigger the multiplier — up to ×5. Link slides into huge chains, but hit a wall and the chain breaks! Chase a rival in tandem Drift Battles, race rally stages on dirt, sand and snow while your co-driver calls every bend, and grab coins in Coin Rush. 27 venues — mountain touge passes, a harbour at night, neon highways, desert and snow rally stages, the Moon and a rainbow road final — and 33 drift and rally cars to unlock, from a kei car and a drift kart to a monster truck and the golden Drift King.",
+    status: "live",
+    categories: ["racing", "speed"],
+    ages: "6+",
+    accent: "#FF4FD8",
+    accent2: "#6D28D9",
+    cover: "/games/drift-kings/card.webp",
+    hero: "/games/drift-kings/hero.webp",
+    character: "/brand/kranky.webp",
+    shots: [],
+    modes: [
+      { id: "drift", label: "Drift Attack", color: "#FF4FD8", desc: "Solo · drift chains, ×5 multiplier", coins: 0 },
+      { id: "battle", label: "Drift Battle", color: "#FF8A3D", desc: "Tandem battle vs a rival drifter", coins: 0 },
+      { id: "rally", label: "Rally Stage", color: "#9BE34A", desc: "Dirt & snow · co-driver pace notes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Slide!", text: "Hold DRIFT (or BRAKE) and steer into a bend to start a slide. Steer more for a bigger angle, less to tighten it." },
+      { title: "Build the chain", text: "Points pour in while you slide. Keep sliding for ×2…×5, and start the next slide quickly to LINK it onto the same chain." },
+      { title: "Don't crash", text: "When you straighten up the chain is banked. Hit a wall, spin out or run off the road and the chain breaks — you only keep 30% of it!" },
+      { title: "Battles and rallies", text: "In Drift Battles slide close behind the rival for a ×1.5 TANDEM bonus. In Rally Stages your co-driver shows the next bend: LEFT 3, HAIRPIN RIGHT…" },
+    ],
+    controls: [
+      { keys: "← → / A D", action: "Steer" },
+      { keys: "X / Ctrl (hold)", action: "Drift" },
+      { keys: "▼ S", action: "Brake (also starts a slide)" },
+      { keys: "Shift / Space", action: "Nitro" },
+      { keys: "C", action: "Change camera" },
+      { keys: "P / Esc", action: "Pause" },
+    ],
+    faq: [
+      { q: "Is Drift Kings free?", a: "Yes. Drift Kings is free to play in your browser with no sign-up and nothing to download." },
+      { q: "How do I drift?", a: "Hold the pink DRIFT button and steer into a corner. Keep holding and steering to slide; let go to straighten up and bank your points." },
+      { q: "How do I unlock new cars?", a: "Earn stars in the Career. Every car shows how many stars it needs; your first three cars are free." },
+      { q: "Does it work on phones?", a: "Yes. It has big touch buttons, optional tilt steering and automatic graphics settings. Turn your phone sideways for the widest view." },
+    ],
+    skills: ["Hand-eye coordination", "Timing", "Planning", "Focus"],
+    released: "2026-11-17",
+    art: "cover",
+    engine: "racing",
+    host: "kranky",
+  },
+  {
+    slug: "highway-heat",
+    title: "Highway Heat",
+    short: "3D highway traffic & police chases",
+    tagline: "Weave through highway traffic, outrun the cops — or become the cop and bust the speeders!",
+    description:
+      "Highway Heat is a free 3D highway racing game in your browser. Weave through busy traffic — cars, vans, buses and big rigs — at full speed: every near miss builds your combo. The longer you run, the hotter it gets: police cars chase you, ram you and set up roadblocks and spike strips. Escape to the finish before you're BUSTED, or switch sides in Takedown and ram the speeding suspects until they pull over. 27 highways — a sunny interstate, Coast Highway 1, a neon freeway at night, desert interstates, a harbour bridge, a snowy autobahn, the Moon and a rainbow skyway — and 32 cars to unlock, from a hot taxi and a delivery van to police interceptors, a big rig and the golden Heat King.",
+    status: "live",
+    categories: ["racing", "speed"],
+    ages: "6+",
+    accent: "#FF7A1A",
+    accent2: "#0B6E4F",
+    cover: "/games/highway-heat/card.webp",
+    hero: "/games/highway-heat/hero.webp",
+    character: "/brand/chars/bolt-happy.webp",
+    shots: [],
+    modes: [
+      { id: "heat", label: "Heat Run", color: "#FF7A1A", desc: "Solo · traffic, near-miss combos, rising police heat", coins: 0 },
+      { id: "escape", label: "Escape", color: "#2A6BFF", desc: "Outrun the cops to the finish", coins: 0 },
+      { id: "takedown", label: "Takedown", color: "#FFC600", desc: "You're the cop — bust the suspects", coins: 0 },
+    ],
+    howTo: [
+      { title: "Weave the traffic", text: "Steer between cars, vans and buses. Passing close at speed is a NEAR MISS — chain them for a combo." },
+      { title: "Watch the heat", text: "The longer you run, the more police join in: they ram you and build roadblocks. Don't slow down next to a cop or you're BUSTED!" },
+      { title: "Use your nitro", text: "Nitro through traffic to SMASH cars out of the way, and ram police cars to take them down." },
+      { title: "Be the cop", text: "In Takedown you drive the interceptor: chase the suspects and ram them until their bar hits zero." },
+    ],
+    controls: [
+      { keys: "← → / A D", action: "Steer" },
+      { keys: "▲ W / ▼ S", action: "Gas / brake" },
+      { keys: "Shift / Space", action: "Nitro" },
+      { keys: "X", action: "Drift" },
+      { keys: "C", action: "Change camera" },
+      { keys: "P / Esc", action: "Pause" },
+    ],
+    faq: [
+      { q: "Is Highway Heat free?", a: "Yes. Highway Heat is free to play in your browser with no sign-up and nothing to download." },
+      { q: "What happens if the police catch me?", a: "If a police car stays right next to you while you're going slowly, the BUSTED meter fills up. Keep moving and keep your damage low!" },
+      { q: "How do I unlock new cars?", a: "Earn stars in the Career. Every car shows how many stars it needs; your first three cars are free." },
+      { q: "Does it work on phones?", a: "Yes. It has big touch buttons, optional tilt steering and automatic graphics settings. Turn your phone sideways for the widest view." },
+    ],
+    skills: ["Reaction", "Hand-eye coordination", "Planning", "Focus"],
+    released: "2026-11-17",
+    art: "cover",
+    engine: "racing",
+    host: "bolt",
+  },
+  {
+    slug: "moto-rush",
+    title: "Moto Rush GP",
+    short: "3D motorbike Grand Prix racing",
+    tagline: "Lean into the corners, pop wheelies on the straights and win the Grand Prix!",
+    description:
+      "Moto Rush GP is a free 3D motorbike racing game in your browser. Lean your bike deep into the corners — your rider hangs off the side — tuck in behind rivals to slipstream, and hit the nitro out of the last bend. Hold WHEELIE on the straights to lift the front wheel, charge your nitro and score big in the Wheelie Challenge. Qualify, race full Grand Prix grids and beat each circuit's champion in a Title Duel across 27 circuits — from a sunny raceway and a neon night street circuit to snowy Alps, Mars and a rainbow Grand Prix in the sky. Unlock 32 bikes: sport bikes, naked bikes, supermotos, scooters, cruisers, café racers, choppers and electric superbikes.",
+    status: "live",
+    categories: ["racing", "speed"],
+    ages: "6+",
+    accent: "#E10600",
+    accent2: "#FFD400",
+    cover: "/games/moto-rush/card.webp",
+    hero: "/games/moto-rush/hero.webp",
+    character: "/brand/chars/zib-happy.webp",
+    shots: [],
+    modes: [
+      { id: "race", label: "Grand Prix", color: "#E10600", desc: "Up to 7 rivals · lean, draft, nitro", coins: 0 },
+      { id: "wheelie", label: "Wheelie Challenge", color: "#FFD400", desc: "Solo · wheelie points ×4, coins, gates", coins: 0 },
+      { id: "timetrial", label: "Qualifying", color: "#2A6BFF", desc: "Solo · beat the lap time", coins: 0 },
+    ],
+    howTo: [
+      { title: "Lean into corners", text: "Steer with the arrows (or tilt your phone). Your bike leans into the bend by itself — brake a little before the tight ones." },
+      { title: "Pop a wheelie", text: "On a straight, hold WHEELIE to lift the front wheel. It charges your nitro and gives a little push. The longer it lasts, the bigger the points." },
+      { title: "Draft and boost", text: "Tuck in behind a rival to slipstream, then hit NITRO to blast past." },
+      { title: "Unlock bikes", text: "Earn stars in Qualifying, Wheelie Challenges, Grands Prix and Title Duels to unlock 32 bikes." },
+    ],
+    controls: [
+      { keys: "← → / A D", action: "Steer / lean" },
+      { keys: "▲ W / ▼ S", action: "Throttle / brake" },
+      { keys: "X / Ctrl (hold)", action: "Wheelie" },
+      { keys: "Shift / Space", action: "Nitro" },
+      { keys: "C", action: "Change camera" },
+      { keys: "P / Esc", action: "Pause" },
+    ],
+    faq: [
+      { q: "Is Moto Rush GP free?", a: "Yes. Moto Rush GP is free to play in your browser with no sign-up and nothing to download." },
+      { q: "How do I do a wheelie?", a: "Hold the yellow WHEELIE button on a straight. Let go before a corner — you can't wheelie while turning hard." },
+      { q: "How do I unlock new bikes?", a: "Earn stars in the Career. Every bike shows how many stars it needs; your first three bikes are free." },
+      { q: "Does it work on phones?", a: "Yes. It has big touch buttons, optional tilt steering and automatic graphics settings. Turn your phone sideways for the widest view." },
+    ],
+    skills: ["Hand-eye coordination", "Timing", "Reaction", "Focus"],
+    released: "2026-11-17",
+    art: "cover",
+    engine: "racing",
+    host: "zib",
+  },
+  {
+    slug: "blob-brigade",
+    title: "Blob Brigade",
+    short: "Grow a blob army and stop the Grumpy march",
+    tagline: "From one little blob to a mighty brigade!",
+    description:
+      "Blob Brigade is a free 3D crowd game for kids. You start with one little Momo blob. Walk onto the +1 tiles to grow your brigade, pick the best math gate (+10 or ×2?), break the bonus jar for a jackpot — and bubble Kranky's grumpy march back to happy before it reaches you. Every 10 blobs merge into a Big Blob, and Big Blobs merge into Giants. Every stage ends with a villain who throws goo, calls lightning or drops Grumpies from the sky, so keep moving! Play 100 fast stages across 10 worlds — Garden Path, Candy Kitchen, slippery Snowy Peaks, the Toy Room, Beach Day, Spooky Night, Jungle Ruins, Lava Land, the Space Station and Kranky's Castle — each with its own twist and boss, from the Snow Grump Giant and Robo Grump to the UFO Mothership and King Kranky's giant mech. Pick one of 11 leaders, each with a special POWER, spend coins on upgrades and dress your brigade in hats. After stage 100 the Remix Loop goes on forever in gold, rainbow and galaxy colours — plus a new Daily Challenge every day, Boss Rush against all 15 villains, and Endless Waves.",
+    status: "live",
+    categories: ["speed", "numbers", "brain"],
+    ages: "6+",
+    accent: "#FF8A3D",
+    accent2: "#3D8BFF",
+    cover: "/games/blob-brigade/card.webp",
+    hero: "/games/blob-brigade/hero.webp",
+    character: "/brand/momo-cheer.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Stages", color: "#FF8A3D", desc: "100 stages · 10 worlds · a villain in every stage", coins: 0 },
+      { id: "endless", label: "Endless Waves", color: "#8F6BFF", desc: "How many waves can you hold?", coins: 0 },
+      { id: "daily", label: "Daily Challenge", color: "#FF5FA2", desc: "A new stage and twist every day", coins: 0 },
+      { id: "rush", label: "Boss Rush", color: "#C9A227", desc: "All 15 villains in a row", coins: 0 },
+    ],
+    howTo: [
+      { title: "Drag to move", text: "Drag left and right anywhere on the screen. Your brigade shoots bubbles by itself." },
+      { title: "Grow your brigade", text: "Walk onto the blue +1 tiles and through the best gate. Ten blobs merge into a Big Blob!" },
+      { title: "Break the bonus jar", text: "Stand in the yellow lane and bubble the jar open — its big tiles slide down to you." },
+      { title: "Cheer up the Grumpies", text: "Stand in front of the march. Every Grumpy that reaches you takes blobs away — keep your number bigger than theirs!" },
+      { title: "Dodge the villain", text: "A red circle on the ground means something is about to land there. Slide out of it! Red −3 tiles take blobs away too." },
+      { title: "Grab the powers", text: "Glowing tiles with a picture are power-ups. From World 3, some Grumpies carry a power badge too: pop them for Triple Shot, Rapid Fire or Mega Bubbles!" },
+      { title: "Use your leader's POWER", text: "When the round button at the bottom fills up, tap it: Momo pushes the Grumpies back, Pip freezes them, Zib fires a laser beam… Pick your leader on the title screen." },
+    ],
+    controls: [
+      { keys: "Drag / ← → / A D", action: "Move the brigade" },
+      { keys: "P / Esc", action: "Pause" },
+    ],
+    faq: [
+      { q: "Is Blob Brigade free?", a: "Yes. Blob Brigade is free to play in your browser with no sign-up and nothing to download." },
+      { q: "How do I unlock more leaders and worlds?", a: "Collect stars. Every stage gives up to three, and new leaders and worlds open as your star total grows. Coins buy upgrades that make every leader stronger." },
+      { q: "Which gate should I pick?", a: "The one that makes your number bigger! ×2 is great when you have lots of blobs, +10 is better when you only have a few." },
+      { q: "Is there violence?", a: "No. Your blobs shoot bubbles, and the Grumpies pop into confetti and get cheered up." },
+      { q: "Does it work on phones?", a: "Yes — it's made for phones: one finger to drag, big buttons, and automatic graphics settings." },
+    ],
+    skills: ["Number sense", "Quick decisions", "Hand-eye coordination", "Planning"],
+    released: "2026-11-17",
+    art: "cover",
+    engine: "brigade",
+    host: "momo",
+  },
+  ...ARCADE_GAMES,
+];
+
+export const getGame = (slug: string) => GAMES.find((g) => g.slug === slug);
+export const LIVE_GAMES = GAMES.filter((g) => g.status === "live");
+
+export const CHARACTERS = [
+  {
+    id: "momo",
+    name: "Momo",
+    role: "The little hero who hides",
+    color: "#FF8A3D",
+    img: "/brand/momo-cheer.webp",
+    alt: "/brand/momo-sly.webp",
+    bio: "A round orange clay blob with a sprout on top and giant googly eyes. Momo loves hiding under cups — and loves it even more when you find him.",
+    likes: ["Hide and seek", "Big jumps", "Sunshine"],
+  },
+  {
+    id: "kranky",
+    name: "Kranky",
+    role: "The sneaky shuffle master",
+    color: "#E8504F",
+    img: "/brand/kranky.webp",
+    alt: "/brand/kranky-laugh.webp",
+    bio: "A red crab in a tiny top hat and bow tie. Kranky shuffles the cups with his big claws and laughs when you guess wrong. Can you beat him?",
+    likes: ["Fast shuffles", "Fake-outs", "His moustache"],
+  },
+  {
+    id: "tiki",
+    name: "Tiki",
+    role: "The cheerful level keeper",
+    color: "#2EC4B6",
+    img: "/brand/tiki-sign.webp",
+    alt: "/brand/tiki.webp",
+    bio: "A teal bird with a purple tuft who holds up the level sign and cheers every time you find Momo.",
+    likes: ["Signs", "Cheering", "Counting levels"],
+  },
+  {
+    id: "pip",
+    name: "Pip",
+    role: "The forgetful penguin",
+    color: "#2E3F78",
+    img: "/brand/chars/pip-happy.webp",
+    alt: "/brand/chars/pip-wow.webp",
+    bio: "A round little penguin in a big red scarf. Pip forgets everything — where his fish are, where he put his snacks, sometimes even his own name. Help him remember!",
+    likes: ["Fish (all of them)", "Scarves", "Naps on ice"],
+  },
+  {
+    id: "gloop",
+    name: "Gloop",
+    role: "The wobbly slime",
+    color: "#9BE34A",
+    img: "/brand/chars/gloop-happy.webp",
+    alt: "/brand/chars/gloop-wow.webp",
+    bio: "A lime-green slime with exactly one big tooth. Gloop wobbles, splits into copies of himself and sticks to everything. One of the copies is always up to no good.",
+    likes: ["Being sticky", "Disco parties", "His one tooth"],
+  },
+  {
+    id: "hoot",
+    name: "Prof. Hoot",
+    role: "The sleepy genius owl",
+    color: "#9A6B45",
+    img: "/brand/chars/hoot-happy.webp",
+    alt: "/brand/chars/hoot-sad.webp",
+    bio: "A very clever owl with giant glasses and a graduation cap. Prof. Hoot knows everything… but falls asleep in the middle of his own sentences.",
+    likes: ["Colours", "Puzzles", "Long naps"],
+  },
+  {
+    id: "noodle",
+    name: "Noodle",
+    role: "The extra-long sausage dog",
+    color: "#D49452",
+    img: "/brand/chars/noodle-happy.webp",
+    alt: "/brand/chars/noodle-wow.webp",
+    bio: "Noodle is so long he never fits on one screen. He notices every tiny change in his room — except where his own tail went.",
+    likes: ["Spotting changes", "Belly rubs", "Chasing his tail"],
+  },
+  {
+    id: "zib",
+    name: "Zib",
+    role: "The one-eyed alien",
+    color: "#8E5BE8",
+    img: "/brand/chars/zib-happy.webp",
+    alt: "/brand/chars/zib-wow.webp",
+    bio: "A tiny purple alien with one huge eye and a glowing antenna. Zib loves hiding in busy crowds and is famously bad at parking his UFO.",
+    likes: ["Hide and seek", "Space parties", "Shiny things"],
+  },
+  {
+    id: "bolt",
+    name: "Bolt",
+    role: "The beeping robot",
+    color: "#1E9C91",
+    img: "/brand/chars/bolt-happy.webp",
+    alt: "/brand/chars/bolt-wow.webp",
+    bio: "A boxy little robot with a glowing screen for a face and four coloured buttons on his tummy. Bolt talks in beeps, loves light patterns and does a robot dance whenever you copy him right.",
+    likes: ["Beeps and boops", "Glowing lights", "Robot dancing"],
+  },
+  {
+    id: "bonbon",
+    name: "Bonbon",
+    role: "The cake-loving hippo chef",
+    color: "#FF6F91",
+    img: "/brand/chars/bonbon-happy.webp",
+    alt: "/brand/chars/bonbon-wow.webp",
+    bio: "A pink hippo in a puffy chef's hat who runs the sweetest cake shop in town. Bonbon remembers every customer's order… and eats every cake that falls over.",
+    likes: ["Tall cakes", "Sprinkles", "Eating the mistakes"],
+  },
+  {
+    id: "turbo",
+    name: "Turbo",
+    role: "The rocket-powered snail",
+    color: "#FF6B3D",
+    img: "/brand/chars/turbo-happy.webp",
+    alt: "/brand/chars/turbo-wow.webp",
+    bio: "The slowest animal in town with the fastest shell in the world. Turbo wears racing goggles, fires up his rocket shell and still somehow arrives late for everything.",
+    likes: ["Racing", "Jelly beans", "Leaves (crunchy ones)"],
+  },
+];
