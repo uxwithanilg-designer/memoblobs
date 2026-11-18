@@ -10,6 +10,7 @@ import { Track } from "../track";
 import { activeGame, getTheme } from "../games";
 import type { CarSpec, ModeId } from "../types";
 import { cachedThumb, carThumb } from "./thumbs";
+import { cdn } from "@/lib/cdn";
 
 // ------------------------------------------------------------------ formatting
 export const fmt = (ms: number) => {
@@ -349,7 +350,7 @@ export const CarThumb = memo(function CarThumb({ spec, color, locked = false, cl
     <span className={`relative block ${className}`}>
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="" draggable={false} className="size-full object-contain" />
+        <img src={cdn(url)} alt="" draggable={false} className="size-full object-contain" />
       ) : (
         <span className="absolute inset-[22%_12%] animate-pulse rounded-[40%_40%_18%_18%] bg-white/10" />
       )}

@@ -11,6 +11,7 @@ import { MODE_INFO, type CareerLevel } from "../levels";
 import { getCar, getTheme } from "../games";
 import type { RaceConfig, RaceResult, RacerView } from "../types";
 import { CoinIcon } from "@/components/brand/CoinPill";
+import { cdn } from "@/lib/cdn";
 
 export interface ResultInfo { r: RaceResult; unlocked: string[]; newBest: boolean; bestLap: boolean; level?: CareerLevel; newWorld?: string | null; prevStars: number }
 
@@ -28,7 +29,7 @@ function Podium({ st }: { st: RacerView[] }) {
         <motion.div key={r.id} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25 + [0.2, 0, 0.35][i], type: "spring", stiffness: 260, damping: 20 }} className="flex w-[30%] max-w-[120px] flex-col items-center">
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={r.avatar} alt="" className={`object-contain drop-shadow-[0_6px_8px_rgba(0,0,0,0.5)] ${i === 1 ? "size-16" : "size-12"}`} />
+            <img src={cdn(r.avatar)} alt="" className={`object-contain drop-shadow-[0_6px_8px_rgba(0,0,0,0.5)] ${i === 1 ? "size-16" : "size-12"}`} />
             {r.isPlayer && <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#FFD25A] px-1.5 font-display text-[10px] text-[#2a1600]">YOU</span>}
           </div>
           <p className={`w-full truncate text-center font-display text-[13px] ${r.isPlayer ? "text-[#FFD25A]" : ""}`}>{r.name}</p>
@@ -171,7 +172,7 @@ export function Results({ res, cfg, hasNext, vibrateOn, units, onNext, onRetry, 
         <div key={x.id} className={`flex min-h-10 items-center gap-2 rounded-xl px-2 text-sm ${x.isPlayer ? "bg-[#FFD25A] text-[#2a1600]" : "bg-white/[0.05]"} ${x.out ? "opacity-55" : ""}`}>
           <span className="w-6 text-center font-display">{x.pos}</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={x.avatar} alt="" className="size-7 object-contain" />
+          <img src={cdn(x.avatar)} alt="" className="size-7 object-contain" />
           <span className="min-w-0 flex-1 truncate font-semibold">{x.name}</span>
           <span className="size-2.5 shrink-0 rounded-full" style={{ background: x.color }} />
           <span className="w-16 text-right font-display text-xs tabular-nums opacity-75">{x.out ? "OUT" : x.finished ? fmt(x.time * 1000) : "DNF"}</span>

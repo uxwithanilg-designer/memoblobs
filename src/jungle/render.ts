@@ -5,6 +5,7 @@
 // through the leaves), banana plants and palms behind, misty hills and waterfalls far away. The path is drawn in short
 // strips so chasms and rivers can cut through it. At each region gate the forest is rebuilt behind a white flash.
 import * as THREE from "three";
+import { FrameGovernor } from "@/lib/perf";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
@@ -145,6 +146,9 @@ export class JungleRenderer {
     this.sim = sim; this.q = quality; this.attract = attract; this.look = look;
     this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", stencil: false });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.5 : 1));
+    // lower the resolution a step if this device can't hold the frame rate (and back up when it can)
+    const fullPr = this.renderer.getPixelRatio();
+    this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(fullPr * k); this.resize(this.w, this.h); });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     host.appendChild(this.renderer.domElement);
@@ -500,8 +504,10 @@ export class JungleRenderer {
   }
 
   // ------------------------------------------------------------------ per frame
+  private gov: FrameGovernor | null = null;
   resize(w: number, h: number) {
     this.w = Math.max(1, w); this.h = Math.max(1, h);
+    this.composer?.setPixelRatio(this.renderer.getPixelRatio());
     this.renderer.setSize(this.w, this.h, false);
     this.composer?.setSize(this.w, this.h);
     this.camera.aspect = this.w / this.h;
@@ -1144,6 +1150,7 @@ export class JungleRenderer {
   }
 
   dispose() {
+    this.gov?.dispose();
     const o = this.rl;
     [o.strips, o.trees, o.leaves, o.plants, o.near, o.far, o.glowFar, o.rays, o.hang, o.zone, o.zoneGlow, o.arches].forEach((l) => l.dispose());
     o.water.forEach((w) => w.geometry.dispose());

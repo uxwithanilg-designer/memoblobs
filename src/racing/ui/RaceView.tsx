@@ -17,6 +17,7 @@ import { activeGame, getCar, getTheme } from "../games";
 import { AI_LABEL, MODE_SHORT, fmt, isHighway, isMoto, isStreet, ord, pts, useIsTouch, useViewport, vibrate } from "./kit";
 import { askMotionPermission } from "./SettingsScreen";
 import { CoinIcon } from "@/components/brand/CoinPill";
+import { cdn } from "@/lib/cdn";
 
 type TouchKey = "left" | "right" | "brake" | "nitro" | "drift" | "gas";
 interface Toast { id: number; text: string; tone: string; big?: boolean }
@@ -225,7 +226,7 @@ const Standings = memo(function Standings({ list, max, mode, danger }: { list: R
             className={`flex h-[24px] items-center gap-1 rounded-lg pr-1.5 text-[11.5px] leading-none ring-1 ${r.isPlayer ? (isMoto() ? "bg-[#E10600] text-white ring-white/60" : isHighway() ? "bg-[#FFC600] text-[#111] ring-[#111]/60" : isStreet() ? "bg-[linear-gradient(90deg,#FF1F7A,#C2005C)] text-white ring-[#FF8CC0]/60" : "bg-[linear-gradient(90deg,#FFD25A,#FFAA1C)] text-[#2a1600] ring-white/50") : "bg-[#0b0718]/70 text-white ring-white/10"} ${r.out ? "opacity-40" : ""} ${knock ? "!ring-2 !ring-[#FF5A6E]" : ""}`}>
             <span className={`grid h-full w-5 shrink-0 place-items-center rounded-l-lg font-display ${r.isPlayer ? (isStreet() ? "bg-black/40 text-white" : "bg-[#2a1600] text-[#FFD25A]") : "bg-white/10"}`}>{r.pos}</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={r.avatar} alt="" draggable={false} className="size-[19px] shrink-0 object-contain" />
+            <img src={cdn(r.avatar)} alt="" draggable={false} className="size-[19px] shrink-0 object-contain" />
             <span className={`min-w-0 flex-1 truncate font-semibold ${r.out ? "line-through" : ""}`}>{r.isPlayer ? "YOU" : r.name}</span>
             <span className="shrink-0 font-display text-[10px] tabular-nums opacity-80">{knock ? (danger && r.isPlayer ? "OUT?" : "💥") : r.out ? "OUT" : r.pos === 1 ? "LEAD" : `+${Math.max(0, r.gap).toFixed(1)}`}</span>
           </motion.div>

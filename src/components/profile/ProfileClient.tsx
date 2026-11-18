@@ -7,6 +7,7 @@ import { AVATARS, TROPHIES, dayStreak, emptyStats, useHydrated, useProfile } fro
 import { CoinIcon } from "@/components/brand/CoinPill";
 import { ALL_PAGES } from "@/components/layout/nav";
 import { toast } from "@/components/ui/Toaster";
+import { playHref } from "@/lib/catalog";
 
 export function ProfileClient() {
   const ok = useHydrated();
@@ -66,7 +67,7 @@ export function ProfileClient() {
       <section className="glass rounded-[1.75rem] p-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-2xl">Momo Shuffle stats</h2>
-          <Link href={`/play/momo-shuffle?mode=${st.lastDifficulty}`} className="btn-clay sm"><Play className="size-4 fill-current" /> Play</Link>
+          <Link href={playHref("momo-shuffle", { mode: st.lastDifficulty })} className="btn-clay sm"><Play className="size-4 fill-current" /> Play</Link>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
           {[

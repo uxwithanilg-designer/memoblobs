@@ -31,6 +31,11 @@ const PICO_JOKES = ["Ooh, this looks fun!", "I'd fly over it. Oh wait, you can't
 
 const UI_SOUNDS: Sound[] = ["a:click", "a:whooshOut", "a:whooshIn", "a:ding", "a:levelup", "tada", "a:cheer", "a:kiko_coin", "a:kiko_trick", "a:bwomp", "a:kiko_monkey"];
 const musicOf = (id: string): MusicName => `a:kiko_${id}_action` as MusicName;
+/** the music of the next region after stage n, so it is loaded before Kiko gets there */
+const nextMusicAfter = (n: number) => {
+  try { const cur = sectionOf(n).music; for (let k = 1; k <= 40; k++) { const m = sectionOf(n + k).music; if (m !== cur) return m; } } catch { /* past the end */ }
+  return null;
+};
 const isAutomation = () => typeof navigator !== "undefined" && Boolean((navigator as Navigator & { webdriver?: boolean }).webdriver);
 const isPhone = () => typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches ?? false) && Math.min(window.innerWidth, window.innerHeight) < 600;
 const ui = (s: Sound = "a:click", gain = 0.4) => {
@@ -385,11 +390,15 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
   }, []);
   useEffect(() => { const t = setTimeout(() => setCard((c) => (c?.n === spec.start ? null : c)), 2600); return () => clearTimeout(t); }, [spec.start]);
   useEffect(() => {
+    // the rush, chase and boss tracks can start any moment: have them downloaded from the start
+    audio.warmMusic([musicOf("rush"), musicOf("chase"), musicOf("boss")]);
+    let ahead = -1;
     const iv = setInterval(() => {
       const s = sess.current;
       if (!s) return;
       const h = s.hud();
       setHud(h);
+      if (s.sim.sec.n !== ahead) { ahead = s.sim.sec.n; const m = nextMusicAfter(ahead); if (m) audio.prepareMusic(musicOf(m)); }
       if (goal) {
         const now = s.sim.stats.fruitBy[goal.fruit] ?? 0;
         setGoalHave((was) => {

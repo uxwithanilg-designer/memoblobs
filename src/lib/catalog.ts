@@ -13,6 +13,9 @@ export const TOP_PICKS = ALL_PLAYABLE.slice(0, 12);
 export const NEW_GAMES = [...LIVE_GAMES].sort((a, b) => (b.released ?? "").localeCompare(a.released ?? "") || rank(a) - rank(b));
 const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape"]);
 export const is3D = (g: Game) => g.engine !== undefined && ENGINES_3D.has(g.engine);
+/** the sound files a game's engine uses (audio/arcade/{sfx,music,voice}_<family>_*.mp3), for background loading */
+const SOUND_FAMILY: Partial<Record<NonNullable<Game["engine"]>, string>> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade" };
+export const soundFamily = (g: Game) => (g.engine ? SOUND_FAMILY[g.engine] ?? "" : "");
 export const GAMES_3D = ALL_PLAYABLE.filter(is3D);
 /** NEW = everything from the latest release day */
 const NEW_SLUGS = new Set(NEW_GAMES.filter((g) => g.released === NEW_GAMES[0]?.released).map((g) => g.slug));
@@ -22,7 +25,9 @@ export const inCategory = (c: Category) => ALL_PLAYABLE.filter((g) => g.categori
 export const categoryOf = (id: string) => CATEGORIES.find((c) => c.id === id);
 export const categoryHref = (id: string) => `/c/${id}`;
 export const gameHref = (g: Game | string) => `/games/${typeof g === "string" ? g : g.slug}`;
-export const playHref = (g: Game | string) => `/play/${typeof g === "string" ? g : g.slug}`;
+/** the shared player page: one page for every game, the game in the address (/play?g=<slug>&mode=…) */
+export const playHref = (g: Game | string, extra: Record<string, string> = {}) =>
+  `/play?${new URLSearchParams({ g: typeof g === "string" ? g : g.slug, ...extra })}`;
 /** the 16:9 thumbnail every card uses */
 export const thumbOf = (g: Game) => g.hero;
 

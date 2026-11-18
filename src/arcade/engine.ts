@@ -2,6 +2,7 @@
 // 2D canvas, game-time timers & tweens, particles, score/combo/hearts, seeded unlimited levels
 // with no-repeat bags, level transitions, character reactions (sprite + voice + optional voice-over).
 import { audio, type MusicName, type Sound } from "@/lib/audio";
+import { cdn } from "@/lib/cdn";
 import type { Difficulty, Settings } from "@/lib/store";
 import { clayText, rgba, star, type G } from "./paint";
 
@@ -425,8 +426,17 @@ export abstract class ArcadeGame {
     return new Promise<HTMLImageElement>((res) => {
       const im = new Image();
       im.decoding = "async";
-      im.onload = () => res(im); im.onerror = () => res(im);
-      im.src = url;
+      // sprites come from R2: CORS mode keeps the canvas readable (Shadow Match reads sprite pixels)
+      im.crossOrigin = "anonymous";
+      im.onload = () => res(im);
+      // R2 hiccup (rate limit): ask once more a moment later
+      let retried = false;
+      im.onerror = () => {
+        if (retried || cdn(url) === url) { res(im); return; }
+        retried = true;
+        setTimeout(() => { const u = cdn(url); im.src = `${u}${u.includes("?") ? "&" : "?"}retry=1`; }, 1200);
+      };
+      im.src = cdn(url);
       this.images.set(url, im);
     });
   }

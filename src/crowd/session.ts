@@ -6,6 +6,7 @@ import { BrigadeRenderer, type Quality } from "./render";
 import { MAX_BRIGADE, Sim } from "./sim";
 import { DEFAULT_LOADOUT, POWERUPS, leaderOf, type Loadout, type Look } from "./leaders";
 import type { SimEvent, SimResult, StageSpec } from "./types";
+import { cdn } from "@/lib/cdn";
 
 export interface HudState {
   n: number; peak: number; hpLeft: number; hpTotal: number; coins: number; t: number;
@@ -63,7 +64,7 @@ export class BrigadeSession {
     this.countEl = document.createElement("div");
     this.countEl.className = "bb-count";
     const lead = leaderOf((o.loadout ?? DEFAULT_LOADOUT).leader);
-    const img = document.createElement("img"); img.src = lead.img; img.alt = ""; img.className = "bb-lead"; img.style.borderColor = lead.color;
+    const img = document.createElement("img"); img.src = cdn(lead.img); img.alt = ""; img.className = "bb-lead"; img.style.borderColor = lead.color;
     this.countNum = document.createElement("span");
     this.countEl.append(img, this.countNum);
     this.overlay.appendChild(this.countEl);

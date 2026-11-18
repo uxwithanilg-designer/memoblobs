@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Bookmark, Maximize, Minimize, Play, Share2, Smartphone, ThumbsDown, ThumbsUp, Volume2, VolumeX } from "lucide-react";
 import { QrModal } from "@/components/game/QrModal";
+import { warmGame } from "@/components/player/GameView";
+import { whenIdle } from "@/lib/preload";
 import { toast } from "@/components/ui/Toaster";
 import { getGame } from "@/lib/games";
 import { playHref, thumbOf } from "@/lib/catalog";
@@ -48,6 +50,12 @@ export function GameStage({ slug }: { slug: string }) {
     if (full) void enterFs();
   }, [router, slug, enterFs]);
   const stop = useCallback(() => { void exitFs(); setPlaying(false); }, [exitFs]);
+
+  // while the player looks at the page, the game's code and menu sounds download, so Play opens it almost at once
+  useEffect(() => {
+    const t = setTimeout(() => whenIdle(() => warmGame(slug), 2000), 900);
+    return () => clearTimeout(t);
+  }, [slug]);
 
   useEffect(() => {
     const d = document as FsDoc;
@@ -94,7 +102,7 @@ export function GameStage({ slug }: { slug: string }) {
         {playing ? (
           <iframe
             ref={frame}
-            src={`${playHref(slug)}?embed=1`}
+            src={playHref(slug, { embed: "1" })}
             title={`${g.title} game`}
             allow="fullscreen; autoplay; gamepad; screen-wake-lock"
             allowFullScreen

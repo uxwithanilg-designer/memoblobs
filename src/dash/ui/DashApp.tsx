@@ -22,6 +22,11 @@ interface Over { res: SimResult; reward: number; newBest: boolean; done: Mission
 
 const UI_SOUNDS: Sound[] = ["a:click", "a:whooshOut", "a:whooshIn", "a:ding", "a:levelup", "tada", "a:cheer", "sadtrombone", "a:dash_coin", "a:dash_trick", "a:bwomp"];
 const musicOf = (id: string): MusicName => (id === "chase" ? "a:dash_chase_action" : `a:dash_${id}_action`) as MusicName;
+/** the music of the next world after stage n, so it is loaded before Momo gets there */
+const nextMusicAfter = (n: number) => {
+  try { const cur = sectionOf(n).music; for (let k = 1; k <= 40; k++) { const m = sectionOf(n + k).music; if (m !== cur) return m; } } catch { /* past the end */ }
+  return null;
+};
 const isAutomation = () => typeof navigator !== "undefined" && Boolean((navigator as Navigator & { webdriver?: boolean }).webdriver);
 const isPhone = () => typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches ?? false) && Math.min(window.innerWidth, window.innerHeight) < 600;
 const ui = (s: Sound = "a:click", gain = 0.4) => {
@@ -300,6 +305,9 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
   }, []);
   useEffect(() => { const t = setTimeout(() => setCard((c) => (c?.n === spec.start ? null : c)), 2600); return () => clearTimeout(t); }, [spec.start]);
   useEffect(() => {
+    // the star and chase tracks can start any moment: have them downloaded from the start
+    audio.warmMusic([musicOf("star"), musicOf("chase")]);
+    let ahead = -1;
     const iv = setInterval(() => {
       const s = sess.current;
       if (!s) return;
@@ -307,6 +315,7 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
       setHud(h);
       const want = h.boost > 0 ? "star" : h.chase ? "chase" : s.sim.sec.music;
       if (want !== music.current) { music.current = want; void audio.playMusic(musicOf(want)); }
+      if (s.sim.sec.n !== ahead) { ahead = s.sim.sec.n; const m = nextMusicAfter(ahead); if (m) audio.prepareMusic(musicOf(m)); }
       const np = newPiece(s.sim.sec.n);
       setHint(np && INTRO_TEXT[np] ? INTRO_TEXT[np] : null);
     }, 100);

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { House, Play } from "lucide-react";
+import { playHref } from "@/lib/catalog";
 
 export default function NotFound() {
   return (
@@ -15,7 +16,7 @@ export default function NotFound() {
         <p className="mx-auto mt-2 max-w-md text-muted">Kranky shuffled this page away. Let&apos;s go find Momo somewhere else.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link href="/" className="btn-clay ghost"><House className="size-5" /> Home</Link>
-          <Link href="/play/momo-shuffle" className="btn-clay"><Play className="size-5 fill-current" /> Play Momo Shuffle</Link>
+          <Link href={playHref("momo-shuffle")} className="btn-clay"><Play className="size-5 fill-current" /> Play Momo Shuffle</Link>
         </div>
       </div>
     </main>

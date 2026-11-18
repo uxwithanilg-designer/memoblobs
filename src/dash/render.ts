@@ -5,6 +5,7 @@
 // The run passes through 12 worlds: at each world gate the renderer rebuilds the world (road, houses, props, obstacle
 // skins, sky, light) behind a white flash; until then, nothing past the gate is drawn (the gate glows white).
 import * as THREE from "three";
+import { FrameGovernor } from "@/lib/perf";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
@@ -136,6 +137,9 @@ export class DashRenderer {
     this.sim = sim; this.q = quality; this.attract = attract; this.look = look;
     this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", stencil: false });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.5 : 1));
+    // lower the resolution a step if this device can't hold the frame rate (and back up when it can)
+    const fullPr = this.renderer.getPixelRatio();
+    this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(fullPr * k); this.resize(this.w, this.h); });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     host.appendChild(this.renderer.domElement);
@@ -405,8 +409,10 @@ export class DashRenderer {
   }
 
   // ------------------------------------------------------------------ per frame
+  private gov: FrameGovernor | null = null;
   resize(w: number, h: number) {
     this.w = Math.max(1, w); this.h = Math.max(1, h);
+    this.composer?.setPixelRatio(this.renderer.getPixelRatio());
     this.renderer.setSize(this.w, this.h, false);
     this.composer?.setSize(this.w, this.h);
     this.camera.aspect = this.w / this.h;
@@ -845,6 +851,7 @@ export class DashRenderer {
   }
 
   dispose() {
+    this.gov?.dispose();
     const wl = this.wl;
     [wl.tiles, wl.walls, wl.props, wl.glowProps, wl.bulbs, wl.far, ...Object.values(wl.obs)].forEach((l) => l.dispose());
     [this.coins, this.items, this.friendsL, this.conga, this.gates, this.shadows].forEach((l) => l.dispose());

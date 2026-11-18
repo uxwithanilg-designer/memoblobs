@@ -7,3 +7,29 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## MOMOBLOBS: read `docs/AGENT_PROMPT.md` first
+
+Before you add or change a game, read `docs/AGENT_PROMPT.md`: the full brief on hosting, R2 game files, loading,
+performance, the new-game checklist, the checks to run and the deploy rules. The hard rule is repeated below.
+
+## Hosting budget — every game, every agent (MOMOBLOBS rule)
+
+The site is a static export on a Cloudflare Worker (free plan: 20,000 files per deploy) and every game file lives in
+the R2 bucket. To keep room for thousands of games, **each game may use only 6–9 files on the site**. Today a game
+uses 7: its page `/games/<slug>` (`.html` + `.txt`) and the 5 data files Next writes for it.
+
+- **No per-game routes.** All games play on one shared page, `/play?g=<slug>` — build links with `playHref()` from
+  `src/lib/catalog.ts`. Never add `/play/<slug>`, `/games/<slug>/<anything>` or any other page per game; put extra
+  content inside the game's existing page or inside the game itself.
+- **Game files go to R2, never to the site.** Put a game's art, sounds, music, fonts and data in
+  `public/games/<slug>/`, `public/audio/`, `public/brand/` or `public/fonts/` (the folders in `scripts/r2/config.mjs`).
+  `npm run upload:r2` sends them to R2 and `npm run build:static` leaves them out of the site deploy.
+- **Load them through the R2 helpers.** `next/image` does it automatically. Everything else — `<img>`, `new Image()`,
+  `fetch`, three.js loaders — must use `cdn(path)` from `src/lib/cdn.ts`; full URLs for SEO and link previews use
+  `absAsset(path)` from `src/lib/site.ts`. Don't `import` media files into JavaScript.
+- **Enforced.** `npm run build:static` runs `scripts/check-game-budget.mjs`; it fails when a game is outside 6–9 site
+  files or a game file would ship with the site. Fix the game — don't skip the check or change its limits (that is
+  the owner's decision).
+- **Deploy** with `npm run deploy` (build → upload to R2 → `wrangler deploy`). Never deploy without the R2 upload:
+  the site has no copy of the game files.

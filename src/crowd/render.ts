@@ -1,6 +1,7 @@
 // Blob Brigade renderer (three.js). Reads the Sim every frame and draws it with instanced meshes: one draw call for
 // all brigade blobs, two for all near Grumpies, one for far ones, one for every bubble, tile, label and confetti.
 import * as THREE from "three";
+import { FrameGovernor } from "@/lib/perf";
 import type { Sim, Block, Boss } from "./sim";
 import { BUBBLE_R, POWER_LIST, TIER_R, WALL_END } from "./sim";
 import { HALF } from "./levels";
@@ -312,6 +313,9 @@ export class BrigadeRenderer {
     this.bubbleKind = style?.bubble ?? "blue";
     this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", stencil: false });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.5 : 1));
+    // lower the resolution a step if this device can't hold the frame rate (and back up when it can)
+    const fullPr = this.renderer.getPixelRatio();
+    this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(fullPr * k); this.resize(this.w, this.h); });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
@@ -503,6 +507,7 @@ export class BrigadeRenderer {
   }
 
   // ---------------------------------------------------------------- camera
+  private gov: FrameGovernor | null = null;
   resize(w: number, h: number) {
     this.w = Math.max(1, w); this.h = Math.max(1, h);
     this.renderer.setSize(this.w, this.h, false);
@@ -1020,6 +1025,7 @@ export class BrigadeRenderer {
   }
 
   dispose() {
+    this.gov?.dispose();
     for (const g of this.gateObjs.values()) this.disposeGroup(g);
     for (const g of this.blockObjs.values()) this.disposeGroup(g, true);
     if (this.bossObj) this.disposeGroup(this.bossObj, true);

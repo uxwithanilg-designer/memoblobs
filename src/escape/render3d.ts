@@ -4,6 +4,7 @@
 // maths as the game. Screen-wide effects (lights out, fog, alarm, strobe, speed streaks, flashes, the building stamp) are
 // drawn on a thin 2D overlay. Mirror / upside-down / tilted floors transform the 3D canvas itself.
 import * as THREE from "three";
+import { FrameGovernor } from "@/lib/perf";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { tint } from "../crowd/models";
@@ -203,9 +204,11 @@ export class EscapeRenderer3D implements EscapeView {
   }
 
   // ---------------------------------------------------------------- sizing
+  /** lowers the resolution a step if this device can't hold the frame rate (and back up when it can) */
+  private gov: FrameGovernor | null = typeof window !== "undefined" ? new FrameGovernor(() => this.resize(this.w, this.h)) : null;
   resize(w: number, h: number) {
     this.w = Math.max(1, w); this.h = Math.max(1, h);
-    this.dpr = Math.min(window.devicePixelRatio || 1, this.q === "high" ? 2 : this.q === "medium" ? 1.6 : 1.2);
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.q === "high" ? 2 : this.q === "medium" ? 1.6 : 1.2) * (this.gov?.scale ?? 1);
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.setSize(this.w, this.h, false);
     this.ov.width = Math.round(this.w * this.dpr); this.ov.height = Math.round(this.h * this.dpr);
@@ -952,6 +955,7 @@ export class EscapeRenderer3D implements EscapeView {
   }
 
   dispose() {
+    this.gov?.dispose();
     for (const v of this.rooms.values()) this.disposeRoom(v);
     this.rooms.clear();
     for (const c of this.body.children) if (c instanceof THREE.Mesh) c.geometry.dispose();

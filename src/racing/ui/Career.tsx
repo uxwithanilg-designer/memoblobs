@@ -11,6 +11,7 @@ import { activeGame } from "../games";
 import { RIVALS } from "../race";
 import type { CarSpec, ThemeSpec } from "../types";
 import { CoinIcon } from "@/components/brand/CoinPill";
+import { cdn } from "@/lib/cdn";
 
 export const WORLDS = () => [...activeGame().themes].sort((a, b) => a.order - b.order);
 
@@ -231,7 +232,7 @@ function EventSheet({ sheet: l, setSheet, stars, car, paint, rivalFor, onStart, 
               {rival && (
                 <div className="mt-2.5 flex items-center gap-2.5 rounded-2xl bg-[linear-gradient(100deg,#4c1d95,#1a0f38)] p-2 ring-1 ring-[#B98CFF]/40">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={RIVALS[0].avatar} alt="" className="size-11 shrink-0 object-contain" />
+                  <img src={cdn(RIVALS[0].avatar)} alt="" className="size-11 shrink-0 object-contain" />
                   <div className="min-w-0 flex-1"><p className="text-[10px] font-bold tracking-widest text-[#d8c4ff] uppercase">Boss · {RIVALS[0].name}</p><p className="truncate font-display">{rival.name}</p><p className="text-[11px] text-white/55">{rival.cls} · Tier {rival.tier}</p></div>
                   <CarThumb spec={rival} color={rival.colors[0]} className="h-12 w-20 shrink-0" />
                 </div>

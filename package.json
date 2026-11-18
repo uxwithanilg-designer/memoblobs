@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "build:static": "node scripts/build-static.mjs"
+    "build:static": "node scripts/build-static.mjs",
+    "upload:r2": "node scripts/r2/upload.mjs",
+    "deploy": "npm run build:static && npm run upload:r2 && npx --yes wrangler@4 deploy"
   },
   "dependencies": {
     "clsx": "^2.1.1",

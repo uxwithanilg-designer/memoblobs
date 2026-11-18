@@ -11,6 +11,7 @@ import { RIVALS } from "../race";
 import type { AiLevel, CarSpec, ModeId, ThemeSpec, Upgrades, Weather } from "../types";
 import { NO_UPGRADES, type QuickSetup } from "../save";
 import { WORLDS } from "./Career";
+import { cdn } from "@/lib/cdn";
 
 const STEPS = ["Event", "Track", "Rivals", "Conditions", "Car"] as const;
 const WEATHER_ICON: Record<string, string> = { auto: "✨", clear: "☀️", rain: "🌧️", snow: "❄️", sand: "🏜️", fireflies: "✨", ash: "🌋", leaves: "🍂", petals: "🌸" };
@@ -126,14 +127,14 @@ export function QuickRace(p: QuickProps) {
           <div className="mt-2 flex -space-x-2">
             {RIVALS.slice(0, q.opponents).map((r) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={r.name} src={r.avatar} alt={r.name} className="size-10 rounded-full bg-[#2a1a55] object-contain p-0.5 ring-2 ring-[#0b0718]" />
+              <img key={r.name} src={cdn(r.avatar)} alt={r.name} className="size-10 rounded-full bg-[#2a1a55] object-contain p-0.5 ring-2 ring-[#0b0718]" />
             ))}
           </div>
         </div>
       ) : (
         <div className="flex items-center gap-3 rounded-2xl bg-[linear-gradient(100deg,#4c1d95,#1a0f38)] p-3 ring-1 ring-[#B98CFF]/40">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={RIVALS[0].avatar} alt="" className="size-14 object-contain" />
+          <img src={cdn(RIVALS[0].avatar)} alt="" className="size-14 object-contain" />
           <div><p className="text-[11px] font-bold tracking-widest text-[#d8c4ff] uppercase">{q.mode === "battle" ? "Drift battle" : "Boss duel"}</p><p className="font-display text-lg">{q.mode === "battle" ? `${RIVALS[0].name} leads — chase and out-drift!` : `${RIVALS[0].name} in the fastest car`}</p></div>
         </div>
       )}

@@ -15,6 +15,7 @@ import { BUBBLES, HATS, LEADERS, UPGRADES, leaderOf, upgradeCost, type Loadout, 
 import { BRIGADE_CSS, BrigadeSession, type HudState, type Toast } from "../session";
 import { autoQuality, useBrigade, useBrigadeHydrated } from "../save";
 import type { MathMode, SimEvent, SimResult, StageSpec } from "../types";
+import { cdn } from "@/lib/cdn";
 
 type Screen = "title" | "map" | "game" | "results" | "settings" | "leaders" | "shop" | "wardrobe";
 type Mode = "stage" | "endless" | "remix" | "daily" | "rush";
@@ -161,6 +162,7 @@ export default function BrigadeApp({ title }: { slug: string; title: string }) {
     if (screen === "game") return;
     void audio.playMusic(music(screen === "results" && result?.def ? result.def.world : world, false));
     // (Daily, Boss Rush and Endless results reuse the current world's calm track)
+    audio.warmMusic([music(world, true)]); // Play starts with its march already downloaded
   }, [screen, world, result]);
 
   const titleSpec = useMemo(() => buildStage(STAGES[1], "off"), []);
@@ -296,7 +298,7 @@ function TitleScreen({ title, spec, quality, stars, best, endless, onPlay, onEnd
         </div>
         <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <Btn tone="blue" onClick={onLeaders} className="w-full px-2 text-base"><img src={L.img} alt="" className="size-7 rounded-full bg-white object-cover" />LEADERS</Btn>
+          <Btn tone="blue" onClick={onLeaders} className="w-full px-2 text-base"><img src={cdn(L.img)} alt="" className="size-7 rounded-full bg-white object-cover" />LEADERS</Btn>
           <Btn tone="mint" onClick={onShop} className="w-full px-2 text-base">SHOP</Btn>
           <Btn tone="white" onClick={onWardrobe} label="Wardrobe" className="w-12 !px-0 text-2xl">🎩</Btn>
           <Btn tone="white" onClick={onSettings} label="Settings" className="w-12 !px-0"><Settings2 className="size-6" /></Btn>
@@ -448,6 +450,7 @@ function GameScreen({ run, quality, sensitivity, vibrate, tutorial, onTutorialDo
   const def = run.def, spec = run.spec, w = def?.world ?? spec.world ?? 0;
 
   useEffect(() => { void audio.playMusic(music(w, true, bossMusic || run.mode === "rush")); }, [w, bossMusic, run.mode]);
+  useEffect(() => { audio.warmMusic([music(w, true, true), music(w, false)]); }, [w]); // the boss track and the results track, ahead of time
   useEffect(() => {
     const iv = setInterval(() => {
       const s = sess.current;
@@ -553,7 +556,7 @@ function GameScreen({ run, quality, sensitivity, vibrate, tutorial, onTutorialDo
             style={{ right: "calc(var(--safe-right, 0px) + 14px)", bottom: "calc(var(--safe-bottom) + 18px)", background: `conic-gradient(${L.color} ${pw * 360}deg, rgba(255,255,255,0.55) 0deg)`, boxShadow: "0 5px 0 rgba(43,29,82,0.3)" }}>
             <span className="grid size-[70px] place-items-center overflow-hidden rounded-full bg-white">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={L.img} alt="" className={`size-16 object-contain ${ready ? "" : "opacity-55 grayscale"}`} />
+              <img src={cdn(L.img)} alt="" className={`size-16 object-contain ${ready ? "" : "opacity-55 grayscale"}`} />
             </span>
             <span className="absolute -bottom-2 rounded-full px-2 py-0.5 font-display text-[11px] whitespace-nowrap text-white" style={{ background: ready ? L.color : "#2B1D52" }}>{ready ? "POWER!" : `${Math.floor(pw * 100)}%`}</span>
           </button>
@@ -799,7 +802,7 @@ function LeadersScreen({ total, onBack }: { total: number; onBack: () => void })
                 style={on ? { ["--tw-ring-color" as string]: l.color } : undefined}>
                 <span className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl" style={{ background: `${l.color}2A` }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={l.img} alt="" className={`size-[4.6rem] object-contain ${open ? "" : "grayscale"}`} />
+                  <img src={cdn(l.img)} alt="" className={`size-[4.6rem] object-contain ${open ? "" : "grayscale"}`} />
                   {!open && <span className="absolute inset-0 grid place-items-center bg-white/40"><Lock className="size-6 text-[#2B1D52]" /></span>}
                 </span>
                 <span className="min-w-0 flex-1">

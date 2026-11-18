@@ -10,7 +10,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { CATEGORY_ICON } from "@/components/layout/nav";
 import { CATEGORIES, CHARACTERS, GAMES, getGame } from "@/lib/games";
 import { categoryHref, inCategory, is3D, playHref, similarTo } from "@/lib/catalog";
-import { abs } from "@/lib/site";
+import { abs, absAsset } from "@/lib/site";
 
 export function generateStaticParams() {
   return GAMES.map((g) => ({ slug: g.slug }));
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps<"/games/[slug]">): 
   const live = g.status === "live";
   const cat = CATEGORIES.find((c) => c.id === g.categories[0])?.label ?? "Online";
   const title = !live ? `${g.title} — Coming Soon` : `${g.title} — Play Free Online ${cat} Game`;
-  const og = live ? `/games/${g.slug}/og.jpg` : "/og.jpg";
+  const og = live ? absAsset(`/games/${g.slug}/og.jpg`) : "/og.jpg";
   return {
     title,
     description: g.description.slice(0, 158),
@@ -56,7 +56,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
         name: g.title,
         url: abs(`/games/${g.slug}`),
         description: g.description,
-        image: [abs(g.hero), abs(`/games/${g.slug}/og.jpg`)],
+        image: [absAsset(g.hero), absAsset(`/games/${g.slug}/og.jpg`)],
         genre: g.categories.map((c) => CATEGORIES.find((x) => x.id === c)?.label ?? c),
         gamePlatform: ["Web browser", "iOS", "Android", "Windows", "macOS"],
         applicationCategory: "GameApplication",
@@ -68,7 +68,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
         publisher: { "@id": abs("/#org") },
         datePublished: g.released,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
-        potentialAction: { "@type": "PlayAction", target: abs(`/play/${g.slug}`) },
+        potentialAction: { "@type": "PlayAction", target: abs(playHref(g)) },
       },
       { "@type": "HowTo", name: `How to play ${g.title}`, step: g.howTo.map((h, i) => ({ "@type": "HowToStep", position: i + 1, name: h.title, text: h.text })) },
       { "@type": "FAQPage", mainEntity: g.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
@@ -176,7 +176,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
                 <H2 icon={<Play className="size-5 text-momo" />}>Game modes</H2>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {g.modes.map((m) => (
-                    <Link key={m.id} href={`${playHref(g)}?mode=${m.id}`} className="group rounded-xl p-4 ring-1 ring-white/[0.08] transition hover:-translate-y-0.5 hover:ring-white/25" style={{ background: `linear-gradient(150deg, ${m.color}40, #170e33 75%)` }}>
+                    <Link key={m.id} href={playHref(g, { mode: m.id })} className="group rounded-xl p-4 ring-1 ring-white/[0.08] transition hover:-translate-y-0.5 hover:ring-white/25" style={{ background: `linear-gradient(150deg, ${m.color}40, #170e33 75%)` }}>
                       <p className="text-lg font-bold text-white">{m.label}</p>
                       <p className="mt-0.5 text-sm text-muted">{m.desc}</p>
                       <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-sun">Play {m.label} <ChevronRight className="size-4 transition group-hover:translate-x-0.5" /></span>

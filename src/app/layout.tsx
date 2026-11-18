@@ -2,10 +2,12 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Fredoka } from "next/font/google";
 import "./globals.css";
-import { SITE, abs } from "@/lib/site";
+import { SITE, abs, absAsset } from "@/lib/site";
 import { LIVE_GAMES } from "@/lib/games";
 import { Providers } from "@/components/Providers";
 import { JsonLd } from "@/components/JsonLd";
+import { preconnect } from "react-dom";
+import { ASSET_ORIGIN, IMG_RETRY_JS } from "@/lib/cdn";
 
 const lilita = localFont({ src: "../fonts/LilitaOne.ttf", variable: "--font-lilita", display: "swap", weight: "400", preload: true });
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-fredoka", display: "swap" });
@@ -59,7 +61,7 @@ const orgLd = {
       "@id": abs("/#org"),
       name: SITE.name,
       url: SITE.url,
-      logo: { "@type": "ImageObject", url: abs("/brand/logo.png"), width: 1200, height: 198 },
+      logo: { "@type": "ImageObject", url: absAsset("/brand/logo.png"), width: 1200, height: 198 },
       image: abs("/og.jpg"),
       slogan: SITE.tagline,
       sameAs: [SITE.social.youtube, SITE.social.instagram],
@@ -88,9 +90,12 @@ const orgLd = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  // game files come from R2: open the connection early (pictures + sound/fetch requests use separate pools)
+  if (ASSET_ORIGIN) { preconnect(ASSET_ORIGIN); preconnect(ASSET_ORIGIN, { crossOrigin: "anonymous" }); }
   return (
     <html lang="en" data-scroll-behavior="smooth" className={`${lilita.variable} ${fredoka.variable} antialiased`} suppressHydrationWarning>
       <body className="min-h-dvh">
+        {IMG_RETRY_JS && <script dangerouslySetInnerHTML={{ __html: IMG_RETRY_JS }} />}
         <JsonLd data={orgLd} />
         <Providers>{children}</Providers>
       </body>

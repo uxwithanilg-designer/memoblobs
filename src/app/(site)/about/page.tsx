@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
 import { SITE } from "@/lib/site";
+import { playHref } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "About MOMOBLOBS — Clay Games for Sharp Eyes",
@@ -27,7 +28,7 @@ export default function AboutPage() {
             <li>Your data belongs to you: everything is saved on your own device.</li>
           </ul>
           <h2>Watch &amp; follow</h2>
-          <p>New cup challenges arrive every day on <a href={SITE.social.youtube} target="_blank" rel="noopener noreferrer">YouTube</a> and <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>. Try to beat the video, then come back and <Link href="/play/momo-shuffle">play Momo Shuffle</Link>.</p>
+          <p>New cup challenges arrive every day on <a href={SITE.social.youtube} target="_blank" rel="noopener noreferrer">YouTube</a> and <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>. Try to beat the video, then come back and <Link href={playHref("momo-shuffle")}>play Momo Shuffle</Link>.</p>
         </section>
       </div>
     </>

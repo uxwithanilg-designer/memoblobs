@@ -7,6 +7,7 @@ import { emptyStats, today, TROPHIES, useHydrated, useProfile, dayStreak } from 
 import { CoinIcon } from "@/components/brand/CoinPill";
 import { toast } from "@/components/ui/Toaster";
 import { audio } from "@/lib/audio";
+import { playHref } from "@/lib/catalog";
 
 const MODES = [
   { id: "easy", label: "Easy", cups: 3, color: "#2FA866", dark: "#1f7a49", coins: 10 },
@@ -36,7 +37,7 @@ export function ModePicker() {
       {MODES.map((m, i) => (
         <motion.div key={m.id} initial={{ y: 20, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}>
           <Link
-            href={`/play/momo-shuffle?mode=${m.id}`}
+            href={playHref("momo-shuffle", { mode: m.id })}
             className="group relative flex flex-col items-center gap-2 overflow-hidden rounded-[1.5rem] p-3 pt-4 text-center ring-1 ring-white/15 transition hover:-translate-y-1 active:translate-y-0.5 sm:p-5"
             style={{ background: `linear-gradient(180deg, ${m.color}, ${m.dark})`, boxShadow: `inset 0 -6px 0 rgb(0 0 0 / 0.18), 0 18px 30px -18px ${m.color}` }}
           >
@@ -60,7 +61,7 @@ export function ContinueStrip() {
   const d = st.lastDifficulty;
   return (
     <section className="mx-auto w-full max-w-7xl px-5 lg:px-6">
-      <Link href={`/play/momo-shuffle?mode=${d}`} className="glass group flex items-center gap-4 rounded-3xl p-3 pr-4 transition hover:bg-white/10">
+      <Link href={playHref("momo-shuffle", { mode: d })} className="glass group flex items-center gap-4 rounded-3xl p-3 pr-4 transition hover:bg-white/10">
         <Image src="/games/momo-shuffle/cover-1.webp" alt="" width={64} height={96} className="h-20 w-14 rounded-xl object-cover object-top" />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold tracking-widest text-momo uppercase">Continue playing</p>

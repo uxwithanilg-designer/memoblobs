@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { CATEGORIES, GAMES } from "@/lib/games";
-import { abs } from "@/lib/site";
+import { abs, absAsset } from "@/lib/site";
 
 /** built once into a static file (the whole site is prerendered; Cloudflare serves it as files) */
 export const dynamic = "force-static";
@@ -31,7 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: UPDATED,
       changeFrequency: "weekly" as const,
       priority: 0.95,
-      images: [abs(g.hero), ...g.shots.map(abs)],
+      images: [absAsset(g.hero), ...g.shots.map(absAsset)],
     })),
   ];
 }

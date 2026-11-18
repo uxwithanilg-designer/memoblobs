@@ -1,3 +1,4 @@
+import { cdn } from "./cdn";
 export const SITE = {
   name: "MOMOBLOBS",
   shortName: "Momoblobs",
@@ -18,3 +19,5 @@ export const SITE = {
 };
 
 export const abs = (path = "/") => `${SITE.url}${path.startsWith("/") ? path : `/${path}`}`;
+/** full URL of a game file (picture, sound): the R2 copy in the Cloudflare build (game files aren't on the site itself) */
+export const absAsset = (path: string) => { const u = cdn(path); return u.startsWith("http") ? u : abs(u); };

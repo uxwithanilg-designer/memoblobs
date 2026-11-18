@@ -8,14 +8,5 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
-/audio/*
-  Cache-Control: public, max-age=31536000, immutable
 
-/fonts/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/brand/*
-  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
-
-/games/*.webp
-  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+# game files (audio, art, fonts) aren't served from here: they come from the R2 bucket (scripts/r2)

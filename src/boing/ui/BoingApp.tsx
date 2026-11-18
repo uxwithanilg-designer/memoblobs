@@ -14,6 +14,7 @@ import type { BoingLook } from "../render";
 import { BOING_CSS, BoingSession, type HudState, type Toast } from "../session";
 import { autoQuality, useBoing, useBoingHydrated } from "../save";
 import type { CardId, SimEvent, SimResult, StageSpec } from "../types";
+import { cdn } from "@/lib/cdn";
 
 type Screen = "title" | "game" | "results" | "settings" | "wardrobe";
 interface GameRun { key: number; spec: StageSpec; def: StageDef; endless: boolean; daily?: string; ghost?: number[] }
@@ -143,7 +144,10 @@ export default function BoingApp({ title }: { slug: string; title: string }) {
   useEffect(() => { void audio.preload(UI_SOUNDS); }, []);
   useEffect(() => { setImmersive(screen !== "title"); setInRound(screen === "game"); }, [screen, setImmersive, setInRound]);
   useEffect(() => () => { setImmersive(false); setInRound(false); setMenu([]); }, [setImmersive, setInRound, setMenu]);
-  useEffect(() => { if (screen !== "game") void audio.playMusic(music(screen === "results" && result ? result.def.world : world, false)); }, [screen, world, result]);
+  useEffect(() => {
+    if (screen !== "game") void audio.playMusic(music(screen === "results" && result ? result.def.world : world, false));
+    audio.warmMusic([music(world, true)]); // Play starts with its track already downloaded
+  }, [screen, world, result]);
 
   // the title demo bounces through the world you are in
   const titleSpec = useMemo(() => buildStage({ ...stageDef(nextDef.world * CHAPTER_SIZE + 2), world: nextDef.world }, { demo: true, seed: 4242 }), [nextDef.world]);
@@ -301,6 +305,7 @@ function GameScreen({ run, quality, sensitivity, vibrate, tutorial, endlessBest,
   const { def, spec, endless } = run, w = WORLDS[def.world], info = TYPE_INFO[def.type];
 
   useEffect(() => { void audio.playMusic(`a:boing_${spec.music}_action` as MusicName); }, [spec.music]);
+  useEffect(() => { audio.warmMusic([music(def.world, false)]); }, [def.world]); // the results track, ahead of time
   useEffect(() => { const t = setTimeout(() => setIntro(false), tutorial ? 1800 : 2600); return () => clearTimeout(t); }, [tutorial]);
   useEffect(() => {
     const iv = setInterval(() => { const s = sess.current; if (s) setHud(s.hud()); }, 110);
@@ -369,7 +374,7 @@ function GameScreen({ run, quality, sensitivity, vibrate, tutorial, endlessBest,
           <div className="flex items-center gap-1 self-start rounded-full bg-white/80 px-2 py-1 shadow-[0_2px_0_rgba(43,29,82,0.15)]">
             {h.stack.map((f, i) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={i} src={FRIENDS[f].img} alt={FRIENDS[f].name} className="size-7 rounded-full bg-white object-contain" />
+              <img key={i} src={cdn(FRIENDS[f].img)} alt={FRIENDS[f].name} className="size-7 rounded-full bg-white object-contain" />
             ))}
             {h.stack.length > 0 && <span className="pr-1 pl-0.5 font-display text-[12px] text-[#2B1D52]/70">= {h.stack.length} save{h.stack.length > 1 ? "s" : ""}</span>}
             {h.cards.map((c, i) => <span key={`c${i}`} className="grid size-7 place-items-center rounded-full text-[15px]" style={{ background: `${CARDS[c].color}33` }} title={CARDS[c].name}>{CARDS[c].icon}</span>)}

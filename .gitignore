@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# R2 upload bookkeeping (scripts/r2/upload.mjs)
+.r2-uploaded.json
+
+# local `wrangler dev` state
+.wrangler/

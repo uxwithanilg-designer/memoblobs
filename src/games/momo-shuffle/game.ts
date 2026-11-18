@@ -11,6 +11,7 @@ import { MomoRig, KrankyRig, TikiRig, TileRig, Confetti, boil, MOMO_ARMS, waveAr
 import { makeStage, addLights } from "./engine/sets.js";
 import { CupTrack, E, arc, lerp, seg, landSquash, type Layout, type Move } from "./track";
 import { audio, type SfxName, type MusicName } from "@/lib/audio";
+import { cdn } from "@/lib/cdn";
 import type { Difficulty, Settings } from "@/lib/store";
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -197,7 +198,7 @@ export class MomoShuffleGame {
     this.scene.background = new THREE.Color("#2a2030");
     this.env = new THREE.PMREMGenerator(this.renderer).fromScene(new RoomEnvironment(this.renderer), 0.04).texture;
     this.scene.environment = this.env;
-    const font = await new FontLoader().loadAsync("/fonts/helvetiker_bold.typeface.json");
+    const font = await new FontLoader().loadAsync(cdn("/fonts/helvetiker_bold.typeface.json"));
     if (this.destroyed) return;
     setFont(font);
     progress(0.2, "Building the stage…");

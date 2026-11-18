@@ -3,6 +3,8 @@
 // music ducking under SFX (like the video mix), stereo panning + a small room reverb for a
 // wide "surround" feel, seamless loop scheduling, iOS unlock, and optional spoken voice-over.
 
+import { fetchAsset, LATER, lowMemory, NEXT, NOW, preloader, type Priority } from "./preload";
+
 export type SfxName =
   | "pop" | "popBig" | "boing" | "hop" | "squish" | "thud" | "lift" | "whoosh" | "whooshShort" | "whooshLong"
   | "swoosh" | "slide" | "clack" | "tick" | "tock" | "drumroll" | "impact" | "tada" | "sparkle" | "confetti"
@@ -250,6 +252,12 @@ class AudioEngine {
   private reverbIn!: GainNode;
   private buffers = new Map<string, AudioBuffer>();
   private loading = new Map<string, Promise<AudioBuffer | null>>();
+  /** files that failed to load, and when (retried after a while instead of on every play) */
+  private failed = new Map<string, number>();
+  /** decoded music, least recently used first: only a few tracks stay decoded (each is ~10 MB of samples) */
+  private musicLru: string[] = [];
+  /** the next level's track (kept decoded alongside the one playing) */
+  private nextKey = "";
   private vol = { master: 0.9, music: 0.6, sfx: 0.9, muted: false, voice: true, charVoices: true };
   private music: { name: string; gain: GainNode; next: number; sources: AudioBufferSourceNode[]; timer: number } | null = null;
   private unlockBound = false;
@@ -330,18 +338,88 @@ class AudioEngine {
     this.sfxBus.gain.setTargetAtTime(this.vol.sfx * 0.9, now, tc);
   }
 
-  private load(key: string, file: string) {
-    if (this.buffers.has(key)) return Promise.resolve(this.buffers.get(key)!);
+  private load(key: string, file: string, pri: Priority = NOW) {
+    if (this.buffers.has(key)) { this.touch(key); return Promise.resolve(this.buffers.get(key)!); }
     if (this.loading.has(key)) return this.loading.get(key)!;
+    if (performance.now() - (this.failed.get(key) ?? -1e9) < 8000) return Promise.resolve(null);
     const ctx = this.ensure();
     if (!ctx) return Promise.resolve(null);
-    const p = fetch(BASE + file)
-      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(file))))
-      .then((ab) => ctx.decodeAudioData(ab))
-      .then((b) => { this.buffers.set(key, b); return b; })
-      .catch(() => null);
+    const path = BASE + file;
+    const p = preloader.want(path, pri)
+      .then((ab) => { preloader.take(path); return ab ? ctx.decodeAudioData(ab) : Promise.reject(new Error(file)); })
+      .then((b) => { this.buffers.set(key, b); this.loading.delete(key); this.failed.delete(key); this.touch(key); return b; })
+      .catch(() => { this.loading.delete(key); this.failed.set(key, performance.now()); return null; });
     this.loading.set(key, p);
     return p;
+  }
+
+  /** keep only a few decoded music tracks: the playing one, the next level's, and the most recently used */
+  private touch(key: string) {
+    if (!key.startsWith("music:")) return;
+    const i = this.musicLru.indexOf(key);
+    if (i >= 0) this.musicLru.splice(i, 1);
+    this.musicLru.push(key);
+    const max = lowMemory() ? 3 : 6;
+    for (let j = 0; this.musicLru.length > max && j < this.musicLru.length;) {
+      const k = this.musicLru[j];
+      if (k === key || k === "music:" + this.want || k === "music:" + this.music?.name || k === this.nextKey) { j++; continue; }
+      this.musicLru.splice(j, 1);
+      this.buffers.delete(k);
+    }
+  }
+
+  /** get the next level's music ready while this one plays: downloaded and decoded before it's needed */
+  prepareMusic(name: MusicName | null) {
+    if (!name || typeof window === "undefined") return;
+    const key = "music:" + name;
+    if (this.nextKey === key) return;
+    this.nextKey = key;
+    void this.load(key, musicFile(name), NEXT);
+  }
+
+  /** tracks that can start at any moment (power-up, chase, boss): downloaded now, decoded when they play */
+  warmMusic(names: MusicName[]) {
+    if (typeof window === "undefined") return;
+    for (const n of names) if (!this.buffers.has("music:" + n)) void preloader.want(BASE + musicFile(n), NEXT);
+  }
+
+  private index: Promise<Record<string, number>> | null = null;
+  /** every sound file and its size (public/audio/index.json, written by scripts/r2/asset-index.mjs) */
+  private files() {
+    this.index ??= fetchAsset(BASE + "index.json", NEXT)
+      .then((b) => (b ? (JSON.parse(new TextDecoder().decode(b)).audio as Record<string, number>) : {}))
+      .catch(() => ({}));
+    return this.index;
+  }
+
+  /**
+   * A game's whole sound family in the background ("dash" → every sfx_dash_*, voice_dash_*, music_dash_* file):
+   * its sounds are downloaded and decoded, its music downloaded (smallest first) so every later level starts
+   * without waiting. "menu" (the game page, before Play) only downloads the sounds and the menu music; "calm"
+   * (while the game's code is still loading) only the menu music, so it doesn't slow the code down.
+   */
+  warmFamily(family: string, mode: "all" | "menu" | "calm" = "all") {
+    const calmOnly = mode !== "all";
+    if (typeof window === "undefined" || !family) return;
+    void this.files().then((all) => {
+      const re = new RegExp(`^arcade/(sfx|voice|music)_${family}_`);
+      const mine = Object.keys(all).filter((f) => re.test(f)).sort((a, b) => all[a] - all[b]);
+      for (const f of mine) {
+        const name = f.slice(7, -4);
+        if (name.startsWith("music_")) {
+          if (calmOnly && !name.endsWith("_calm")) continue;
+          const key = "music:a:" + name.slice(6);
+          if (!this.buffers.has(key) && !this.loading.has(key)) void preloader.want(BASE + f, calmOnly ? NEXT : LATER);
+        } else if (mode === "calm") {
+          continue;
+        } else if (calmOnly) {
+          void preloader.want(BASE + f, LATER);
+        } else {
+          const key = "sfx:" + (name.startsWith("voice_") ? "v:" + name.slice(6) : "a:" + name.slice(4));
+          void this.load(key, f, NEXT);
+        }
+      }
+    });
   }
 
   preload(sfx: Sound[], music: MusicName[] = [], onProgress?: (p: number) => void) {
@@ -411,7 +489,7 @@ class AudioEngine {
 
   async playMusic(name: MusicName | null, fade = 0.35) {
     // music belongs to the games only: the site pages (home, game pages, lists) stay silent
-    if (name && typeof window !== "undefined" && !window.location.pathname.startsWith("/play/")) { this.stopMusic(fade); return; }
+    if (name && typeof window !== "undefined" && !/^\/play(\/|$)/.test(window.location.pathname)) { this.stopMusic(fade); return; }
     if (this.want === name) return;
     this.want = name;
     const ctx = this.ensure();

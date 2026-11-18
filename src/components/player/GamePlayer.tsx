@@ -13,7 +13,9 @@ import { CoinPill } from "@/components/brand/CoinPill";
 import { Logo } from "@/components/brand/Logo";
 import { useHydrated, useSettings } from "@/lib/store";
 import { audio } from "@/lib/audio";
+import { soundFamily } from "@/lib/catalog";
 import type { Game } from "@/lib/games";
+import { preloader, whenIdle } from "@/lib/preload";
 
 const TIPS_COMMON = [
   "Tip: correct answers in a row build a combo — up to ×5 points!",
@@ -34,6 +36,11 @@ export function GamePlayer({ game, children, embedded = false, onExit }: { game:
   const root = useRef<HTMLDivElement>(null);
   const [paused, setPausedState] = useState(false);
   const [loading, setLoadingState] = useState<{ p: number; label: string } | null>({ p: 0, label: "Opening the clay box…" });
+  /** the game said it's set up (setLoading(null)); the splash still waits for the files its first screen asked for */
+  const [engineReady, setEngineReady] = useState(false);
+  const [base] = useState(() => ({ asked: preloader.now.asked, loaded: preloader.now.loaded }));
+  // the game's menu music and sounds start downloading right away, alongside the game's code
+  useEffect(() => { audio.warmFamily(soundFamily(game), "calm"); }, [game]);
   const [panel, setPanel] = useState<null | "settings" | "help">(null);
   const [menu, setMenuState] = useState<MenuAction[]>([]);
   const [fps, setFps] = useState(0);
@@ -142,11 +149,51 @@ export function GamePlayer({ game, children, embedded = false, onExit }: { game:
     return () => clearInterval(t);
   }, [loading, TIPS.length]);
 
+  // ---------- loading: the splash stays up until the game's code is running AND the files its first screen asked
+  // for (menu music, button sounds, pictures) are in, so the game opens ready to play. On a very slow line it lets
+  // the game in after a few seconds anyway (the rest streams in while the menu is up).
+  const loadingOn = loading !== null;
+  // background downloads wait while the splash is up, so they don't slow the game's own files down
+  useEffect(() => { preloader.holdBackground(loadingOn); }, [loadingOn]);
+  useEffect(() => () => preloader.holdBackground(false), []);
+  useEffect(() => {
+    if (!loadingOn) return;
+    const t0 = performance.now();
+    let readyAt = 0, quietSince = 0;
+    const iv = setInterval(() => {
+      const now = performance.now();
+      if (!engineReady) {
+        const p = 0.45 * (1 - Math.exp(-(now - t0) / 1800)); // the game's code is downloading
+        setLoadingState((l) => (l && p > l.p + 0.005 ? { ...l, p } : l));
+        return;
+      }
+      readyAt ||= now;
+      const asked = preloader.now.asked - base.asked, done = preloader.now.loaded - base.loaded;
+      const frac = asked > 0 ? Math.min(1, done / asked) : 1;
+      setLoadingState((l) => (l ? { p: Math.max(l.p, 0.5 + 0.5 * frac), label: frac < 1 ? "Tuning the music…" : "Ready!" } : l));
+      if (preloader.pending > 0) quietSince = 0; else quietSince ||= now;
+      if ((quietSince && now - quietSince > 160) || now - readyAt > 7000) setLoadingState(null);
+    }, 80);
+    return () => clearInterval(iv);
+  }, [loadingOn, engineReady, base]);
+
+  // ---------- once the game is up: the rest of its sounds and every later level's music load in the background
+  const warmed = useRef(false);
+  useEffect(() => {
+    if (loadingOn || warmed.current) return;
+    warmed.current = true;
+    whenIdle(() => audio.warmFamily(soundFamily(game)), 2500);
+  }, [loadingOn, game]);
+
   const api: PlayerApi = useMemo(() => ({
     paused,
     setPaused,
     settings,
-    setLoading: (p, label) => setLoadingState(p == null ? null : { p, label: label ?? "" }),
+    setLoading: (p, label) => {
+      if (p == null) { setEngineReady(true); return; }
+      setEngineReady(false);
+      setLoadingState((l) => ({ p: Math.max(p, l?.p ?? 0), label: label ?? "" }));
+    },
     reportFps: setFps,
     setMenu: setMenuState,
     setInRound,

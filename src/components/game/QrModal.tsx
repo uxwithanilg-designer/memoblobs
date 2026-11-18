@@ -7,7 +7,7 @@ import qrcode from "qrcode-generator";
 import { Check, Copy, Smartphone, X } from "lucide-react";
 import { MomoMark } from "@/components/brand/Logo";
 import type { Game } from "@/lib/games";
-import { thumbOf } from "@/lib/catalog";
+import { playHref, thumbOf } from "@/lib/catalog";
 
 /** the QR code as an SVG path (quiet zone 4 modules, high error correction so Momo can sit in the middle) */
 function qrPath(text: string) {
@@ -22,7 +22,7 @@ function qrPath(text: string) {
 
 export function QrModal({ game, open, onClose }: { game: Game; open: boolean; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
-  const url = useMemo(() => (typeof window === "undefined" ? "" : `${window.location.origin}/play/${game.slug}`), [game.slug]);
+  const url = useMemo(() => (typeof window === "undefined" ? "" : `${window.location.origin}${playHref(game)}`), [game]);
   const qr = useMemo(() => (url ? qrPath(url) : null), [url]);
   useEffect(() => {
     if (!open) return;

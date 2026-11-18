@@ -5,13 +5,14 @@ import { Heart, Play } from "lucide-react";
 import { PageHero } from "@/components/ui/PageHero";
 import { JsonLd } from "@/components/JsonLd";
 import { CHARACTERS } from "@/lib/games";
-import { abs } from "@/lib/site";
+import { abs, absAsset } from "@/lib/site";
+import { playHref } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Characters — Meet Momo, Kranky and Tiki",
   description: "Meet the MOMOBLOBS clay crew: Momo the orange blob who hides under cups, Kranky the sneaky shuffle-master crab, and Tiki the cheerful level-keeper bird.",
   alternates: { canonical: "/characters" },
-  openGraph: { images: [{ url: "/games/momo-shuffle/shot-cast.webp", width: 1280, height: 720 }] },
+  openGraph: { images: [{ url: absAsset("/games/momo-shuffle/shot-cast.webp"), width: 1280, height: 720 }] },
 };
 
 export default function CharactersPage() {
@@ -25,7 +26,7 @@ export default function CharactersPage() {
           itemListElement: CHARACTERS.map((c, i) => ({
             "@type": "ListItem",
             position: i + 1,
-            item: { "@type": "Thing", name: c.name, description: c.bio, image: abs(c.img), url: abs(`/characters#${c.id}`) },
+            item: { "@type": "Thing", name: c.name, description: c.bio, image: absAsset(c.img), url: abs(`/characters#${c.id}`) },
           })),
         }}
       />
@@ -45,7 +46,7 @@ export default function CharactersPage() {
               <p className="mt-5 flex items-center gap-2 font-bold"><Heart className="size-5 fill-bubble text-bubble" /> Loves</p>
               <ul className="mt-2 flex flex-wrap gap-2">{c.likes.map((l) => <li key={l} className="chip">{l}</li>)}</ul>
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Link href="/play/momo-shuffle" className="btn-clay"><Play className="size-5 fill-current" /> Play with {c.name}</Link>
+                <Link href={playHref("momo-shuffle")} className="btn-clay"><Play className="size-5 fill-current" /> Play with {c.name}</Link>
                 <Image src={c.alt} alt={`${c.name} another pose`} width={160} height={140} className="w-20 drop-shadow-xl" />
               </div>
             </div>
