@@ -81,7 +81,7 @@ export class Sim {
   pads = 0; chase: number | null = null; seeds = 0; boss: string | null = null; beaten = false;
   combo = 0; comboT = 0; score = 0; regions = 0; places = 0;
   stats: RunStats = {
-    bananas: 0, fruits: 0, golden: 0, salads: 0, tricks: 0, melodies: 0, bestCombo: 0, jumps: 0, slides: 0, vines: 0, bounces: 0, branches: 0, rafts: 0, crocHops: 0,
+    fruitBy: {}, bananas: 0, fruits: 0, golden: 0, salads: 0, tricks: 0, melodies: 0, bestCombo: 0, jumps: 0, slides: 0, vines: 0, bounces: 0, branches: 0, rafts: 0, crocHops: 0,
     powers: 0, boosts: 0, rushes: 0, stumbles: 0, hurts: 0, hearts: 0, seeds: 0, smashes: 0, rides: 0, ziplines: 0, bosses: 0,
   };
   met = new Set<string>();
@@ -623,6 +623,7 @@ export class Sim {
       case "fruit": {
         const f = it.fruit ?? "mango";
         this.stats.fruits++;
+        this.stats.fruitBy[f] = (this.stats.fruitBy[f] ?? 0) + 1;
         this.score += 50 * this.mul();
         const was = this.meter;
         this.meter = Math.min(METER, this.meter + 1);

@@ -495,6 +495,45 @@ export function chaserParts(what: string): Parts {
   }
 }
 
+// ------------------------------------------------------------------ the finale: the Great Fruit Tree (the path runs between its roots)
+export function greatTreeParts(): Parts {
+  const t: G[] = [], l: G[] = [], gl: G[] = [];
+  const bark = (x: number, y: number) => (Math.sin(y * 3 + x * 5) > 0.55 ? "#6B3F22" : "#8A5530");
+  // two giant root legs arching over the path, then one huge trunk
+  for (const sx of [-1, 1]) {
+    t.push(shade(taperTube([v3(sx * 7.5, 0, 1.5), v3(sx * 6.4, 2.5, 0.6), v3(sx * 5.0, 6.5, 0), v3(sx * 3.2, 10.5, 0)], 1.9, 1.3, 30, 14), bark));
+    t.push(shade(taperTube([v3(sx * 9.5, 0, -3.5), v3(sx * 6.8, 3, -1.5), v3(sx * 4, 9, -0.5)], 1.2, 0.8, 22, 10), bark));
+  }
+  t.push(shade(taperTube([v3(0, 9.5, 0), v3(0.4, 14, 0.3), v3(-0.3, 19, 0), v3(0, 23, 0)], 4.4, 3.0, 30, 18), bark));
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + 0.4;
+    t.push(shade(taperTube([v3(0, 19, 0), v3(Math.cos(a) * 5, 23 + (i % 2), Math.sin(a) * 5), v3(Math.cos(a) * 10, 26 + (i % 3), Math.sin(a) * 10)], 1.3, 0.5, 18, 8), bark));
+  }
+  // the canopy: big round clumps of leaves and blossom
+  for (let i = 0; i < 22; i++) {
+    const a = rnd(i, 1) * Math.PI * 2, d = 4 + rnd(i, 2) * 9, y = 25 + rnd(i, 3) * 8 - d * 0.25;
+    const g = bumpy(sphere(4.2 + rnd(i, 4) * 2.6, 16, 12), 0.18, 4);
+    g.translate(Math.cos(a) * d, y, Math.sin(a) * d);
+    l.push(shade(g, (x, yy, z) => (Math.sin(x * 1.3 + z * 1.1 + yy) > 0.45 ? "#FF9FD0" : mix(greens[i % 4], "#9CFF6B", 0.15 + 0.1 * Math.sin(yy)).getStyle())));
+  }
+  // golden fruit hanging all over it
+  for (let i = 0; i < 30; i++) {
+    const a = rnd(i, 7) * Math.PI * 2, d = 6 + rnd(i, 8) * 9;
+    gl.push(tint(at(sphere(0.75, 12, 10), Math.cos(a) * d, 21 + rnd(i, 9) * 9, Math.sin(a) * d), ["#FFD23F", "#FFA62B", "#FF5F7E"][i % 3]));
+  }
+  // the 15 Golden Seeds, planted in a ring around the tree, glowing
+  for (let i = 0; i < 15; i++) {
+    const a = Math.PI * (0.12 + 0.76 * (i / 14));
+    const x = Math.cos(a) * 12, z = -Math.sin(a) * 4 - 6;
+    gl.push(tint(at(sq(sphere(0.55, 12, 10), 0.8, 1.15, 0.8), x, 0.7, z), "#FFE14D"));
+    l.push(tint(at(sq(sphere(0.7, 8, 6), 1.5, 0.25, 0.6), x + 0.4, 1.3, z), "#7CDB4A"));
+  }
+  // a little banner arch between the roots
+  const sign = rbox(9, 1.6, 0.4, 0.25); sign.translate(0, 9.6, -0.6);
+  t.push(tint(sign, "#C98A55"));
+  return [{ g: merge(t), mat: "clay" }, { g: merge(l), mat: "canopy" }, { g: merge(gl), mat: "glow" }];
+}
+
 // ------------------------------------------------------------------ Kiko's Treehouse decorations (around the treehouse from models.ts; origin at the tree)
 export const DECOS: { id: string; name: string; icon: string; price: number }[] = [
   { id: "flag", name: "Banana Flag", icon: "🚩", price: 150 }, { id: "hammock", name: "Hammock", icon: "🛏️", price: 200 },

@@ -18,7 +18,10 @@ export type ObKind =
   | "web" | "mud" | "geyser" | "gust" | "ice";
 export type TrickKind = "jumpOver" | "closeCall" | "slide" | "vine" | "bounce" | "highroad" | "crocHop" | "peelHop" | "wheee" | "smash" | "salad" | "zip" | "dodge";
 export type TimeOfDay = "morning" | "day" | "sunset" | "night" | "cave";
-export type Weather = "none" | "leaves" | "rain" | "fireflies" | "butterflies" | "mist" | "snow" | "wind" | "petals" | "ash" | "dust" | "storm";
+export type Weather = "none" | "leaves" | "rain" | "fireflies" | "butterflies" | "mist" | "snow" | "wind" | "petals" | "ash" | "dust" | "storm" | "fruitrain";
+/** the Wild Forest: a season for each blended region and an odd twist now and then */
+export type Season = "spring" | "monsoon" | "autumn" | "winter";
+export type Twist = "night" | "fog" | "turbo" | "fruitRain" | "goldRush";
 
 /** something on the track: hazards to avoid, things to run on (branches, lily pads, bridges, ramps), bouncy mushrooms */
 export interface Ob {
@@ -73,6 +76,10 @@ export interface Section {
   n: number; s: number; r: number; region: RegionId; scene: RegionId; remix: boolean; place: string; emoji: string;
   d: number; tod: TimeOfDay; weather: Weather; piece: SetPiece; fruit: FruitId; music: string; tune: number[];
   allow: string; chase: boolean; villain: string; boss: string; ride?: RideId;
+  /** the Wild Forest: the season, this place's twist and the two regions blended ("a-b", for the freshness memory) */
+  season?: Season; twist?: Twist; blend?: string;
+  /** place 301: the Great Fruit Tree finale */
+  finale?: boolean;
 }
 
 export type SimEvent =
@@ -104,6 +111,8 @@ export type SimEvent =
   | { t: "end" };
 
 export interface RunStats {
+  /** fruits eaten by kind (the Daily Jungle Hunt goal counts one kind) */
+  fruitBy: Partial<Record<FruitId, number>>;
   bananas: number; fruits: number; golden: number; salads: number; tricks: number; melodies: number; bestCombo: number;
   jumps: number; slides: number; vines: number; bounces: number; branches: number; rafts: number; crocHops: number;
   powers: number; boosts: number; rushes: number; stumbles: number; hurts: number; hearts: number; seeds: number; smashes: number;

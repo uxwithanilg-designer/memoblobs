@@ -10,11 +10,12 @@ import { CoinIcon } from "@/components/brand/CoinPill";
 import { usePlayer } from "@/components/player/PlayerContext";
 import { useProfile } from "@/lib/store";
 import { audio, type MusicName, type Sound } from "@/lib/audio";
-import { BOSSES, FRUITS, INTRO_TEXT, METER, PIECE_TEXT, POWERS, REGIONS, RIDES, STAGES_PER_REGION, dailyKey, dailyRun, newPiece, regionIndex, sectionOf } from "../levels";
+import { BOSSES, FINALE, FRUITS, INTRO_TEXT, METER, PIECE_TEXT, POWERS, REGIONS, RIDES, STAGES_PER_REGION, TWIST_TEXT, dailyGoal, dailyKey, dailyRun, newPiece, regionIndex, sectionOf, setWildForest, wildDay } from "../levels";
 import { DECOS } from "../models2";
 import { TreehouseView } from "../treehouse";
+import { WardrobeView } from "../wardrobe";
 import { MISSION_DEFS, missionText, type Mission } from "../missions";
-import { KIKO_FUR } from "../models";
+import { KIKO_FUR, RIBBONS } from "../models";
 import { TRAILS } from "../render";
 import { KIKO_CSS, KikoSession, type HudState, type Toast } from "../session";
 import { autoQuality, useKiko, useKikoHydrated } from "../save";
@@ -22,7 +23,7 @@ import type { PowerId, RunSpec, Section, SimEvent, SimResult } from "../types";
 
 type Screen = "title" | "story" | "game" | "over" | "shop" | "settings" | "treehouse" | "stickers";
 interface GameRun { key: number; spec: RunSpec }
-interface Over { res: SimResult; reward: number; newBest: boolean; done: Mission[]; levelUp: boolean; daily?: string; streak: number; newStickers: number }
+interface Over { res: SimResult; reward: number; newBest: boolean; done: Mission[]; levelUp: boolean; daily?: string; streak: number; newStickers: number; finale: boolean }
 /** Golden Seeds won so far (one per boss beaten, 15 in all) */
 const seedsWon = (met: string[]) => Math.min(15, met.filter((m) => m.startsWith("beat:")).length);
 /** Pico's lines when something new shows up */
@@ -66,12 +67,25 @@ const TRAIL_ITEMS: { id: string; name: string; icon: string; price: number }[] =
   { id: "bubbles", name: "Bubble Trail", icon: "🫧", price: 200 }, { id: "fireflies", name: "Firefly Trail", icon: "✨", price: 300 }, { id: "stars", name: "Star Trail", icon: "⭐", price: 300 },
   { id: "rainbow", name: "Rainbow Trail", icon: "🌈", price: 600 },
 ];
+const RUNNERS: { id: string; name: string; icon: string; price: number; text: string }[] = [
+  { id: "kiko", name: "Kiko", icon: "🐒", price: 0, text: "The cheeky monkey himself" },
+  { id: "momo", name: "Momo", icon: "🟠", price: 1500, text: "Guest runner from MOMOBLOBS!" },
+];
 const UP_PRICE = [100, 250, 450, 700, 1000];
 const STORY: { art: string; text: string; bg: string }[] = [
   { art: "🌳🍎🍌🥭", text: "In the middle of the forest stands the Great Fruit Tree. Every morning it drops fruit for every animal.", bg: "linear-gradient(180deg,#7FD3FF,#BFF0A8)" },
   { art: "🌵😠🌰", text: "One night grumpy Baron Bramble and his Grumpy gang stole the tree's 15 Golden Seeds and hid them all over the forest!", bg: "linear-gradient(180deg,#2A2160,#5A3A8A)" },
   { art: "🐒🥣❓", text: "Kiko wakes up to an empty fruit bowl. No bananas?! That's it — Kiko is going on a quest.", bg: "linear-gradient(180deg,#FFD27A,#FF9A6A)" },
   { art: "🦜🐒🍌", text: "Pico the toucan comes too. \"Run, jump and swing — grab the bananas, dodge the thorns, and win the seeds back!\"", bg: "linear-gradient(180deg,#5FD3A8,#2FB86B)" },
+];
+
+/** the finale, told over the running game while Kiko jogs home under the Great Fruit Tree */
+const FINALE_STORY: { art: string; text: string }[] = [
+  { art: "🐒🌰✨", text: "Kiko plants all 15 Golden Seeds around the Great Fruit Tree…" },
+  { art: "🌳🌸✨", text: "The tree wakes up — and BLOOMS!" },
+  { art: "🍎🍌🥭🍉", text: "Fruit rains down on the whole forest!" },
+  { art: "🌵🍌😊", text: "Even Baron Bramble gets a banana… and smiles for the first time." },
+  { art: "🌱🌳🌱", text: "New seeds fall… the Wild Forest grows new places every day!" },
 ];
 
 // ------------------------------------------------------------------ kit: jungle, chunky, glossy
@@ -166,6 +180,8 @@ export default function KikoApp({ title }: { slug: string; title: string }) {
   const start = useCallback((daily?: string) => {
     setOver(null);
     const st = useKiko.getState();
+    const today = wildDay();
+    setWildForest(today, st.wild.filter((w) => w.day < today).map((w) => w.key));
     // the quiet helper: after a few very short runs in a row, the next run starts a little kinder (nothing on screen says so)
     const spec: RunSpec = daily ? dailyRun(daily) : { seed: Math.floor(Math.random() * 1e9), start: 1, help: st.shortRuns >= 3 };
     // dev / QA: ?start=N starts the run at place N
@@ -184,9 +200,9 @@ export default function KikoApp({ title }: { slug: string; title: string }) {
     if (!run) return;
     const st = useKiko.getState();
     const out = st.finishRun(res, used, run.spec.daily);
-    const reward = Math.round(res.bananas * 0.5) + res.golden * 10 + res.seeds * 100 + out.done.length * 25 + (out.levelUp ? 100 * useKiko.getState().level : 0) + (out.streak > 0 ? 50 + out.streak * 10 : 0);
+    const reward = Math.round(res.bananas * 0.5) + res.golden * 10 + res.seeds * 100 + out.done.length * 25 + (out.levelUp ? 100 * useKiko.getState().level : 0) + (out.streak > 0 ? 50 + out.streak * 10 : 0) + (out.finale ? 1000 : 0);
     useProfile.getState().earnCoins(reward);
-    setOver({ res, reward, newBest: out.newBest, done: out.done, levelUp: out.levelUp, daily: run.spec.daily, streak: out.streak, newStickers: out.newStickers });
+    setOver({ res, reward, newBest: out.newBest, done: out.done, levelUp: out.levelUp, daily: run.spec.daily, streak: out.streak, newStickers: out.newStickers, finale: out.finale });
     setScreen("over");
   }, [run]);
 
@@ -296,6 +312,7 @@ function TitleScreen({ title, spec, quality, onRun, onDaily, onShop, onSettings,
           <Pill>🏆 {s.best.score.toLocaleString("en-US")}</Pill>
           <Pill>🏁 {s.best.distance.toLocaleString("en-US")} m</Pill>
           <Pill>🌰 {seedsWon(s.met)}/15</Pill>
+          {s.finales > 0 && <Pill>🌳 ×{s.finales}</Pill>}
           <Pill><CoinIcon size={18} />{coins.toLocaleString("en-US")}</Pill>
         </div>
       </div>
@@ -312,7 +329,7 @@ function TitleScreen({ title, spec, quality, onRun, onDaily, onShop, onSettings,
           <Btn tone="berry" onClick={onStickers} className="w-full !min-h-11 !text-[16px]">📒 Stickers {s.stickers.length + s.met.length}</Btn>
         </div>
         <Btn tone="night" onClick={onDaily} label="Daily Jungle Hunt" className="relative w-full">
-          {dailyDone ? "✅" : "📅"} DAILY HUNT · {dsec.emoji} {dsec.place}
+          {dailyDone ? "✅" : "📅"} DAILY HUNT · {dsec.emoji} {dsec.place} · {FRUITS[dailyGoal(today).fruit].icon}×{dailyGoal(today).count}
           {s.daily.streak > 0 && <span className="absolute -top-2.5 -right-1 rounded-full bg-[#FFC93C] px-1.5 py-0.5 text-[12px] leading-none text-[#4A2A08]">🔥{s.daily.streak}</span>}
         </Btn>
       </div>
@@ -346,15 +363,24 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
   const [place, setPlace] = useState<Section | null>(null);
   const [hint, setHint] = useState<string | null>(null);
   const tid = useRef(0);
+  const [finaleI, setFinaleI] = useState(-1);
+  const goal = useMemo(() => (run.spec.daily ? dailyGoal(run.spec.daily) : null), [run.spec.daily]);
+  const [goalHave, setGoalHave] = useState(0);
   const doneRef = useRef(onTutorialDone);
   const music = useRef("");
+  const cb2 = useRef<((t: Toast) => void) | null>(null);
   const seen = useRef(new Set<string>());
   useEffect(() => { doneRef.current = onTutorialDone; });
   const { spec } = run;
 
   // the region card at the start (and at every new region) with that region's music; a small banner for each new place
   const onPlace = useCallback((sec: Section, region: boolean) => {
-    if (region) { setCard(sec); setTimeout(() => setCard((c) => (c === sec ? null : c)), 2600); }
+    if (sec.finale) {
+      // the finale: Kiko is home — the seeds go in and the Great Fruit Tree blooms
+      setCard(sec); setTimeout(() => setCard((c) => (c === sec ? null : c)), 2800);
+      setTimeout(() => setFinaleI(0), 2600);
+      void audio.play("tada", { gain: 0.6, duck: false });
+    } else if (region || sec.n === FINALE + 1) { setCard(sec); setTimeout(() => setCard((c) => (c === sec ? null : c)), 2600); }
     else { setPlace(sec); setTimeout(() => setPlace((c) => (c === sec ? null : c)), 2400); }
   }, []);
   useEffect(() => { const t = setTimeout(() => setCard((c) => (c?.n === spec.start ? null : c)), 2600); return () => clearTimeout(t); }, [spec.start]);
@@ -364,6 +390,13 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
       if (!s) return;
       const h = s.hud();
       setHud(h);
+      if (goal) {
+        const now = s.sim.stats.fruitBy[goal.fruit] ?? 0;
+        setGoalHave((was) => {
+          if (was < goal.count && now >= goal.count) setTimeout(() => cb2.current?.({ text: "🎯 Daily Jungle Hunt done!", tone: "gold", big: true }), 0);
+          return now;
+        });
+      }
       const want = h.boost > 0 ? "rush" : h.chase ? (s.sim.sec.r < 2 ? "chase" : "boss") : s.sim.sec.music;
       if (want !== music.current) { music.current = want; void audio.playMusic(musicOf(want)); }
       const sec = s.sim.sec, np = newPiece(sec.n);
@@ -372,8 +405,14 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
       setHint(h.vine ? null : bossLine && h.pads === 0 ? bossLine : np && INTRO_TEXT[np] ? INTRO_TEXT[np] : pieceHint ? `${pieceHint} ${PICO_JOKES[sec.n % PICO_JOKES.length]}` : null);
     }, 100);
     return () => clearInterval(iv);
-  }, []);
+  }, [goal]);
   useEffect(() => { const s = sess.current; if (!s) return; if (player.paused) s.pause(); else s.resume(); }, [player.paused]);
+  useEffect(() => {
+    if (finaleI < 0 || finaleI >= FINALE_STORY.length) return;
+    ui(finaleI === 1 ? "a:levelup" : finaleI === 2 ? "a:kiko_salad" : finaleI === 3 ? "a:kiko_monkey" : "a:kiko_trick", 0.45);
+    const t = setTimeout(() => setFinaleI((i) => i + 1), 3200);
+    return () => clearTimeout(t);
+  }, [finaleI]);
   // tutorial: lanes, jump, slide (each waits for the move, or moves on after ~120 m)
   useEffect(() => {
     if (tip < 0) return;
@@ -395,6 +434,7 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
     setToasts((l) => [...l.slice(-1), { ...t, id }]);
     setTimeout(() => setToasts((l) => l.filter((x) => x.id !== id)), 1700);
   }, []);
+  useEffect(() => { cb2.current = onToast; }, [onToast]);
   const onReady = useCallback((s: KikoSession) => {
     sess.current = s;
     if (process.env.NODE_ENV !== "production" || isAutomation()) (window as unknown as { __kiko?: KikoSession }).__kiko = s;
@@ -422,6 +462,7 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
           <div className="flex flex-col items-start gap-1.5">
             <Pill className="!text-[22px]"><span className="text-[#FFD23F]">{(h?.score ?? 0).toLocaleString("en-US")}</span>{h && h.mult > 1 && <span className="rounded-full bg-[#FFD23F] px-1.5 text-[13px] text-[#4A2A08]">×{h.mult}</span>}</Pill>
             <Pill>🍌 {h?.bananas ?? 0}{h && h.golden > 0 && <span className="text-[13px] text-[#FFD23F]">· ⭐{h.golden}</span>}</Pill>
+            {goal && <Pill className={`!text-[14px] ${goalHave >= goal.count ? "!bg-[#3FC45A]/90" : ""}`}>🎯 {FRUITS[goal.fruit].icon} {Math.min(goalHave, goal.count)}/{goal.count}{goalHave >= goal.count ? " ✓" : ""}</Pill>}
           </div>
           <div className="flex flex-col items-end gap-1.5">
             {h && <Hearts n={h.hearts} max={h.maxHearts} />}
@@ -473,7 +514,7 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
       {/* toasts */}
       <div className="pointer-events-none absolute inset-x-0 z-30 flex flex-col items-center gap-2 px-6" style={{ top: "calc(var(--safe-top) + 10.5rem)" }}>
         <AnimatePresence>
-          {toasts.map((t) => (
+          {!(finaleI >= 0 && finaleI < FINALE_STORY.length) && toasts.map((t) => (
             <motion.div key={t.id} initial={{ opacity: 0, y: -10, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               className={`rounded-full border-[3px] border-[#3A2410] px-4 py-1.5 text-center font-display shadow-[0_4px_0_rgba(40,25,10,0.35)] ${t.big ? "text-xl" : "text-[15px]"} ${t.tone === "gold" ? "bg-[#FFD23F] text-[#4A2A08]" : t.tone === "good" ? "bg-[#9CFF6B] text-[#1E4A10]" : t.tone === "bad" ? "bg-[#FF6B8A] text-white" : "bg-[#FFFBEF] text-[#3A2410]"}`}>
               {t.text}
@@ -487,7 +528,10 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
         {place && !card && (
           <motion.div key={place.n} initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
             className="pointer-events-none absolute inset-x-0 z-20 flex justify-center px-6" style={{ top: "calc(var(--safe-top) + 6.4rem)" }}>
-            <span className="kq-sign rounded-[14px] border-[3px] border-[#3A2410] bg-[#C98A55] px-4 py-1 font-display text-[17px] text-[#FFF4D6] shadow-[0_4px_0_rgba(40,25,10,0.4)]">📍 {place.place}</span>
+            <span className="kq-sign flex flex-col items-center rounded-[14px] border-[3px] border-[#3A2410] bg-[#C98A55] px-4 py-1 font-display text-[17px] text-[#FFF4D6] shadow-[0_4px_0_rgba(40,25,10,0.4)]">
+              <span>📍 {place.place}</span>
+              {place.twist && <span className="text-[13px] text-[#FFE27F]">{TWIST_TEXT[place.twist]}</span>}
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -497,9 +541,10 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
           <motion.div key={card.n} initial={{ opacity: 0, scale: 0.7, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -20 }} transition={{ type: "spring", damping: 16, stiffness: 240 }}
             className="pointer-events-none absolute inset-x-0 z-30 flex justify-center px-6" style={{ bottom: "calc(var(--safe-bottom) + 6rem)" }}>
             <div className="w-full max-w-sm rounded-[24px] border-[3px] border-[#3A2410] bg-[#FFFBEF]/95 px-5 py-3 text-center shadow-[0_6px_0_rgba(40,25,10,0.35)]">
-              <p className="font-display text-xs tracking-[0.2em] text-[#FF9A1F]">{run.spec.daily ? "📅 DAILY JUNGLE HUNT" : card.n === spec.start ? "GET READY!" : "NEW REGION!"}</p>
-              <h2 className="font-display text-[28px] leading-tight">{card.emoji} {card.remix ? card.place : REGIONS[card.r].name}</h2>
-              <p className="text-[13px] font-bold text-[#3A2410]/65">{card.n === spec.start ? `📍 ${card.place} · ` : ""}{card.remix ? "The Wild Forest: places mixed up forever!" : REGIONS[regionIndex(card.region)].blurb}</p>
+              <p className="font-display text-xs tracking-[0.2em] text-[#FF9A1F]">{card.finale ? "🏆 THE FINALE" : card.n === FINALE + 1 ? "🌱 NEW SEEDS, NEW PLACES" : run.spec.daily && card.n === spec.start ? "📅 DAILY JUNGLE HUNT" : card.n === spec.start ? "GET READY!" : "NEW REGION!"}</p>
+              <h2 className="font-display text-[28px] leading-tight">{card.finale ? "🌳 The Great Fruit Tree" : card.n === FINALE + 1 ? "🌱 The Wild Forest" : `${card.emoji} ${card.remix ? card.place : REGIONS[card.r].name}`}</h2>
+              <p className="text-[13px] font-bold text-[#3A2410]/65">{card.finale ? "All 15 Golden Seeds come home!" : card.n === FINALE + 1 ? "The tree grows brand-new places every day!" : <>{card.n === spec.start ? `📍 ${card.place} · ` : ""}{card.remix ? `${card.season ? `${card.season[0].toUpperCase()}${card.season.slice(1)} in the ` : ""}Wild Forest — new places every day!` : REGIONS[regionIndex(card.region)].blurb}</>}</p>
+              {goal && card.n === spec.start && <p className="mt-1 font-display text-[15px] text-[#FF5F7E]">🎯 Eat {goal.count} {FRUITS[goal.fruit].icon} {FRUITS[goal.fruit].name.toLowerCase()} today!</p>}
             </div>
           </motion.div>
         )}
@@ -513,6 +558,18 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
         </div>
       )}
       {h && h.chaser && <div className="kq-chaser pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32" />}
+      <AnimatePresence>
+        {finaleI >= 0 && finaleI < FINALE_STORY.length && (
+          <motion.div key={`fin${finaleI}`} initial={{ opacity: 0, scale: 0.7, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -16 }} transition={{ type: "spring", damping: 14, stiffness: 220 }}
+            className="pointer-events-none absolute inset-x-0 z-30 flex justify-center px-5" style={{ top: "calc(var(--safe-top) + 11.5rem)" }}>
+            <div className="flex max-w-sm flex-col items-center text-center">
+              <div className="kq-art text-[64px] leading-none drop-shadow-[0_6px_10px_rgba(0,0,0,0.35)]">{FINALE_STORY[finaleI].art}</div>
+              <p className="mt-2 rounded-[22px] border-[3px] border-[#3A2410] bg-[#FFFBEF]/95 px-4 py-2.5 font-display text-[19px] leading-snug shadow-[0_5px_0_rgba(40,25,10,0.35)]">{FINALE_STORY[finaleI].text}</p>
+              <div className="mt-2 flex gap-1.5">{FINALE_STORY.map((_, k) => <span key={k} className={`h-2 rounded-full ${k === finaleI ? "w-6 bg-[#FFD23F]" : "w-2 bg-white/60"}`} />)}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* tutorial */}
       {tip >= 0 && tip < TIPS.length && !card && (
@@ -523,6 +580,12 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
       )}
     </div>
   );
+}
+
+function DailyLine({ info }: { info: Over }) {
+  const g = dailyGoal(info.daily!), have = info.res.fruitBy[g.fruit] ?? 0;
+  const text = info.streak > 0 ? `📅 Hunt done! 🔥 ${info.streak}-day streak` : have >= g.count ? "📅 Hunt done today" : `📅 ${FRUITS[g.fruit].icon} ${have}/${g.count} — eat ${g.count} to finish today's hunt`;
+  return <p className="mt-2 rounded-full bg-[#FF5F7E] px-4 py-1 text-center font-display text-white">{text}</p>;
 }
 
 // ------------------------------------------------------------------ the run card
@@ -547,7 +610,8 @@ function OverScreen({ info, onRetry, onHome, onShop }: { info: Over; onRetry: ()
           {!info.newBest && <p className="mt-1 font-display text-white/85">…into a big pile of bananas</p>}
           <p className="mt-2 font-display text-[44px] leading-none text-white drop-shadow-[0_3px_0_rgba(40,25,10,0.8)]">{res.score.toLocaleString("en-US")}</p>
           <p className="font-display text-white/80">Best {Math.max(s.best.score, res.score).toLocaleString("en-US")}</p>
-          {info.daily && <p className="mt-2 rounded-full bg-[#FF5F7E] px-4 py-1 font-display text-white">{info.streak > 0 ? `📅 Hunt done! 🔥 ${info.streak}-day streak` : res.distance >= 1000 ? "📅 Hunt done today" : "📅 Run 1000 m to finish today's hunt"}</p>}
+          {info.finale && <p className="mt-2 rounded-full border-[3px] border-[#3A2410] bg-[#9CFF6B] px-4 py-1 text-center font-display text-[17px] text-[#1E4A10]">🌳 You saved the Great Fruit Tree! +1000</p>}
+          {info.daily && <DailyLine info={info} />}
           <div className="mt-4 grid w-full grid-cols-2 gap-2.5">
             {stat("Distance", `${res.distance.toLocaleString("en-US")} m`)}
             {stat("Coins", <span className="inline-flex items-center gap-1"><CoinIcon size={20} />+{info.reward}</span>)}
@@ -576,11 +640,34 @@ function OverScreen({ info, onRetry, onHome, onShop }: { info: Over; onRetry: ()
 }
 
 // ------------------------------------------------------------------ shop
-type Tab = "fur" | "hats" | "trails" | "ups";
+type Tab = "runner" | "fur" | "hats" | "ribbons" | "trails" | "ups";
+/** the dressing room: the chosen runner turning on a stump, wearing everything picked */
+function WardrobePreview() {
+  const host = useRef<HTMLDivElement>(null);
+  const view = useRef<WardrobeView | null>(null);
+  const look = useKiko((st) => st.look);
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const v = new WardrobeView(el);
+    view.current = v;
+    v.set(useKiko.getState().look);
+    return () => { v.dispose(); view.current = null; };
+  }, []);
+  useEffect(() => { view.current?.set(look); }, [look]);
+  const r = RUNNERS.find((x) => x.id === (look.runner ?? "kiko")) ?? RUNNERS[0];
+  return (
+    <div className="relative mx-4 mb-2 h-[30vh] max-h-60 min-h-36 shrink-0 overflow-hidden rounded-[24px] border-[3px] border-[#3A2410] bg-[radial-gradient(circle_at_50%_35%,#E6FFF0,#9EDFB0_60%,#5FB878)] shadow-[0_5px_0_rgba(40,25,10,0.3)] [@media(max-height:560px)]:h-[24vh]">
+      <div ref={host} className="absolute inset-0" />
+      <span className="pointer-events-none absolute top-2 left-3 rounded-full bg-[#FFFBEF]/90 px-3 py-0.5 font-display text-[14px]">{r.icon} {r.name}</span>
+      <span className="pointer-events-none absolute right-3 bottom-2 rounded-full bg-[#1E3A1A]/60 px-2.5 py-0.5 text-[11px] font-bold text-white">drag to turn</span>
+    </div>
+  );
+}
 function ShopScreen({ onBack }: { onBack: () => void }) {
   const s = useKiko();
   const coins = useProfile((p) => p.coins);
-  const [tab, setTab] = useState<Tab>("fur");
+  const [tab, setTab] = useState<Tab>("runner");
   const [shake, setShake] = useState("");
   const fail = (key: string) => { ui("a:bwomp"); setShake(key); setTimeout(() => setShake(""), 400); };
   const tile = (key: string, on: boolean, own: boolean, price: number, icon: ReactNode, name: string, onPick: () => void) => (
@@ -599,16 +686,20 @@ function ShopScreen({ onBack }: { onBack: () => void }) {
     apply();
   };
   const furDot = (id: string) => { const [fur, face] = KIKO_FUR[id] ?? KIKO_FUR.kiko; return <span className="relative inline-block size-11 rounded-full border-[3px] border-[#3A2410]" style={{ background: fur }}><span className="absolute inset-x-2 bottom-1 top-3 rounded-full" style={{ background: face }} /></span>; };
-  const TABS: [Tab, string][] = [["fur", "🐒 Kiko"], ["hats", "🎩 Hats"], ["trails", "✨ Trails"], ["ups", "⬆️ Power-ups"]];
+  const TABS: [Tab, string][] = [["runner", "🏃 Runners"], ["fur", "🐒 Fur"], ["hats", "🎩 Hats"], ["ribbons", "🎀 Bows"], ["trails", "✨ Trails"], ["ups", "⬆️ Power-ups"]];
+  const bowDot = (id: string) => { const rb = RIBBONS[id]; return <span className="relative inline-block h-8 w-12">{rb ? <><span className="absolute top-1 left-0 h-6 w-5 rounded-full border-2 border-[#3A2410]" style={{ background: rb.style === "rainbow" ? "conic-gradient(#FF4F5E,#FFD23F,#5FCB4E,#3DA8FF,#9B5DE5,#FF4F5E)" : rb.color }} /><span className="absolute top-1 right-0 h-6 w-5 rounded-full border-2 border-[#3A2410]" style={{ background: rb.style === "rainbow" ? "conic-gradient(#9B5DE5,#3DA8FF,#5FCB4E,#FFD23F,#FF4F5E,#9B5DE5)" : rb.color }} /><span className="absolute top-2.5 left-[18px] size-3 rounded-full border-2 border-[#3A2410] bg-white/80" /></> : <span className="text-3xl">🚫</span>}</span>; };
   return (
     <div className="absolute inset-0 flex flex-col">
       <Backdrop r={0} />
-      <div className="relative z-10"><TopBar title="Shop" sub="Fur, hats, trails and upgrades" onBack={onBack} right={<Pill><CoinIcon size={18} />{coins.toLocaleString("en-US")}</Pill>} /></div>
+      <div className="relative z-10"><TopBar title="Wardrobe" sub="Runners, fur, hats, bows, trails and upgrades" onBack={onBack} right={<Pill><CoinIcon size={18} />{coins.toLocaleString("en-US")}</Pill>} /></div>
+      <div className="relative z-10"><WardrobePreview /></div>
       <div className="no-scrollbar relative z-10 flex shrink-0 gap-2 overflow-x-auto px-4 pb-2">
         {TABS.map(([id, l]) => <button key={id} type="button" onClick={() => { ui(); setTab(id); }} className={`shrink-0 rounded-full border-[3px] border-[#3A2410] px-3.5 py-1.5 font-display text-[15px] ${tab === id ? "bg-[#FFC23D] text-[#4A2A08]" : "bg-[#FFFBEF]/90"}`}>{l}</button>)}
       </div>
       <div className="relative z-10 flex-1 overflow-y-auto px-4" style={{ paddingBottom: "calc(var(--safe-bottom) + 2rem)" }}>
         <div className="mx-auto grid max-w-xl grid-cols-3 gap-2.5 sm:grid-cols-4">
+          {tab === "runner" && RUNNERS.map((r) => tile(`runner:${r.id}`, (s.look.runner ?? "kiko") === r.id, r.price === 0 || s.owned.includes(`runner:${r.id}`), r.price, r.icon, r.name, () => buyUse(`runner:${r.id}`, r.price, () => s.setLook({ runner: r.id }))))}
+          {tab === "ribbons" && [["none", { name: "No bow", price: 0 }] as const, ...Object.entries(RIBBONS)].map(([id, rb]) => tile(`bow:${id}`, (s.look.ribbon ?? "none") === id, rb.price === 0 || s.owned.includes(`bow:${id}`), rb.price, bowDot(id), rb.name, () => buyUse(`bow:${id}`, rb.price, () => s.setLook({ ribbon: id }))))}
           {tab === "fur" && FURS.map((c) => tile(`fur:${c.id}`, s.look.fur === c.id, c.price === 0 || s.owned.includes(`fur:${c.id}`), c.price, furDot(c.id), c.name, () => buyUse(`fur:${c.id}`, c.price, () => s.setLook({ fur: c.id }))))}
           {tab === "hats" && HATS.map((h) => tile(`hat:${h.id}`, s.look.hat === h.id, h.price === 0 || s.owned.includes(`hat:${h.id}`), h.price, h.icon, h.name, () => buyUse(`hat:${h.id}`, h.price, () => s.setLook({ hat: h.id }))))}
           {tab === "trails" && TRAIL_ITEMS.map((t) => tile(`trail:${t.id}`, s.look.trail === t.id, t.price === 0 || s.owned.includes(`trail:${t.id}`), t.price, t.icon, t.name, () => buyUse(`trail:${t.id}`, t.price, () => s.setLook({ trail: t.id }))))}
@@ -680,7 +771,7 @@ function TreehouseScreen({ onBack }: { onBack: () => void }) {
 const FRIEND_STICKERS: { key: string; icon: string; name: string }[] = [
   ...Object.entries(RIDES).map(([id, r]) => ({ key: `ride:${id}`, icon: r.icon, name: r.name })),
   { key: "croc", icon: "🐊", name: "Crocodile" }, { key: "snake", icon: "🐍", name: "Snake" }, { key: "bees", icon: "🐝", name: "Bees" }, { key: "spider", icon: "🕷️", name: "Spider" },
-  { key: "chaser:bats", icon: "🦇", name: "Bat Swarm" }, { key: "chaser:stampede", icon: "🦓", name: "Stampede" }, { key: "chaser:avalanche", icon: "❄️", name: "Avalanche" }, { key: "chaser:boulder", icon: "🌑", name: "Giant Boulder" },
+  { key: "chaser:bats", icon: "🦇", name: "Bat Swarm" }, { key: "chaser:stampede", icon: "🦓", name: "Stampede" }, { key: "chaser:avalanche", icon: "❄️", name: "Avalanche" }, { key: "chaser:boulder", icon: "🌑", name: "Giant Boulder" }, { key: "finale", icon: "🌳", name: "Great Fruit Tree" },
   ...Object.entries(BOSSES).map(([id, b]) => ({ key: `beat:${id}`, icon: b.icon, name: b.name })),
 ];
 function StickersScreen({ onBack }: { onBack: () => void }) {

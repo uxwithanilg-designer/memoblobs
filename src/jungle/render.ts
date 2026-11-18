@@ -13,13 +13,14 @@ import { hatGeo } from "../crowd/models";
 import * as M from "./models";
 import * as M2 from "./models2";
 import { STYLES, type RegionStyle } from "./styles";
-import { BR_H, LW, sectionOf } from "./levels";
+import { BR_H, LW, sectionOf, FINALE, STAGE_M } from "./levels";
 import { PAD_H, RAFT_Y, geyserOn, geyserWarn, obZ, type Sim } from "./sim";
 import type { FruitId, Item, PowerId, RegionId, RideId, Section, SimEvent, TimeOfDay, Weather } from "./types";
 
 export type Quality = "low" | "medium" | "high";
 /** what Kiko looks like (bought in the shop) */
-export interface KikoLook { fur: string; hat: string; trail: string }
+/** the wardrobe: fur colour, hat, trail, tail ribbon and the runner (Kiko, or Momo as a guest) */
+export interface KikoLook { fur: string; hat: string; trail: string; ribbon?: string; runner?: string }
 export const TRAILS: Record<string, string[]> = {
   leaves: ["#5FBF4A", "#9AE05A"], petals: ["#FF8FC7", "#FFD1E8"], rainbow: ["#FF5F7E", "#FFD23F", "#2FCB8B", "#3D8BFF", "#B58CFF"],
   bubbles: ["#CFF1FF", "#FFFFFF"], stars: ["#FFD23F", "#FFF2A8"], fireflies: ["#FFF27A", "#B8FF7A"],
@@ -122,7 +123,7 @@ export class JungleRenderer {
   private raft: THREE.Mesh; private pepper: THREE.Mesh; private pepperGold: THREE.Mesh;
   private shadow: THREE.Mesh; private magnetRing: THREE.Mesh; private stars3: THREE.InstancedMesh;
   private pico = new THREE.Group(); private picoWings: THREE.Mesh[] = [];
-  private goon = new THREE.Group(); private seed: THREE.Mesh;
+  private goon = new THREE.Group(); private seed: THREE.Mesh; private greatTree: THREE.Group | null = null;
   private treehouse: THREE.Mesh;
   private parts: Particle[] = []; private partMesh: THREE.InstancedMesh; private streaks: THREE.InstancedMesh;
   private streakData: { x: number; y: number; z: number; v: number }[] = [];
@@ -266,7 +267,7 @@ export class JungleRenderer {
     O.flog = L([[{ g: M.logGeo(1), m: this.gloss }]], 20);
 
     // ---- Kiko
-    const rig = M.kikoRig(look.fur);
+    const rig = M.runnerRig(look), fit = M.RUNNER_FIT[look.runner === "momo" ? "momo" : "kiko"];
     this.kikoMat = k(bendify(new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.46, clearcoat: 0.6, clearcoatRoughness: 0.25, envMapIntensity: 0.95, sheen: 0.25, sheenRoughness: 0.6, sheenColor: new THREE.Color("#FFD2A8") })));
     const km = this.kikoMat;
     this.torso = new THREE.Mesh(rig.torso, km); this.body.add(this.torso);
@@ -277,7 +278,9 @@ export class JungleRenderer {
     }
     this.tail = new THREE.Group(); this.tail.position.set(0, 0.45, 0.24); this.tail.add(new THREE.Mesh(rig.tail, km)); this.body.add(this.tail);
     const hg = look.hat && look.hat !== "none" ? hatGeo(look.hat) : null;
-    if (hg) { this.hat = new THREE.Mesh(hg, this.gloss); this.hat.scale.setScalar(0.38); this.hat.position.set(0, 0.0, 0); this.head.add(this.hat); }
+    if (hg) { this.hat = new THREE.Mesh(hg, this.gloss); this.hat.scale.setScalar(fit.hatS); this.hat.position.set(0, fit.hatY, 0); this.head.add(this.hat); }
+    const rb = M.RIBBONS[look.ribbon ?? "none"];
+    if (rb) { const bow = new THREE.Mesh(M.ribbonGeo(rb.color, rb.style), this.gloss); bow.position.set(...fit.bow); this.tail.add(bow); }
     const helm = M.powerIcon("helmet"); helm.scale(1.25, 1.25, 1.25);
     this.helmet = new THREE.Mesh(helm, this.gloss); this.helmet.position.set(0, 0.6, 0); this.helmet.visible = false; this.head.add(this.helmet);
     this.kiko.add(this.body);
@@ -904,6 +907,18 @@ export class JungleRenderer {
       g.rotation.set(0, Math.sin(this.t * 9) * 0.15, Math.sin(this.t * 4.5) * 0.08);
       this.seed.position.set(g.position.x, g.position.y + 3.0, g.position.z); this.seed.rotation.y = this.t * 2;
     }
+    // the finale: the Great Fruit Tree stands over the path in place 301
+    const tz = s.track.stageZ(FINALE) + STAGE_M * 0.6;
+    if (tz - s.z < 320 && tz - s.z > -40) {
+      if (!this.greatTree) {
+        const g = new THREE.Group();
+        for (const { g: geo, mat } of M2.greatTreeParts()) { this.keep.push(geo); g.add(new THREE.Mesh(geo, this.matOf(mat))); }
+        this.greatTree = g; this.scene.add(g);
+      }
+      this.greatTree.visible = true;
+      this.greatTree.position.set(0, 0, R(tz));
+      this.greatTree.rotation.y = 0;
+    } else if (this.greatTree) this.greatTree.visible = false;
     // something rolls or flies along behind Kiko
     for (const [w, g] of this.chaserMeshes) g.visible = s.chaser === w;
     if (s.chaser && s.phase === "play") {
@@ -1044,9 +1059,10 @@ export class JungleRenderer {
       none: [], leaves: ["#7CC44A", "#FFC23D", "#5FAE3A", "#E8A04A"], rain: ["#CFE4FF"], storm: ["#BFD4F2"], fireflies: ["#FFF27A", "#B8FF7A"],
       butterflies: ["#FF8FC7", "#FFD23F", "#7AD3FF", "#FFFFFF", "#B58CFF"], mist: ["#FFFFFF"], snow: ["#FFFFFF"], wind: ["#7CC44A", "#FFFFFF", "#9AE05A"],
       petals: ["#FF9FD0", "#FFC2E2", "#FFFFFF"], ash: ["#8A8A8A", "#5A5A5A", "#FF7A2A"], dust: ["#E8C08A", "#C8A06A"],
+      fruitrain: ["#FFA62B", "#FFD23F", "#FF5F7E", "#7CC44A", "#6B5BFF", "#FF4FA8", "#FFE14D"],
     };
-    const fall = w === "rain" || w === "storm" || w === "leaves" || w === "snow" || w === "petals" || w === "ash" ? 1 : 0;
-    const v = w === "rain" ? 16 : w === "storm" ? 22 : w === "leaves" ? 1.3 : w === "snow" ? 1.6 : w === "petals" ? 1.0 : w === "ash" ? 0.8 : 0.6;
+    const fall = w === "rain" || w === "storm" || w === "leaves" || w === "snow" || w === "petals" || w === "ash" || w === "fruitrain" ? 1 : 0;
+    const v = w === "rain" ? 16 : w === "storm" ? 22 : w === "leaves" ? 1.3 : w === "snow" ? 1.6 : w === "petals" ? 1.0 : w === "ash" ? 0.8 : w === "fruitrain" ? 3.2 : 0.6;
     const side = w === "wind" ? 9 : w === "storm" ? 3 : w === "dust" ? 4 : 0;
     let n = 0;
     for (let i = 0; i < this.wxData.length; i++) {
@@ -1061,6 +1077,7 @@ export class JungleRenderer {
       else if (w === "butterflies") { const f = Math.abs(Math.sin(p.p * 14 + i)); d.scale.set(1.6 * (0.3 + f), 1.2, 1); d.rotation.set(0.4, p.p, 0); }
       else if (w === "leaves" || w === "petals" || w === "wind") { d.scale.set(w === "wind" ? 2.4 : 1.5, 0.8, 1); d.rotation.set(p.p * 2, p.p, p.p); }
       else if (w === "snow") { d.scale.setScalar(1.1 + (i % 3) * 0.3); d.rotation.set(p.p, p.p, 0); }
+      else if (w === "fruitrain") { d.scale.setScalar(2.6 + (i % 3) * 0.6); d.rotation.set(p.p * 3, p.p * 2, p.p); }
       else { d.scale.setScalar(w === "fireflies" ? 0.45 + Math.sin(p.p * 6 + i) * 0.25 : w === "ash" || w === "dust" ? 0.9 : 2.4); d.rotation.set(p.p, p.p * 0.7, 0); }
       d.updateMatrix();
       this.wx.setMatrixAt(n, d.matrix);

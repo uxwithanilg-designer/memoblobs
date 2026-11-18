@@ -120,6 +120,65 @@ export function kikoRig(look = "kiko"): KikoRig {
   return { torso, head, arm, leg, tail };
 }
 
+/** Momo, the orange MOMOBLOBS clay blob, as a guest runner — the same rig parts as Kiko so every pose works */
+export function momoRig(): KikoRig {
+  const orange = "#FF8A3D", light = "#FFB565";
+  const torso = merge([
+    tint(at(sq(sphere(0.42, 28, 22), 1, 0.92, 0.95), 0, 0.62, 0), orange),
+    tint(at(sq(sphere(0.27, 18, 14), 1, 0.85, 0.45), 0, 0.5, -0.27), light),
+  ]);
+  // the head pivot sits at y 0.9 inside the blob: eyes, cheeks and the grin on the front, the sprout on top
+  const h: G[] = [];
+  for (const sx of [-1, 1]) {
+    h.push(tint(at(sq(sphere(0.135, 18, 14), 1, 1.12, 0.72), sx * 0.13, -0.11, -0.33), "#FFFFFF"));
+    h.push(tint(at(sq(sphere(0.072, 14, 10), 1, 1.1, 0.6), sx * 0.12, -0.12, -0.425), "#1B1530"));
+    h.push(tint(at(sq(sphere(0.026, 8, 6), 1, 1, 0.5), sx * 0.12 - 0.026, -0.08, -0.465), "#FFFFFF"));
+    h.push(tint(at(sq(sphere(0.06, 10, 8), 1.3, 0.7, 0.4), sx * 0.27, -0.27, -0.29), "#FF6F8A"));
+  }
+  const grin = new THREE.TorusGeometry(0.085, 0.019, 6, 16, Math.PI); grin.rotateZ(Math.PI); grin.rotateX(0.25); grin.translate(0, -0.28, -0.37); h.push(tint(grin, "#5A2414"));
+  h.push(tint(taperTube([v3(0, 0.08, 0.02), v3(0.02, 0.2, 0.02), v3(0.05, 0.3, 0)], 0.032, 0.02, 10, 6), "#3FAE4A"));
+  for (const sx of [-1, 1]) { const lf = sq(sphere(0.09, 10, 8), 1.7, 0.35, 0.9); lf.rotateZ(sx * 0.5); lf.translate(0.05 + sx * 0.1, 0.31, 0); h.push(tint(lf, "#6FD85A")); }
+  const head = merge(h);
+  const a: G[] = [];
+  const up = cap(0.06, 0.2, 8); up.translate(0, -0.16, 0); a.push(tint(up, orange));
+  a.push(tint(at(sphere(0.075, 12, 10), 0, -0.3, 0), light));
+  const arm = merge(a);
+  const l: G[] = [];
+  const lg = cap(0.07, 0.1, 8); lg.translate(0, -0.12, 0); l.push(tint(lg, orange));
+  l.push(tint(at(sq(sphere(0.1, 14, 10), 1, 0.6, 1.6), 0, -0.3, -0.05), light));
+  const leg = merge(l);
+  const tail = tint(sphere(0.01, 4, 3), orange);
+  return { torso, head, arm, leg, tail };
+}
+/** the tail ribbons in the wardrobe */
+export const RIBBONS: Record<string, { name: string; color: string; style: "plain" | "dots" | "rainbow"; price: number }> = {
+  cherry: { name: "Cherry Bow", color: "#E8344E", style: "plain", price: 150 },
+  bubblegum: { name: "Bubblegum Bow", color: "#FF8FC7", style: "plain", price: 150 },
+  sky: { name: "Sky Bow", color: "#3DA8FF", style: "plain", price: 200 },
+  polka: { name: "Polka Bow", color: "#E8344E", style: "dots", price: 300 },
+  golden: { name: "Golden Bow", color: "#FFC21A", style: "plain", price: 450 },
+  rainbow: { name: "Rainbow Bow", color: "#FF8A3D", style: "rainbow", price: 700 },
+};
+/** where the hat and the bow sit for each runner (the bow hangs off the tail group) */
+export const RUNNER_FIT: Record<string, { hatY: number; hatS: number; bow: [number, number, number] }> = {
+  kiko: { hatY: 0, hatS: 0.38, bow: [0, 0.84, 0.33] },
+  momo: { hatY: -0.5, hatS: 0.44, bow: [0, 0.36, 0.2] },
+};
+export const runnerRig = (look: { fur: string; runner?: string }) => (look.runner === "momo" ? momoRig() : kikoRig(look.fur));
+/** a bow for Kiko's tail (or Momo's back): two loops, a knot and two little tails */
+export function ribbonGeo(color: string, style: "plain" | "dots" | "rainbow" = "plain"): G {
+  const p: G[] = [];
+  const knot = new THREE.Color(color).multiplyScalar(0.75).getStyle();
+  for (const sx of [-1, 1]) {
+    const loop = sq(sphere(0.09, 14, 10), 1.3, 0.85, 0.42); loop.rotateZ(sx * 0.35); loop.translate(sx * 0.1, 0.01, 0);
+    p.push(style === "rainbow" ? shade(loop, (x, y) => ["#FF4F5E", "#FFA62B", "#FFD23F", "#5FCB4E", "#3DA8FF", "#9B5DE5"][Math.max(0, Math.min(5, Math.floor((y + 0.08) * 36)))]) : tint(loop, color));
+    if (style === "dots") for (let i = 0; i < 3; i++) p.push(tint(at(sq(sphere(0.018, 6, 4), 1, 1, 0.5), sx * (0.06 + i * 0.04), 0.02 + (i % 2) * 0.04, 0.035), "#FFFFFF"));
+    const tl = cap(0.028, 0.12, 6); tl.rotateZ(sx * 0.45); tl.translate(sx * 0.05, -0.1, 0); p.push(tint(tl, color));
+  }
+  p.push(tint(at(sphere(0.05, 10, 8), 0, 0, 0.01), knot));
+  return merge(p);
+}
+
 // ------------------------------------------------------------------ Pico the toucan (faces −z), wing pivot at the shoulder
 export function pico(): { body: G; wing: G } {
   const p: G[] = [];

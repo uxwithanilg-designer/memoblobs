@@ -240,7 +240,7 @@ export const REGIONS: RegionDef[] = [
       ["Obsidian Bridge", "bridge"], ["Steam Vents", "geysers", "sunset", "mist"], ["Fire Flower Field", "rollers"], ["Magma River", "stones"],
       ["Smoky Canopy", "highroad"], ["Ember Rain", "coconuts"], ["Basalt Steps", "bounce"], ["Crater Rim", "collapse"],
       ["Lava Tube", "zipline", "cave", "ash"], ["Dragonfruit Grove", "ride"], ["Thorn Walls", "logs"], ["Bramble Maze", "pits"],
-      ["Smoke Signals", "chaser"], ["Burning Sky", "stones", "night", "ash"], ["Thorn Castle Gate", "geysers", "night", "ash"], ["The Great Fruit Tree", "vines", "sunset", "petals"],
+      ["Smoke Signals", "chaser"], ["Burning Sky", "stones", "night", "ash"], ["Thorn Castle Gate", "geysers", "night", "ash"], ["Bramble's Last Stand", "vines", "sunset", "petals"],
     ],
   },
 ];

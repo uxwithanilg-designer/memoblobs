@@ -193,7 +193,7 @@ animal rides, set pieces.
 - **Phase 2:** regions 3–15 (stages 41–300), all set pieces, weather, animal rides, bosses, Pico's hints, Treehouse and
   sticker album, music for all regions.
 - **Phase 3:** the Wild Forest (endless), the Daily Jungle Hunt, freshness memory across days, the wardrobe, the
-  stage-300 finale, balance sweeps across all 300 stages.
+  stage-300 finale, balance sweeps across all 300 stages. (Built — see §12c.)
 
 ## 12a. Phase 1 — built (2026-11-18)
 
@@ -257,6 +257,29 @@ Live at `/play/kiko-jungle-quest` (engine `jungle`, code in `src/jungle/`).
 - **Missions**: ride animals, zip down ziplines, beat bosses.
 - **Balance** (`node scripts/kiko_sweep.mjs`): the par bot from place 1 reached ≈ 70 km (place ≈ 218); from places 101,
   141, 201, 261 and 281 it passes 7 km; the kid bot (skill 0.5) median ≈ 7–12 km.
+
+## 12c. Phase 3 — built (2026-11-18)
+
+- **The finale (place 301, `FINALE` in `levels.ts`)**: after Baron Bramble's chase in place 300 ("Bramble's Last Stand") a
+  region gate leads home to **The Great Fruit Tree**: no hazards, a fruit rain (fruit confetti + 45 % fruit in banana
+  rows, three Golden Bananas), the giant tree standing over the path (`greatTreeParts` in `models2.ts`: root arch,
+  blossom canopy, golden fruit, the 15 seeds glowing round it) and a five-card comic told over the running game (seeds
+  planted → the tree blooms → fruit rain → Baron Bramble gets a banana → the Wild Forest). Reaching it gives 1000 coins,
+  a "Great Fruit Tree" sticker and a 🌳 count on the title screen.
+- **The Wild Forest grows every day** (`setWildForest(wildDay(), …)` before each run): from place 302 each 20-place
+  region blends two regions (the look of one, the hazards and set pieces of both) with a season (spring, monsoon, autumn,
+  winter → its weather and name words), and about one place in three gets a twist (night, fog, turbo ×1.12, fruit rain,
+  gold rush). Names come from season or region words and never repeat within the last five places.
+- **Freshness memory**: a set piece never repeats within three places; Wild Forest blends met on earlier days are kept
+  for a week in the save (`wild`) and avoided; chunks seen lately stay rare (Phase 1).
+- **Daily Jungle Hunt**: today's start place grows today's fruit; the goal is to eat 8 of it (`dailyGoal`), shown on
+  the title button, the start card and a HUD pill; daily runs grow that fruit more often (60 % of fruit, 10 % fruit in
+  banana rows) so the kid bot reaches it in about 0.5–1 km. Finishing keeps the streak.
+- **Wardrobe** (the shop): a 3D dressing room (`wardrobe.ts`) with the runner turning on a stump; tabs for runners
+  (Kiko, or **Momo as a guest runner** — `momoRig` uses Kiko's rig parts so every pose works), fur, hats, tail **bows**
+  (6, `RIBBONS`), trails and power-ups.
+- **Balance** (`node scripts/kiko_sweep.mjs`): par from place 281 runs through the finale into the Wild Forest (8 km,
+  3/3); par from 302 makes 8 km; the kid bot from 302 makes 6 km; the kid bot from place 1 has a median of ≈ 12 km.
 
 ## 13. How a run works (decided: start from the beginning)
 

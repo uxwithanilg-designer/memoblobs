@@ -6,7 +6,7 @@
 // difficulty rises with every place, and banana-flag checkpoints catch Kiko when a heart is lost.
 import { BRIDGE, GROUND, LILY, RIVER, isBananaOnly, type Chunk } from "./chunks";
 import { REGIONS } from "./regions";
-import type { FruitId, Item, Ob, ObKind, PowerId, RunSpec, Section, SetPiece, TimeOfDay, Vine, Weather, Zone } from "./types";
+import type { FruitId, Item, Ob, ObKind, PowerId, RunSpec, Season, Section, SetPiece, TimeOfDay, Twist, Vine, Weather, Zone } from "./types";
 
 export const LW = 2.2;
 export const ROW = 3.2;
@@ -21,6 +21,8 @@ export const SPEED_CAP = 18.5;
 export { BOSSES, REGIONS, RIDES, RIDE_T, regionIndex, type RegionDef } from "./regions";
 /** the hand-made stages; after them the Wild Forest mixes the regions forever */
 export const HAND = STAGES_PER_REGION * REGIONS.length;
+/** place 301: Kiko plants the 15 Golden Seeds and the Great Fruit Tree blooms; the Wild Forest starts right after it */
+export const FINALE = HAND + 1;
 
 export const FRUITS: Record<FruitId, { name: string; icon: string; color: string }> = {
   mango: { name: "Mango", icon: "🥭", color: "#FFA62B" }, pineapple: { name: "Pineapple", icon: "🍍", color: "#FFD23F" },
@@ -85,7 +87,6 @@ const hashN = (n: number, k = 0) => { let h = Math.imul(n * 374761393 + k * 6682
 
 // ------------------------------------------------------------------ the run schedule
 const TODS: TimeOfDay[] = ["morning", "day", "day", "sunset", "night"];
-const WEATHERS: Weather[] = ["none", "leaves", "butterflies", "rain", "mist", "petals", "wind", "fireflies"];
 const CHASE_AT = new Set([19, 20]);
 /** the forest-floor pieces of place n: the basics by place, plus this region's own hazards and the two before it */
 export function allowFor(n: number) {
@@ -98,29 +99,94 @@ export const newPiece = (n: number) => (n > HAND ? undefined : Object.entries(IN
 const PIECE_CHAR: Partial<Record<SetPiece, string>> = { peels: "P", coconuts: "C", rollers: "K", logs: "S", bounce: "U", geysers: "G", webs: "W", mud: "M", gusts: "{", ice: "I", pits: "_" };
 
 const secCache = new Map<number, Section>();
+
+// ------------------------------------------------------------------ the Wild Forest grows new places every day
+const SEASONS: Record<Season, { weather: Weather[]; adj: string[] }> = {
+  spring: { weather: ["petals", "butterflies", "none", "leaves"], adj: ["Blooming", "Springtime", "Sunny", "Budding"] },
+  monsoon: { weather: ["rain", "storm", "mist", "rain"], adj: ["Rainy", "Stormy", "Misty", "Soggy"] },
+  autumn: { weather: ["leaves", "wind", "none", "leaves"], adj: ["Golden", "Windy", "Rusty", "Crunchy"] },
+  winter: { weather: ["snow", "mist", "snow", "none"], adj: ["Frozen", "Frosty", "Snowy", "Chilly"] },
+};
+const SEASON_IDS = Object.keys(SEASONS) as Season[];
+const TWISTS: Twist[] = ["night", "fog", "turbo", "fruitRain", "goldRush"];
+export const TWIST_TEXT: Record<Twist, string> = {
+  night: "🌙 Night run!", fog: "🌫️ Foggy place — look ahead!", turbo: "⚡ Turbo place — everything is faster!",
+  fruitRain: "🍓 Fruit rain!", goldRush: "⭐ Gold rush — 3 Golden Bananas here!",
+};
+/** today's Wild Forest (seed = day number) and the blends seen on earlier days, kept rare (the freshness memory) */
+const WILD = { seed: 0, avoid: new Set<string>() };
+const blendCache = new Map<number, { a: number; b: number; season: Season }>();
+const hw = (n: number, k: number) => hashN(n, k + WILD.seed * 31);
+/** the day number the Wild Forest grows from (one new forest per local day) */
+export const wildDay = (d = new Date()) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+export function setWildForest(seed: number, avoid: string[] = []) {
+  const key = [...avoid].sort().join(",");
+  if (seed === WILD.seed && key === [...WILD.avoid].sort().join(",")) return;
+  WILD.seed = seed; WILD.avoid = new Set(avoid); blendCache.clear();
+  for (const n of [...secCache.keys()]) if (n > HAND) secCache.delete(n);
+}
+/** the c-th Wild Forest region: the look of one region, the hazards of another, a season — never the blend just before it,
+ * and blends seen on the last few days only when nothing fresh is left */
+function wildBlend(c: number) {
+  const hit = blendCache.get(c);
+  if (hit) return hit;
+  const nr = REGIONS.length, prevA = c > 0 ? wildBlend(c - 1).a : -1;
+  let pick = { a: 0, b: 1 };
+  for (let t = 0; t < 12; t++) {
+    const a = Math.floor(hw(c, 101 + t * 7) * nr);
+    let b = Math.floor(hw(c, 103 + t * 7) * (nr - 1)); if (b >= a) b++;
+    pick = { a, b };
+    if (a !== prevA && !WILD.avoid.has(`${REGIONS[a].id}-${REGIONS[b].id}`)) break;
+  }
+  const out = { ...pick, season: SEASON_IDS[Math.floor(hw(c, 21) * SEASON_IDS.length)] };
+  blendCache.set(c, out);
+  return out;
+}
 /** what place n of the run looks like */
 export function sectionOf(n: number): Section {
   const hit = secCache.get(n);
   if (hit) return hit;
   const s = ((n - 1) % STAGES_PER_REGION) + 1, d = difficulty(n);
   let sec: Section;
-  if (n > HAND) {
-    // the Wild Forest: two regions blended (the look of one, the set pieces of both), any time and weather
-    const c = Math.floor((n - HAND - 1) / STAGES_PER_REGION), nr = REGIONS.length;
-    const a = (c + 1) % nr, b = nr > 1 ? (a + 1 + Math.floor(hashN(c, 3) * (nr - 1))) % nr : a, A = REGIONS[a], B = REGIONS[b];
+  if (n === FINALE) {
+    // the finale: back home under the Great Fruit Tree — no hazards, a fruit rain, the seeds go in the ground
+    const R = REGIONS[0];
+    sec = {
+      n, s, r: 0, region: R.id, scene: R.id, remix: false, place: "The Great Fruit Tree", emoji: "🌳", d: 0.05, tod: "day", weather: "fruitrain", piece: "none",
+      fruit: "mango", music: R.id, tune: R.tune, allow: "", chase: false, villain: R.villain, boss: R.boss, finale: true,
+    };
+  } else if (n > HAND) {
+    // the Wild Forest: every day the tree grows new places — two regions blended (the look of one, the hazards of both),
+    // a season, any time and weather, and now and then a twist
+    const c = Math.floor((n - HAND - 1) / STAGES_PER_REGION);
+    const { a, b, season } = wildBlend(c), A = REGIONS[a], B = REGIONS[b], SE = SEASONS[season];
     const pool = [...new Set([...A.pool, ...B.pool])];
-    let piece = pool[Math.floor(hashN(n, 5) * pool.length)];
+    let piece = pool[Math.floor(hw(n, 5) * pool.length)];
     if (s === 1) piece = "none";
-    const prev = n > HAND + 1 ? sectionOf(n - 1).piece : "none";
-    if (piece === prev) piece = pool[(pool.indexOf(piece) + 1) % pool.length];
-    const tod: TimeOfDay = A.id === "caves" ? "cave" : s >= 19 ? "night" : TODS[Math.floor(hashN(n, 7) * TODS.length)];
-    const weather: Weather = A.id === "snow" ? "snow" : A.id === "volcano" ? "ash" : tod === "night" || tod === "cave" ? "fireflies" : WEATHERS[Math.floor(hashN(n, 9) * (WEATHERS.length - 1))];
-    const name = `${B.adj[Math.floor(hashN(n, 11) * B.adj.length)]} ${A.noun[Math.floor(hashN(n, 13) * A.noun.length)]}`;
+    else {
+      // a set piece never repeats within three places
+      const near = [n - 1, n - 2].filter((k) => k > FINALE).map((k) => sectionOf(k).piece);
+      for (let t = 0; t < pool.length && near.includes(piece); t++) piece = pool[(pool.indexOf(piece) + 1) % pool.length];
+    }
+    const chase = CHASE_AT.has(s);
+    const twist: Twist | undefined = s > 2 && !chase && hw(n, 31) < 0.3 ? TWISTS[Math.floor(hw(n, 33) * TWISTS.length)] : undefined;
+    let tod: TimeOfDay = A.id === "caves" ? "cave" : s >= 19 ? "night" : TODS[Math.floor(hw(n, 7) * TODS.length)];
+    let weather: Weather = A.id === "snow" ? "snow" : A.id === "volcano" ? "ash" : tod === "night" || tod === "cave" ? "fireflies" : SE.weather[Math.floor(hw(n, 9) * SE.weather.length)];
+    if (twist === "night" && tod !== "cave") { tod = "night"; weather = "fireflies"; }
+    if (twist === "fog") { tod = tod === "night" || tod === "cave" ? tod : "morning"; weather = "mist"; }
+    if (twist === "fruitRain") weather = "fruitrain";
+    // a name made of the season or the second region's words and a place of the first — never one met in the last few places
+    const near = new Set([1, 2, 3, 4, 5].map((k) => n - k).filter((k) => k > FINALE && Math.floor((k - HAND - 1) / STAGES_PER_REGION) === c).map((k) => sectionOf(k).place));
+    let name = "";
+    for (let t = 0; t < 8 && (!name || near.has(name)); t++) {
+      const adj = hw(n, 11 + t * 3) < 0.45 ? SE.adj[Math.floor(hw(n, 12 + t * 3) * SE.adj.length)] : B.adj[Math.floor(hw(n, 13 + t * 3) * B.adj.length)];
+      name = `${adj} ${A.noun[Math.floor(hw(n, 14 + t * 3) * A.noun.length)]}`;
+    }
     sec = {
       n, s, r: a, region: A.id, scene: A.id, remix: true, place: name, emoji: `${A.emoji}${B.emoji}`, d, tod, weather, piece,
-      fruit: FRUIT_IDS[Math.floor(hashN(n, 17) * FRUIT_IDS.length)], music: s <= 10 ? A.id : B.id, tune: s <= 10 ? A.tune : B.tune,
-      allow: "BJSPCTX_UK" + A.haz + B.haz + (PIECE_CHAR[piece] ?? ""), chase: CHASE_AT.has(s), villain: (s <= 10 ? A : B).villain, boss: (s <= 10 ? A : B).boss,
-      ride: A.ride ?? B.ride,
+      fruit: FRUIT_IDS[Math.floor(hw(n, 17) * FRUIT_IDS.length)], music: s <= 10 ? A.id : B.id, tune: s <= 10 ? A.tune : B.tune,
+      allow: "BJSPCTX_UK" + A.haz + B.haz + (PIECE_CHAR[piece] ?? ""), chase, villain: (s <= 10 ? A : B).villain, boss: (s <= 10 ? A : B).boss,
+      ride: A.ride ?? B.ride, season, twist, blend: `${A.id}-${B.id}`,
     };
   } else {
     const r = Math.floor((n - 1) / STAGES_PER_REGION), R = REGIONS[r], [place, piece, tod, weather] = R.places[s - 1];
@@ -139,7 +205,8 @@ export function speedOf(n: number, frac: number): number {
   const r = Math.min(14, Math.floor((n - 1) / STAGES_PER_REGION)), s = ((n - 1) % STAGES_PER_REGION) + frac;
   const vN = Math.min(15.5, 11.5 + 0.45 * r), vC = Math.min(SPEED_CAP, vN + 3);
   const wave = s < 10 ? s / 10 : s < 11 ? 1 - (s - 10) * 0.7 : 0.3 + 0.7 * (s - 11) / 9;
-  return vN + (vC - vN) * Math.max(0, Math.min(1, wave));
+  const v = vN + (vC - vN) * Math.max(0, Math.min(1, wave));
+  return n > HAND && sectionOf(n).twist === "turbo" ? v * 1.12 : n === FINALE ? Math.min(v, 13) : v;
 }
 export function dailyKey(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
 /** the Daily Jungle Hunt: today's run starts in a different region (the same for everyone) */
@@ -148,6 +215,11 @@ export function dailyRun(key: string): RunSpec {
   for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
   return { seed: h, start: 1 + STAGES_PER_REGION * (h % REGIONS.length) + (h % 3), daily: key };
 }
+/** the Daily Jungle Hunt's goal: eat this many of the fruit the day's first place grows */
+export function dailyGoal(key: string): { fruit: FruitId; count: number } {
+  return { fruit: sectionOf(dailyRun(key).start).fruit, count: DAILY_FRUITS };
+}
+export const DAILY_FRUITS = 8;
 
 // ------------------------------------------------------------------ the track
 const KIND: Record<string, ObKind> = {
@@ -196,10 +268,12 @@ export class Track {
   private plan: { z: number; piece: SetPiece; done?: boolean }[] = [];
   private reserve: Reserve[] = [];
   private bias: { ch: string; until: number } | null = null;
-  private gold = new Set<number>();
+  private gold = new Map<number, number>();
+  private huntFruit: FruitId | null = null;
 
   constructor(spec: RunSpec) {
     this.spec = spec; this.r = rng(spec.seed);
+    this.huntFruit = spec.daily ? sectionOf(spec.start).fruit : null;
     this.far = new Set(spec.recent ?? []);
     this.nextPower = 160 + this.r() * 80; this.nextBoost = 700 + this.r() * 250; this.nextHeart = (spec.help ? 900 : 1300) + this.r() * 400;
     this.regions.push({ z: 0, n: spec.start });
@@ -368,8 +442,9 @@ export class Track {
         }
         if (ch === "{" || ch === "}") { this.ob({ kind: "gust", lane, z: rz, len: rowLen * 0.6, y: 0, k: 0, dir: ch === "{" ? -1 : 1 }); continue; }
         if (ch === "o") {
+          const fruitP = sec.finale ? 0.45 : sec.twist === "fruitRain" ? 0.32 : this.huntFruit ? 0.1 : 0.06;
           for (const f of [0.25, 0.75]) {
-            if (r() < 0.06) this.fruit(sec, lane, rz + rowLen * f, y0 + 0.9);
+            if (r() < fruitP) this.fruit(sec, lane, rz + rowLen * f, y0 + 0.9);
             else this.banana(lane, rz + rowLen * f, y0 + 0.8);
           }
         } else if (ch === "F") this.fruit(sec, lane, rz + rowLen / 2, y0 + 0.9);
@@ -397,7 +472,8 @@ export class Track {
   private banana(lane: number, z: number, y: number) { this.items.push({ id: this.id++, kind: "banana", lane, z, y }); }
   private fruit(sec: Section, lane: number, z: number, y: number) {
     const R = REGIONS[sec.r];
-    const f = this.r() < 0.45 ? sec.fruit : R.fruits[Math.floor(this.r() * R.fruits.length)];
+    // on the Daily Jungle Hunt, today's fruit turns up much more often
+    const f = this.huntFruit && this.r() < 0.6 ? this.huntFruit : this.r() < 0.45 ? sec.fruit : R.fruits[Math.floor(this.r() * R.fruits.length)];
     this.items.push({ id: this.id++, kind: "fruit", lane, z, y, fruit: f });
   }
   private put(kind: Item["kind"], lane: number, z: number, y: number, extra: Partial<Item> = {}) {
@@ -460,7 +536,7 @@ export class Track {
         // bananas along the swing
         for (let k = 1; k < 8; k++) { const f = k / 8; this.banana(l, vz + f * (last ? L + 4 : L), 1.4 + Math.sin(Math.PI * f) * 2.2); }
       }
-      if (!this.gold.has(sec.n) && (last || this.r() < 0.4)) { this.gold.add(sec.n); this.put("gold", lane, vz + L * 0.5, 4.0); }
+      if (!this.gold.get(sec.n) && (last || this.r() < 0.4)) { this.gold.set(sec.n, (this.gold.get(sec.n) ?? 0) + 1); this.put("gold", lane, vz + L * 0.5, 4.0); }
       const nl = lane + (this.r() < 0.5 ? -1 : 1);
       lane = nl < -1 ? 1 : nl > 1 ? -1 : nl;
     }
@@ -511,7 +587,7 @@ export class Track {
       if (!clear) continue;
       if (this.r() < 0.05) this.fruit(sec, l, z, BR_H + 0.9); else this.banana(l, z, BR_H + 0.8);
     }
-    if (!this.gold.has(sec.n)) { this.gold.add(sec.n); this.put("gold", lane2, ze - 4, BR_H + 1.0); }
+    if (!this.gold.get(sec.n)) { this.gold.set(sec.n, (this.gold.get(sec.n) ?? 0) + 1); this.put("gold", lane2, ze - 4, BR_H + 1.0); }
     if (this.r() < 0.2) this.put("heart", lane, zb + H * 0.3, BR_H + 1.0);
     this.z = z0 + (viaBounce ? 4 : RAMP_LEN + 2);
   }
@@ -528,7 +604,7 @@ export class Track {
         else this.ob({ kind: "gap", lane: l, z: z - 0.2, len: 2.0, y: 0, k: 0 });
       }
       this.zones.push({ id: this.id++, kind: "chasm", z0: z + 1.8, z1: z + 1.8 + L });
-      if (!this.gold.has(sec.n) && (i === count - 1 || this.r() < 0.4)) { this.gold.add(sec.n); this.put("gold", lanes[0], z + 0.8 + speed * 0.54, 5.0); }
+      if (!this.gold.get(sec.n) && (i === count - 1 || this.r() < 0.4)) { this.gold.set(sec.n, (this.gold.get(sec.n) ?? 0) + 1); this.put("gold", lanes[0], z + 0.8 + speed * 0.54, 5.0); }
       z += 1.8 + L + 7;
     }
     this.z = z + 2;
@@ -544,7 +620,7 @@ export class Track {
       this.vines.push({ id: this.id++, lane: l, z: z0 - 1.5, len: L + 4.5, toY: 0, zip: true });
       for (let k = 1; k < 13; k++) { const f = k / 13; this.banana(l, z0 - 1.5 + f * (L + 4), 2.4 - 2.0 * f - 0.5 * Math.sin(Math.PI * f) + 0.9); }
     }
-    if (!this.gold.has(sec.n)) { this.gold.add(sec.n); this.put("gold", lanes[0], z0 + L * 0.5, 2.2); }
+    if (!this.gold.get(sec.n)) { this.gold.set(sec.n, (this.gold.get(sec.n) ?? 0) + 1); this.put("gold", lanes[0], z0 + L * 0.5, 2.2); }
     this.z = z0 + L + 8;
   }
   /** kites on the wind: grab one (in every lane) and fly over a long ravine */
@@ -587,7 +663,7 @@ export class Track {
       }
     }
     this.zones.push({ id: this.id++, kind, z0: z, z1: z + n * rowLen });
-    if (!this.gold.has(sec.n) && this.r() < 0.6) { this.gold.add(sec.n); this.put("gold", Math.floor(this.r() * 3) - 1, z + n * rowLen * 0.6, 2.2); }
+    if (!this.gold.get(sec.n) && this.r() < 0.6) { this.gold.set(sec.n, (this.gold.get(sec.n) ?? 0) + 1); this.put("gold", Math.floor(this.r() * 3) - 1, z + n * rowLen * 0.6, 2.2); }
     z += n * rowLen;
     this.z = z + 8;
   }
@@ -607,7 +683,7 @@ export class Track {
     }
     const z1 = Math.max(z + 6, z0 + len);
     this.zones.push({ id: this.id++, kind: "water", z0, z1, raft: true, slide });
-    if (!this.gold.has(sec.n)) { this.gold.add(sec.n); this.put("gold", Math.floor(this.r() * 3) - 1, z1 - 10, 1.4); }
+    if (!this.gold.get(sec.n)) { this.gold.set(sec.n, (this.gold.get(sec.n) ?? 0) + 1); this.put("gold", Math.floor(this.r() * 3) - 1, z1 - 10, 1.4); }
     this.z = z1 + 8;
   }
 
@@ -627,7 +703,9 @@ export class Track {
       if (have < 4 && z > c.z0 + 30 && z < c.z1 - 20 && free(lane) && !nearZone && z > (this.items.filter((i) => i.kind === "pad").pop()?.z ?? 0) + 100) { this.put("pad", lane, z, 0.05); return; }
     }
     if (end > this.nextFlag) { this.flag(z); return; }
-    if (!this.gold.has(sec.n) && end - this.stageZ(sec.n) > STAGE_M * 0.62 && free(lane)) { this.gold.add(sec.n); this.put("gold", lane, z, 1.0); return; }
+    // one Golden Banana per place (three in a gold-rush place, and in the finale)
+    const golds = this.gold.get(sec.n) ?? 0, many = sec.twist === "goldRush" || sec.finale;
+    if (golds < (many ? 3 : 1) && end - this.stageZ(sec.n) > STAGE_M * (many ? [0.2, 0.45, 0.7][golds] : 0.62) && free(lane)) { this.gold.set(sec.n, golds + 1); this.put("gold", lane, z, 1.0); return; }
     if (end > this.nextBoost && free(lane)) { const x = this.r() < 0.2 ? 5 : 3; this.put("boost", lane, z, 1.1, { boost: x }); this.nextBoost = end + 2400 + x * 300 + this.r() * 900; return; }
     if (sec.ride && end > this.nextRide && free(lane)) { this.put("ride", lane, z, 0.2, { ride: sec.ride }); this.nextRide = end + 1500 + this.r() * 900; return; }
     if (end > this.nextHeart && free(lane)) { this.put("heart", lane, z, 1.0); this.nextHeart = end + (this.spec.help ? 1300 : 1800) + this.r() * 800; return; }
