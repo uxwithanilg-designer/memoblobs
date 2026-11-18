@@ -28,7 +28,7 @@ const A = (s: Spec): Game => ({
   accent: s.accent,
   accent2: s.accent2,
   cover: CHAR[s.host],
-  hero: s.live ? `/games/${s.slug}/hero.webp` : CHAR[s.host],
+  hero: s.live ? `/games/${s.slug}/thumb.webp` : CHAR[s.host],
   character: CHAR[s.host],
   shots: [],
   art: "character",
@@ -99,7 +99,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "shadow-match", title: "Shadow Snap", host: "noodle", live: true, categories: ["focus"], accent: "#2B2D42", accent2: "#D49452",
     short: "Whose shadow is it?", tagline: "Match the clay shadow to the right character.",
-    description: "Shadow Snap is a free shape-matching game for kids in Noodle the sausage dog's shadow-puppet theatre. Noodle's lamp throws a black clay shadow onto the screen — tap the friend who casts it before the timer runs out. More cards, quicker timers and look-alike friends arrive as you go, then shadows flip, spin, sway on strings, peek from behind the curtain, flicker and even strike different poses.",
+    description: "Shadow Snap is a free shape-matching game in Noodle the sausage dog's shadow-puppet theatre. Noodle's lamp throws a black clay shadow onto the screen — tap the friend who casts it before the timer runs out. More cards, quicker timers and look-alike friends arrive as you go, then shadows flip, spin, sway on strings, peek from behind the curtain, flicker and even strike different poses.",
     modes: ["3–6 cards · lots of time", "4–8 cards · twists sooner", "5–9 cards · quick timer"],
     howTo: [["Look at the shadow", "Noodle switches on the lamp and a black shadow appears on the screen."], ["Tap its owner", "Find the coloured friend below who makes exactly that shape — faster means more points."], ["Watch for twists", "Shadows can be flipped, turned, swaying, half hidden or in a different pose."]],
     skills: ["Shape matching", "Spatial reasoning", "Visual attention"],
@@ -108,7 +108,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "gloop-guard", title: "Gloop Guard", host: "gloop", live: true, categories: ["focus", "speed"], accent: "#2FA866", accent2: "#E8504F",
     short: "Let green in, keep red out", tagline: "You're the party door guard. Green Gloops in, red Gloops out!",
-    description: "Gloop Guard is a free go/no-go focus game for kids at the Slime Disco. Gloops hop up the red carpet to the door: tap the GREEN ones to let them into the party, but never tap the RED party crashers — or Momo sneaking in wearing a Gloop hat. The queue speeds up as you go, then you guard two and three doors at once and meet yellow look-alikes, Gloops that change colour on the way and cool Gloops in sunglasses.",
+    description: "Gloop Guard is a free go/no-go focus game at the Slime Disco. Gloops hop up the red carpet to the door: tap the GREEN ones to let them into the party, but never tap the RED party crashers — or Momo sneaking in wearing a Gloop hat. The queue speeds up as you go, then you guard two and three doors at once and meet yellow look-alikes, Gloops that change colour on the way and cool Gloops in sunglasses.",
     modes: ["1 door · slow queue", "More doors sooner", "Fast queue · 3 doors"],
     howTo: [["Watch the queue", "Gloops hop up the red carpet and wait at the disco door."], ["Tap the green ones", "Tap a GREEN Gloop to let it in — quick taps keep your combo growing."], ["Keep the rest out", "Never tap red Gloops, yellow fakes or Momo. Letting a green one go home also costs a heart."]],
     skills: ["Self-control", "Reaction", "Selective attention"],
@@ -162,7 +162,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "who-said-it", title: "Who Said It?", host: "gloop", live: true, categories: ["memory"], accent: "#9B5DE5", accent2: "#FF8A3D",
     short: "Repeat the silly voices", tagline: "Characters make funny noises — tap them in the same order.",
-    description: "Who Said It? is a free listening and memory game for kids in Gloop's little theatre. The MOMOBLOBS cast sit in their velvet seats and pop up one at a time to make a silly voice — watch and listen, then tap them back in the same order. Shows get longer and quicker, more actors join the stage, the actors hop to new seats after the show, and on hard the curtain closes for EARS ONLY rounds where you recognise them by voice alone!",
+    description: "Who Said It? is a free listening and memory game in Gloop's little theatre. The MOMOBLOBS cast sit in their velvet seats and pop up one at a time to make a silly voice — watch and listen, then tap them back in the same order. Shows get longer and quicker, more actors join the stage, the actors hop to new seats after the show, and on hard the curtain closes for EARS ONLY rounds where you recognise them by voice alone!",
     modes: ["3–6 actors · 1 replay", "Longer shows · seat shuffles", "Fast shows · EARS ONLY"],
     howTo: [["Watch the show", "The lights go down and each actor pops up and makes their funny voice. Remember who spoke and in what order."], ["Tap them back", "Tap the actors in the same order. On easy you can tap AGAIN once to see the show again."], ["Beat the twists", "SEAT SHUFFLE: everyone hops to a new seat — remember who, not where. EARS ONLY: the curtain hides them, so listen!"]],
     skills: ["Auditory memory", "Sequence memory", "Listening skills"],
@@ -171,7 +171,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "whats-missing", title: "What's Missing?", host: "kranky", live: true, categories: ["memory"], accent: "#E8504F", accent2: "#FFD25A",
     short: "What did Kranky steal?", tagline: "Kranky stole something from the shelf. What is it?",
-    description: "What's Missing? is a free short-term memory game for kids set in a toy museum. Look closely at the shelf, then the curtain closes and sneaky Kranky the crab tiptoes in to steal something. When the curtain opens, pick what's missing! Shelves fill up from 4 to 20 toys, looking time gets shorter, and Kranky gets craftier with double and triple steals, shuffled shelves, fake toys and look-alike decoys.",
+    description: "What's Missing? is a free short-term memory game set in a toy museum. Look closely at the shelf, then the curtain closes and sneaky Kranky the crab tiptoes in to steal something. When the curtain opens, pick what's missing! Shelves fill up from 4 to 20 toys, looking time gets shorter, and Kranky gets craftier with double and triple steals, shuffled shelves, fake toys and look-alike decoys.",
     modes: ["4–12 toys · 3 tries", "6–16 toys · double steals", "Up to 20 toys · fakes"],
     howTo: [["Look at the shelf", "Remember every toy before the curtain closes. Tap READY if you want to start sooner."], ["Kranky steals!", "Watch Kranky sneak behind the curtain and grab something for his sack."], ["Catch him", "Tap the toy (or toys) that went missing. Watch out for shuffled shelves and Kranky's fakes!"]],
     skills: ["Short-term memory", "Visual memory", "Attention to detail"],
@@ -181,7 +181,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "pick-the-door", title: "Pick the Door", host: "kranky", live: true, categories: ["brain", "puzzle"], accent: "#E8504F", accent2: "#FFD25A", ages: "6+",
     short: "Outsmart Kranky's clues", tagline: "Kranky hides Momo behind a door. Read the clues and pick the right one!",
-    description: "Pick the Door is a free logic game for kids on Kranky the crab's TV game show. Momo hides behind one of the colourful clay doors and Kranky's clue cards — colours, symbols, numbers and positions like \"Left of the blue door\" or \"Not at either end\" — point to exactly one door. Each level adds more doors and more clues to combine, and later rounds bring sneaky FIB clues, vanishing clues and quick rounds.",
+    description: "Pick the Door is a free logic game on Kranky the crab's TV game show. Momo hides behind one of the colourful clay doors and Kranky's clue cards — colours, symbols, numbers and positions like \"Left of the blue door\" or \"Not at either end\" — point to exactly one door. Each level adds more doors and more clues to combine, and later rounds bring sneaky FIB clues, vanishing clues and quick rounds.",
     modes: ["3–6 doors · 3 tries", "4–7 doors · fib clues", "5–8 doors · vanishing clues"],
     howTo: [["Read the clues", "Kranky's clue cards tell you about the door Momo is hiding behind."], ["Rule doors out", "Every clue knocks out some doors. Only one door fits ALL the clues."], ["Open it!", "Tap the door. Stuck? Tap PEEK for an extra clue (fewer points)."]],
     skills: ["Deductive logic", "Reading clues", "Left/right and number sense"],
@@ -190,7 +190,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "pattern-parade", title: "Pattern Parade", host: "hoot", live: true, categories: ["brain"], accent: "#9A6B45", accent2: "#2EC4B6",
     short: "What comes next?", tagline: "Shapes march in a pattern. Pick what comes next.",
-    description: "Pattern Parade is a free pattern and logic game for kids with Prof. Hoot's marching band. A parade of cute clay critters marches down the street in a pattern, and the line ends with a mystery float — pick what comes next! Patterns grow step by step from simple A-B repeats to A-B-C, doubles, counting dots, turning arrows, colour-and-shape patterns, mixed rules and skip counting. Be quick, or drum major Hoot falls asleep!",
+    description: "Pattern Parade is a free pattern and logic game with Prof. Hoot's marching band. A parade of cute clay critters marches down the street in a pattern, and the line ends with a mystery float — pick what comes next! Patterns grow step by step from simple A-B repeats to A-B-C, doubles, counting dots, turning arrows, colour-and-shape patterns, mixed rules and skip counting. Be quick, or drum major Hoot falls asleep!",
     modes: ["AB patterns → counting", "ABC, doubles · arrows", "Mixed rules · skip counting"],
     howTo: [["Watch the parade", "Critters march in following a pattern. The last float has a question mark."], ["Pick what's next", "Tap the critter that comes next. Answer fast for a speed bonus before Hoot dozes off."], ["Climb the ladder", "New kinds of patterns join as you level up: counting, arrows, two rules at once and skip counting."]],
     skills: ["Pattern recognition", "Sequencing", "Early maths"],
@@ -199,7 +199,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "odd-blob-out", title: "Odd Blob Out", host: "zib", live: true, categories: ["brain"], accent: "#8E5BE8", accent2: "#74C94E",
     short: "Which blob doesn't belong?", tagline: "One blob breaks the rule. Find it!",
-    description: "Odd Blob Out is a free classification game for kids in Zib's space lounge. A group of silly clay blobs all follow a rule — same colour, same hat, same number of eyes — except one. Tap the odd blob before the timer runs out and Zib beams it up! Levels add more blobs and subtler clues like eyes, hats, patterns and size, then bring tricky two-part PAIR RULES and wobbly blobs that won't sit still.",
+    description: "Odd Blob Out is a free classification game in Zib's space lounge. A group of silly clay blobs all follow a rule — same colour, same hat, same number of eyes — except one. Tap the odd blob before the timer runs out and Zib beams it up! Levels add more blobs and subtler clues like eyes, hats, patterns and size, then bring tricky two-part PAIR RULES and wobbly blobs that won't sit still.",
     modes: ["4–9 blobs · colour & size", "6–12 blobs · eyes, hats, patterns", "Pair rules · wobble mode"],
     howTo: [["Look at the blobs", "All the blobs follow a rule — they share a colour, a shape, a hat or a number of eyes."], ["Tap the odd one", "Find the one blob that breaks the rule and tap it. Faster answers score more!"], ["Beat 8 rounds", "Each level has about 8 quick rounds. Zib shows you the answer if you miss one."]],
     skills: ["Classification", "Visual discrimination", "Logical reasoning"],
@@ -208,7 +208,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "balance-buddies", title: "Balance Buddies", host: "hoot", live: true, categories: ["brain"], accent: "#FFB000", accent2: "#9A6B45", ages: "6+",
     short: "Who is the heaviest?", tagline: "See-saws show who is heavier. Who's heaviest of all?",
-    description: "Balance Buddies is a free reasoning game for kids in Prof. Hoot's playground. The MOMOBLOBS buddies climb onto see-saws — the heavier side tips down — and you work out who is the heaviest of them all, even when two buddies never sat on the same see-saw. More buddies and longer chains every level, then LIGHTEST rounds, level see-saws for equal weights, memory see-saws that hide after a look and tricky 2-vs-1 see-saws.",
+    description: "Balance Buddies is a free reasoning game in Prof. Hoot's playground. The MOMOBLOBS buddies climb onto see-saws — the heavier side tips down — and you work out who is the heaviest of them all, even when two buddies never sat on the same see-saw. More buddies and longer chains every level, then LIGHTEST rounds, level see-saws for equal weights, memory see-saws that hide after a look and tricky 2-vs-1 see-saws.",
     modes: ["3–5 buddies · slow timer", "4–6 buddies · equal see-saws", "4–7 buddies · memory & 2-vs-1"],
     howTo: [["Watch the see-saws", "The heavier buddy goes DOWN. A level see-saw means the same weight."], ["Think it through", "If Pip is heavier than Zib and Zib is heavier than Momo, Pip beats Momo too!"], ["Tap the answer", "Tap the heaviest (or lightest) buddy before the timer runs out."]],
     skills: ["Transitive reasoning", "Comparing", "Working memory"],
@@ -216,18 +216,18 @@ export const ARCADE_GAMES: Game[] = [
   }),
   // ---------------------------------------------------------------- SPEED
   A({
-    slug: "whack-a-gloop", title: "Whack-a-Gloop", host: "gloop", live: true, categories: ["speed"], accent: "#74C94E", accent2: "#FF8A3D",
+    slug: "whack-a-gloop", title: "Whack-a-Gloop", host: "gloop", live: true, categories: ["speed", "action"], accent: "#74C94E", accent2: "#FF8A3D",
     short: "Bonk the Gloops, not Momo", tagline: "Bonk every Gloop — but never bonk Momo!",
-    description: "Whack-a-Gloop is a free reflex game for kids in a sunny clay garden. Gloops pop out of their holes — tap to BONK them flat before they duck away, grab Golden Gloops for big bonus points, and never bonk Momo when he pops up to say hi. The pops get quicker and the garden grows from 6 to 12 holes, with Gloops in hard hats that need two bonks, speedy zoomers, double pops and Momo sneaking around in a Gloop hat.",
+    description: "Whack-a-Gloop is a free reflex game in a sunny clay garden. Gloops pop out of their holes — tap to BONK them flat before they duck away, grab Golden Gloops for big bonus points, and never bonk Momo when he pops up to say hi. The pops get quicker and the garden grows from 6 to 12 holes, with Gloops in hard hats that need two bonks, speedy zoomers, double pops and Momo sneaking around in a Gloop hat.",
     modes: ["6 holes · relaxed pops", "Quicker pops · more holes", "Fast pops · twists early"],
     howTo: [["Watch the holes", "Gloops, Golden Gloops and Momo pop up out of the garden."], ["Bonk the Gloops", "Tap a Gloop to bonk it — quick bonks in a row build a big combo."], ["Leave Momo alone", "Bonking Momo costs a heart, and so does letting too many Gloops get away in a row."]],
     skills: ["Reaction speed", "Self-control", "Visual scanning"],
     controls: [["Tap / Click", "Bonk!"], ["1 – 9 · 0", "Bonk a hole"], ["Space · P · Esc", "Pause"]],
   }),
   A({
-    slug: "turbo-dash", title: "Turbo Dash", host: "turbo", live: true, categories: ["speed"], accent: "#FF8A3D", accent2: "#3B5BDB",
+    slug: "turbo-dash", title: "Turbo Dash", host: "turbo", live: true, categories: ["speed", "action"], accent: "#FF8A3D", accent2: "#3B5BDB",
     short: "Endless rocket-snail race", tagline: "The slowest snail with the fastest rocket.",
-    description: "Turbo Dash is a free endless racing game for kids starring Turbo, the snail with a rocket on his shell. Zoom down a 3-lane road, switch lanes to dodge cones, puddles, grumpy rocks and Kranky the crab, munch lettuce leaves for points and grab rocket boosts to smash through everything. It starts gently, then the road speeds up, a new stretch of scenery arrives every level, and sideways-walking crabs, roadblocks, river bridges, slaloms and themed twist levels keep it fresh forever.",
+    description: "Turbo Dash is a free endless racing game starring Turbo, the snail with a rocket on his shell. Zoom down a 3-lane road, switch lanes to dodge cones, puddles, grumpy rocks and Kranky the crab, munch lettuce leaves for points and grab rocket boosts to smash through everything. It starts gently, then the road speeds up, a new stretch of scenery arrives every level, and sideways-walking crabs, roadblocks, river bridges, slaloms and themed twist levels keep it fresh forever.",
     modes: ["Gentle speed · new things slowly", "Faster · crabs and roadblocks sooner", "Fast start · bridges and slaloms early"],
     howTo: [["Switch lanes", "Tap the left or right side of the screen, swipe, or use the arrow keys to hop Turbo into another lane."], ["Dodge and munch", "Steer around cones, puddles, rocks, barriers and Kranky. Drive through leaves for points and rockets for a smashing speed boost."], ["Go the distance", "Every 300 metres the road gets faster and something new appears. Bumps cost a heart; lose all 3 and the run is over."]],
     skills: ["Reaction speed", "Quick decisions", "Visual tracking"],
@@ -236,7 +236,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "bake-drop", title: "Bake Drop", host: "bonbon", live: true, categories: ["speed"], accent: "#FF6F91", accent2: "#E8504F",
     short: "Catch cake, dodge chillies", tagline: "Catch the cake bits, dodge the chilli peppers!",
-    description: "Bake Drop is a free catching game for kids in Bonbon the hippo's bakery. Slide Bonbon's glass mixing bowl to catch falling sponge, cherries, cream, sprinkles and strawberries, and dodge the spicy chilli peppers Kranky throws in. Every 8 catches bake into a whole cake for a bonus. The drops start slow and speed up gently, then golden cake, wind gusts, sneaky chillies hiding among the cherries, wobbly drops and double drops keep every level fresh.",
+    description: "Bake Drop is a free catching game in Bonbon the hippo's bakery. Slide Bonbon's glass mixing bowl to catch falling sponge, cherries, cream, sprinkles and strawberries, and dodge the spicy chilli peppers Kranky throws in. Every 8 catches bake into a whole cake for a bonus. The drops start slow and speed up gently, then golden cake, wind gusts, sneaky chillies hiding among the cherries, wobbly drops and double drops keep every level fresh.",
     modes: ["Slow drops · 4 misses allowed", "Faster · wind and sneaky chillies", "Fast start · double drops early"],
     howTo: [["Move the bowl", "Drag anywhere (or move the mouse, or use the arrow keys) to slide Bonbon left and right."], ["Catch the cake", "Catch sponge, cherries, cream, sprinkles and strawberries. Fill the bowl to bake a whole cake for bonus points."], ["Dodge the chillies", "A chilli makes Bonbon go red and costs a heart, and so does dropping too many cake bits in a row."]],
     skills: ["Hand-eye coordination", "Reaction speed", "Visual discrimination"],
@@ -245,7 +245,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "quick-hoot", title: "Quick Draw", host: "hoot", live: true, categories: ["speed", "focus"], accent: "#23305A", accent2: "#FFD25A",
     short: "Tap the instant Hoot says NOW", tagline: "Wait… wait… NOW! Don't fall for the fakes.",
-    description: "Quick Draw is a free reaction-time game for kids in a sunny Wild-West town. Sheriff Hoot holds up a sign that says WAIT… — the moment it flips to a big green NOW!, tap as fast as you can and see your time in milliseconds. Tap too early and it's a false start! Each level is five draws with a stricter speed goal, and sneaky fake-outs join in: NOT NOW, SNOW, WOW!, wrong-colour NOWs, Hoot's sneezes and Kranky waving a flag.",
+    description: "Quick Draw is a free reaction-time game in a sunny Wild-West town. Sheriff Hoot holds up a sign that says WAIT… — the moment it flips to a big green NOW!, tap as fast as you can and see your time in milliseconds. Tap too early and it's a false start! Each level is five draws with a stricter speed goal, and sneaky fake-outs join in: NOT NOW, SNOW, WOW!, wrong-colour NOWs, Hoot's sneezes and Kranky waving a flag.",
     modes: ["Goal 900 ms · 2 oops", "Goal 750 ms · tricks", "Goal 600 ms · fast fakes"],
     howTo: [["Wait for it", "Watch Hoot's sign while it says WAIT… and keep your finger still."], ["Tap on the green NOW!", "When the sign turns into a green NOW!, tap anywhere as fast as you can."], ["Beat the goal", "Five draws per level — keep your average under the goal and don't fall for the fakes."]],
     skills: ["Reaction time", "Patience", "Impulse control"],
@@ -255,7 +255,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "count-fast", title: "Count Fast", host: "momo", live: true, categories: ["numbers"], accent: "#FFB000", accent2: "#FF6F91",
     short: "How many Momos?", tagline: "Momos bounce onto the stage. Count them before the curtain drops!",
-    description: "Count Fast is a free counting game for kids in Momo's little theatre. A troupe of Momos bounces onto the stage, then the curtain drops — how many were there? Pick the right number and watch them count off one by one. Each level brings more Momos (from 2 up to 25) and shorter shows, plus twists like Momos in party hats, sneaky Gloop decoys that don't count, Momos walking both ways and latecomers who pop in at the last second.",
+    description: "Count Fast is a free counting game in Momo's little theatre. A troupe of Momos bounces onto the stage, then the curtain drops — how many were there? Pick the right number and watch them count off one by one. Each level brings more Momos (from 2 up to 25) and shorter shows, plus twists like Momos in party hats, sneaky Gloop decoys that don't count, Momos walking both ways and latecomers who pop in at the last second.",
     modes: ["2–12 Momos · slow shows", "Up to 18 · Gloop decoys", "Up to 25 · type the number"],
     howTo: [["Watch the show", "Momos hop onto the stage. Count them quickly!"], ["Curtain down!", "The curtain hides them. How many Momos were there?"], ["Pick the number", "Tap the right number (on Hard, type it). Green Gloops don't count!"]],
     skills: ["Counting", "Subitizing", "Visual attention"],
@@ -264,7 +264,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "sum-slices", title: "Sum Slices", host: "bonbon", live: true, categories: ["numbers"], accent: "#FF6F91", accent2: "#FFD25A", ages: "6+",
     short: "Make the target number", tagline: "Tap cake slices that add up to Bonbon's number.",
-    description: "Sum Slices is a free mental maths game for kids in Bonbon the hippo's café. Bonbon holds up a number and a big cake waits on the plate, every slice iced with a number. Tap slices that add up to exactly Bonbon's number and she gobbles them up, but go over and the slices flop back. Targets grow gently from 5 all the way to 99, with more slices, exactly-3-slices rounds, blue-icing minus slices and a spinning lazy-Susan plate as you level up.",
+    description: "Sum Slices is a free mental maths game in Bonbon the hippo's café. Bonbon holds up a number and a big cake waits on the plate, every slice iced with a number. Tap slices that add up to exactly Bonbon's number and she gobbles them up, but go over and the slices flop back. Targets grow gently from 5 all the way to 99, with more slices, exactly-3-slices rounds, blue-icing minus slices and a spinning lazy-Susan plate as you level up.",
     modes: ["Small numbers · 2 slices", "Bigger sums · exact-count rounds", "Up to 99 · minus slices early"],
     howTo: [["Read the number", "Bonbon's sign shows the number to make. Some rounds say how many slices to use."], ["Tap the slices", "Tap slices to lift them. The middle of the plate shows your total; tap a slice again (or the middle) to put it back."], ["Hit it exactly", "Make the number exactly and Bonbon eats the slices. Go over and they flop back. Blue slices take away!"]],
     skills: ["Addition", "Subtraction", "Number sense"],
@@ -273,7 +273,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "number-ninja", title: "Number Ninja", host: "noodle", live: true, categories: ["numbers", "focus"], accent: "#23305A", accent2: "#D49452",
     short: "Tap 1, 2, 3… super fast", tagline: "Find the numbers in order as fast as you can.",
-    description: "Number Ninja is a free Schulte-table focus game for kids in Noodle the sausage dog's dojo. A grid of paper-lantern tiles hides shuffled numbers: tap 1, 2, 3 and onwards in order as fast as you can and beat the par time. Grids grow gently from 3×3 to 7×7, and twist rounds keep it fresh: wiggling tiles, rainbow colour tricks, COUNT DOWN rounds, letters A to Z, red-and-blue alternating sequences and smoke-bomb shuffles.",
+    description: "Number Ninja is a free Schulte-table focus game in Noodle the sausage dog's dojo. A grid of paper-lantern tiles hides shuffled numbers: tap 1, 2, 3 and onwards in order as fast as you can and beat the par time. Grids grow gently from 3×3 to 7×7, and twist rounds keep it fresh: wiggling tiles, rainbow colour tricks, COUNT DOWN rounds, letters A to Z, red-and-blue alternating sequences and smoke-bomb shuffles.",
     modes: ["3×3 start · helper glow", "Bigger grids · twists sooner", "4×4 start · tight par times"],
     howTo: [["Find the next one", "The scroll shows which number (or letter) to find next. Tap it on the grid."], ["Keep going in order", "Tap them all in order as fast as you can. A wrong tap adds a little time."], ["Beat the par", "Finish under the par time for a big speed bonus. Watch for COUNT DOWN, letters and red-and-blue rounds!"]],
     skills: ["Focus", "Visual scanning", "Number order"],
@@ -282,7 +282,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "more-or-less", title: "More or Less", host: "turbo", live: true, categories: ["numbers"], accent: "#9B5DE5", accent2: "#FF6F91",
     short: "Which jar has more?", tagline: "Two jelly jars — pick the one with more beans before Turbo reaches the flag!",
-    description: "More or Less is a free number sense game for kids in Turbo the rocket snail's candy shop. Two glass jars full of clay jelly beans pop up — tap the jar with MORE beans before Turbo crawls to the finish flag. The jars get closer every level (from twice as many down to 10 vs 9) and the clock gets shorter, with twists like LESS rounds, three jars, big beans that make a jar look fuller than it is, jumbled beans and wobbly jars.",
+    description: "More or Less is a free number sense game in Turbo the rocket snail's candy shop. Two glass jars full of clay jelly beans pop up — tap the jar with MORE beans before Turbo crawls to the finish flag. The jars get closer every level (from twice as many down to 10 vs 9) and the clock gets shorter, with twists like LESS rounds, three jars, big beans that make a jar look fuller than it is, jumbled beans and wobbly jars.",
     modes: ["Big differences · lots of time", "Closer jars · LESS rounds", "10 vs 9 · three wobbly jars"],
     howTo: [["Look at the jars", "Which jar has MORE jelly beans? Don't count them all — just look!"], ["Tap it quick", "Tap before Turbo the snail reaches the flag. Faster = more points."], ["Watch the sign", "When it turns pink and says LESS, tap the jar with fewer beans!"]],
     skills: ["Number sense", "Estimation", "Quick decisions"],
@@ -292,7 +292,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "slide-ship", title: "Slide Ship", host: "zib", live: true, categories: ["puzzle"], accent: "#3A2A63", accent2: "#B7FF5A",
     short: "Rebuild Zib's spaceship", tagline: "Slide the tiles to fix Zib's crashed UFO.",
-    description: "Slide Ship is a free sliding tile puzzle game for kids starring Zib, the one-eyed purple alien. His clay UFO crash-landed and the picture got jumbled — slide the tiles into the empty hole until the ship is whole again, then watch it blast off. Every level is a brand-new space picture with a deeper scramble, and the board grows from 3×3 to 4×4 to 5×5, with twists like hidden numbers, Kranky bumping the ship and fuel limits.",
+    description: "Slide Ship is a free sliding tile puzzle game starring Zib, the one-eyed purple alien. His clay UFO crash-landed and the picture got jumbled — slide the tiles into the empty hole until the ship is whole again, then watch it blast off. Every level is a brand-new space picture with a deeper scramble, and the board grows from 3×3 to 4×4 to 5×5, with twists like hidden numbers, Kranky bumping the ship and fuel limits.",
     modes: ["Numbered tiles · gentle scrambles", "Numbers fade · peek button", "Big boards · Kranky & fuel limits"],
     howTo: [["Look at the ship", "Study Zib's UFO picture before the crash jumbles it."], ["Slide the tiles", "Tap a tile in the same row or column as the hole to slide it in."], ["Fix it fast", "Finish near par moves and quickly for bonus points — then wave bye-bye!"]],
     skills: ["Planning ahead", "Spatial reasoning", "Problem solving"],
@@ -301,7 +301,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "gloop-pipes", title: "Gloop Pipes", host: "gloop", live: true, categories: ["puzzle"], accent: "#2E86C8", accent2: "#9BE34A",
     short: "Connect the slime pipes", tagline: "Rotate the pipes so slime reaches every cup.",
-    description: "Gloop Pipes is a free pipe-connecting puzzle game for kids starring Gloop the slime. Tap the clay pipes to turn them until green slime flows from Gloop's tank into every thirsty cup — you can watch the slime travel through each pipe you connect. Boards grow from 3×3 to 8×8 and new levels bring more cups, bolted pipes that can't turn, cups on the sides, NO LEAKS rounds and overflow timers.",
+    description: "Gloop Pipes is a free pipe-connecting puzzle game starring Gloop the slime. Tap the clay pipes to turn them until green slime flows from Gloop's tank into every thirsty cup — you can watch the slime travel through each pipe you connect. Boards grow from 3×3 to 8×8 and new levels bring more cups, bolted pipes that can't turn, cups on the sides, NO LEAKS rounds and overflow timers.",
     modes: ["3×3 start · 1–3 cups", "Bigger boards · bolts & no-leak rounds", "Up to 8×8 · side cups & overflow timer"],
     howTo: [["Find the slime", "The tank at the top is full of Gloop's slime."], ["Turn the pipes", "Tap a pipe to turn it a quarter turn. Connected pipes glow green."], ["Fill every cup", "Get slime into all the cups — in as few turns as par for a perfect!"]],
     skills: ["Spatial reasoning", "Planning", "Problem solving"],
@@ -310,7 +310,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "firefly-switch", title: "Firefly Switch", host: "noodle", live: true, categories: ["puzzle"], accent: "#1B1440", accent2: "#FFE38A",
     short: "Light every firefly jar", tagline: "Each jar flips its neighbours. Light them all!",
-    description: "Firefly Switch is a free lights-out logic puzzle game for kids with Noodle, the extra-long sausage dog. In a night meadow full of glass jars, tapping a jar wakes its firefly — and flips the jars next to it too. Light up every jar in as few taps as you can, with a lantern hint when you get stuck. The meadow grows from 3×3 to 7×7 with more scrambled jars, and new levels add X-pattern jars, wrap-around edges, mossy rocks and a race against the sunrise.",
+    description: "Firefly Switch is a free lights-out logic puzzle game with Noodle, the extra-long sausage dog. In a night meadow full of glass jars, tapping a jar wakes its firefly — and flips the jars next to it too. Light up every jar in as few taps as you can, with a lantern hint when you get stuck. The meadow grows from 3×3 to 7×7 with more scrambled jars, and new levels add X-pattern jars, wrap-around edges, mossy rocks and a race against the sunrise.",
     modes: ["3×3 start · gentle scrambles", "Bigger meadows · X & wrap twists", "Up to 7×7 · rocks & sunrise timer"],
     howTo: [["Look at the jars", "Some fireflies are asleep in dark jars."], ["Tap to flip", "A tap flips that jar and its neighbours — the little badge shows which ones."], ["Light them all", "Wake every firefly in par taps for a perfect. Stuck? Tap the lantern hint."]],
     skills: ["Logical thinking", "Cause and effect", "Planning ahead"],
@@ -319,7 +319,7 @@ export const ARCADE_GAMES: Game[] = [
   A({
     slug: "maze-munch", title: "Maze Munch", host: "momo", live: true, categories: ["puzzle"], accent: "#74C94E", accent2: "#FF8A3D",
     short: "Munch cookies, find the exit", tagline: "Guide Momo through the clay maze.",
-    description: "Maze Munch is a free maze game for kids starring Momo. Hop through a squishy clay maze, munch every chocolate-chip cookie you can find and reach the checkered flag — eat them all for a perfect score. Every level is a brand-new maze that grows bit by bit, and new twists join in: foggy mazes where you only see close by, Kranky the crab on patrol, keys and locked doors, and beat-the-clock rounds.",
+    description: "Maze Munch is a free maze game starring Momo. Hop through a squishy clay maze, munch every chocolate-chip cookie you can find and reach the checkered flag — eat them all for a perfect score. Every level is a brand-new maze that grows bit by bit, and new twists join in: foggy mazes where you only see close by, Kranky the crab on patrol, keys and locked doors, and beat-the-clock rounds.",
     modes: ["Small mazes · lots of time", "Bigger mazes · fog & keys", "Huge mazes · Kranky, doors & clock"],
     howTo: [["Move Momo", "Swipe, tap the big arrow buttons or use the arrow keys."], ["Munch cookies", "Every cookie is points — eat them all for a perfect."], ["Reach the flag", "Find the exit flag. Grab keys for locked doors and dodge Kranky!"]],
     skills: ["Planning a route", "Spatial memory", "Visual scanning"],

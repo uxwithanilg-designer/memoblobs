@@ -26,7 +26,19 @@ export type ArcadeSfx =
   // Highway Heat pack
   | "race_siren" | "race_yelp" | "race_radio"
   // Moto Rush GP pack
-  | "race_rev";
+  | "race_rev"
+  // Momo Boing! pack (scripts/gen_boing_audio.py): bounce-note voices + the Perfect Boing sparkle
+  | "boing_marimba" | "boing_musicbox" | "boing_bells" | "boing_perfect"
+  | "boing_toypiano" | "boing_steel" | "boing_celesta" | "boing_kalimba" | "boing_xylo" | "boing_synth" | "boing_horn"
+  // Momo Dash! pack (scripts/gen_dash_audio.py): the coin-melody chime + runner effects
+  | "dash_chime" | "dash_jump" | "dash_land" | "dash_swipe" | "dash_squish" | "dash_trick" | "dash_melody" | "dash_power" | "dash_wobble"
+  | "dash_crash" | "dash_count" | "dash_go" | "dash_pad" | "dash_fever" | "dash_horn" | "dash_catch"
+  // Kiko's Jungle Quest pack (scripts/gen_kiko_audio.py): the banana-melody marimba + jungle effects and ambience
+  | "kiko_banana" | "kiko_coin" | "kiko_fruit" | "kiko_jump" | "kiko_land" | "kiko_swipe" | "kiko_slide" | "kiko_bounce" | "kiko_vine" | "kiko_heart"
+  | "kiko_hurt" | "kiko_splash" | "kiko_flag" | "kiko_trick" | "kiko_melody" | "kiko_power" | "kiko_rush" | "kiko_salad" | "kiko_yuck"
+  | "kiko_slip" | "kiko_monkey" | "kiko_bird1" | "kiko_bird2" | "kiko_bird3" | "kiko_croc" | "kiko_count" | "kiko_go" | "kiko_gold"
+  | "kiko_faint" | "kiko_caught" | "kiko_raft" | "kiko_coco" | "kiko_maxup"
+  | "kiko_ride" | "kiko_web" | "kiko_mud" | "kiko_wind" | "kiko_thunder" | "kiko_geyser" | "kiko_zip" | "kiko_roar" | "kiko_throw" | "kiko_stomp" | "kiko_ice" | "kiko_lava";
 
 /** "a:<arcade sfx>" or "v:<character>_<mood>" (file: /audio/arcade/voice_<x>.mp3) */
 export type Sound = SfxName | `a:${ArcadeSfx}` | `v:${string}`;
@@ -164,6 +176,64 @@ const MUSIC_META: Record<string, { loop: number; gain?: number }> = {
   "a:brigade_synth_action": { loop: 30.967742, gain: 1.00 },
   "a:brigade_epic_calm": { loop: 20.0, gain: 1.00 },
   "a:brigade_epic_action": { loop: 28.235294, gain: 1.00 },
+  // Momo Boing! pack (scripts/gen_boing_audio.py): calm = menus (with the tune), action = the climb (the bounces play the tune)
+  "a:boing_garden_calm": { loop: 18.461538, gain: 1.00 },
+  "a:boing_garden_action": { loop: 33.103448, gain: 0.95 },
+  "a:boing_candy_calm": { loop: 17.777778, gain: 1.00 },
+  "a:boing_candy_action": { loop: 32.0, gain: 0.95 },
+  "a:boing_snow_calm": { loop: 20.0, gain: 1.00 },
+  "a:boing_snow_action": { loop: 35.555556, gain: 0.95 },
+  "a:boing_toy_calm": { loop: 17.142857, gain: 1.00 },
+  "a:boing_toy_action": { loop: 30.0, gain: 0.95 },
+  "a:boing_beach_calm": { loop: 19.2, gain: 1.00 },
+  "a:boing_beach_action": { loop: 34.285714, gain: 0.95 },
+  "a:boing_spooky_calm": { loop: 20.869565, gain: 1.00 },
+  "a:boing_spooky_action": { loop: 38.4, gain: 0.95 },
+  "a:boing_jungle_calm": { loop: 19.2, gain: 1.00 },
+  "a:boing_jungle_action": { loop: 34.285714, gain: 0.95 },
+  "a:boing_lava_calm": { loop: 18.461538, gain: 1.00 },
+  "a:boing_lava_action": { loop: 32.0, gain: 0.95 },
+  "a:boing_space_calm": { loop: 19.2, gain: 1.00 },
+  "a:boing_space_action": { loop: 32.542373, gain: 0.95 },
+  "a:boing_castle_calm": { loop: 18.461538, gain: 1.00 },
+  "a:boing_castle_action": { loop: 32.0, gain: 0.95 },
+  // Momo Dash! pack (scripts/gen_dash_audio.py): calm = menus, action = the run, chase = thief and boss stages
+  "a:dash_pier_calm": { loop: 18.461538, gain: 1.00 },
+  "a:dash_pier_action": { loop: 30.967742, gain: 0.95 },
+  "a:dash_candy_calm": { loop: 17.454545, gain: 1.00 },
+  "a:dash_candy_action": { loop: 30.0, gain: 0.95 },
+  "a:dash_chase_action": { loop: 27.428571, gain: 0.95 },
+  "a:dash_star_action": { loop: 11.428571, gain: 0.95 },
+  "a:dash_jungle_action": { loop: 30.967742, gain: 0.95 },
+  "a:dash_snow_action": { loop: 30.0, gain: 0.95 },
+  "a:dash_toy_action": { loop: 28.235294, gain: 0.95 },
+  "a:dash_spooky_action": { loop: 30.0, gain: 0.95 },
+  "a:dash_canyon_action": { loop: 30.47619, gain: 0.95 },
+  "a:dash_neon_action": { loop: 30.0, gain: 0.95 },
+  "a:dash_lava_action": { loop: 27.428571, gain: 0.95 },
+  "a:dash_sky_action": { loop: 32.0, gain: 0.95 },
+  "a:dash_space_action": { loop: 29.538462, gain: 0.95 },
+  "a:dash_castle_action": { loop: 27.826087, gain: 0.95 },
+  // Kiko's Jungle Quest pack (scripts/gen_kiko_audio.py)
+  "a:kiko_grove_calm": { loop: 18.461538, gain: 1.00 },
+  "a:kiko_grove_action": { loop: 30.967742, gain: 0.95 },
+  "a:kiko_river_action": { loop: 30.0, gain: 0.95 },
+  "a:kiko_chase_action": { loop: 27.428571, gain: 0.95 },
+  "a:kiko_rush_action": { loop: 11.428571, gain: 0.95 },
+  "a:kiko_bamboo_action": { loop: 32.0, gain: 0.95 },
+  "a:kiko_falls_action": { loop: 30.967742, gain: 0.95 },
+  "a:kiko_mushroom_action": { loop: 32.542373, gain: 0.95 },
+  "a:kiko_marsh_action": { loop: 30.47619, gain: 0.95 },
+  "a:kiko_canopy_action": { loop: 30.0, gain: 0.95 },
+  "a:kiko_night_action": { loop: 33.103448, gain: 0.95 },
+  "a:kiko_blossom_action": { loop: 30.967742, gain: 0.95 },
+  "a:kiko_caves_action": { loop: 32.0, gain: 0.95 },
+  "a:kiko_autumn_action": { loop: 30.47619, gain: 0.95 },
+  "a:kiko_plains_action": { loop: 30.0, gain: 0.95 },
+  "a:kiko_mangrove_action": { loop: 32.542373, gain: 0.95 },
+  "a:kiko_snow_action": { loop: 30.0, gain: 0.95 },
+  "a:kiko_volcano_action": { loop: 28.235294, gain: 0.95 },
+  "a:kiko_boss_action": { loop: 26.30137, gain: 0.95 },
 };
 
 const sfxFile = (k: string) => (k.startsWith("a:") ? `arcade/sfx_${k.slice(2)}.mp3` : k.startsWith("v:") ? `arcade/voice_${k.slice(2)}.mp3` : `sfx_${k}.mp3`);
@@ -340,6 +410,8 @@ class AudioEngine {
   private want: string | null = null;
 
   async playMusic(name: MusicName | null, fade = 0.35) {
+    // music belongs to the games only: the site pages (home, game pages, lists) stay silent
+    if (name && typeof window !== "undefined" && !window.location.pathname.startsWith("/play/")) { this.stopMusic(fade); return; }
     if (this.want === name) return;
     this.want = name;
     const ctx = this.ensure();

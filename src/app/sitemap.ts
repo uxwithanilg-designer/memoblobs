@@ -1,13 +1,18 @@
 import type { MetadataRoute } from "next";
-import { GAMES } from "@/lib/games";
+import { CATEGORIES, GAMES } from "@/lib/games";
 import { abs } from "@/lib/site";
 
-const UPDATED = new Date("2026-11-16");
+const UPDATED = new Date("2026-11-18");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages: { path: string; priority: number; freq: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
     { path: "/", priority: 1, freq: "weekly" },
     { path: "/games", priority: 0.9, freq: "weekly" },
+    { path: "/new", priority: 0.8, freq: "weekly" },
+    { path: "/top", priority: 0.8, freq: "weekly" },
+    { path: "/categories", priority: 0.7, freq: "weekly" },
+    { path: "/c/3d", priority: 0.8, freq: "weekly" },
+    ...CATEGORIES.map((c) => ({ path: `/c/${c.id}`, priority: 0.8, freq: "weekly" as const })),
     { path: "/characters", priority: 0.7, freq: "monthly" },
     { path: "/rewards", priority: 0.6, freq: "monthly" },
     { path: "/parents", priority: 0.7, freq: "monthly" },

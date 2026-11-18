@@ -10,7 +10,7 @@ import { JsonLd } from "@/components/JsonLd";
 const lilita = localFont({ src: "../fonts/LilitaOne.ttf", variable: "--font-lilita", display: "swap", weight: "400", preload: true });
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-fredoka", display: "swap" });
 
-const title = "MOMOBLOBS — Free Claymation Games for Kids | Play Momo Shuffle";
+const title = "MOMOBLOBS — Play Free Online Games | 3D, Racing, Action & Brain Games";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title,
     description: SITE.description,
     locale: SITE.locale,
-    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "MOMOBLOBS — clay games for sharp eyes, starring Momo" }],
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "MOMOBLOBS — free online games starring Momo" }],
   },
   twitter: { card: "summary_large_image", title, description: SITE.description, images: ["/og.jpg"] },
   robots: {

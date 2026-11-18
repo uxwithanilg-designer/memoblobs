@@ -32,17 +32,17 @@ export function PageHero({
   title, kicker, intro, art, crumbs, children,
 }: { title: string; kicker?: string; intro?: React.ReactNode; art?: { src: string; w: number; h: number }; crumbs?: { name: string; href: string }[]; children?: React.ReactNode }) {
   return (
-    <section className="relative mx-auto max-w-7xl px-5 pt-6 pb-8 lg:px-6 lg:pt-10">
+    <section className="relative mx-auto max-w-7xl px-4 pt-5 pb-7 sm:px-6 lg:pt-7">
       {crumbs && <Breadcrumbs items={crumbs} />}
       <div className="flex items-end gap-4">
         <div className="min-w-0 flex-1">
-          {kicker && <p className="mb-2 text-sm font-bold tracking-[0.18em] text-momo uppercase">{kicker}</p>}
-          <h1 className="text-clay text-[2.6rem] leading-[0.95] text-cream sm:text-6xl lg:text-7xl">{title}</h1>
-          {intro && <div className="mt-4 max-w-2xl text-lg text-muted">{intro}</div>}
+          {kicker && <p className="mb-1.5 text-xs font-bold tracking-[0.18em] text-momo uppercase">{kicker}</p>}
+          <h1 className="text-3xl leading-tight font-bold text-white sm:text-4xl lg:text-5xl">{title}</h1>
+          {intro && <div className="mt-3 max-w-2xl text-[17px] text-muted">{intro}</div>}
           {children}
         </div>
         {art && (
-          <Image src={art.src} alt="" width={art.w} height={art.h} priority className="pointer-events-none -mb-4 hidden w-40 shrink-0 animate-float object-contain drop-shadow-[0_20px_30px_rgb(0_0_0/0.5)] sm:block lg:w-64" />
+          <Image src={art.src} alt="" width={art.w} height={art.h} priority className="pointer-events-none -mb-2 hidden w-28 shrink-0 object-contain drop-shadow-[0_20px_30px_rgb(0_0_0/0.5)] sm:block lg:w-40" />
         )}
       </div>
     </section>
@@ -54,7 +54,7 @@ export function SectionTitle({ title, kicker, action }: { title: string; kicker?
     <div className="mb-5 flex items-end justify-between gap-4">
       <div>
         {kicker && <p className="mb-1 text-xs font-bold tracking-[0.2em] text-momo uppercase">{kicker}</p>}
-        <h2 className="font-display text-3xl leading-none sm:text-4xl">{title}</h2>
+        <h2 className="text-2xl leading-tight font-bold text-white sm:text-[1.7rem]">{title}</h2>
       </div>
       {action && (
         <Link href={action.href} className="flex shrink-0 items-center gap-1 rounded-full bg-white/8 px-3.5 py-2 text-sm font-bold text-muted ring-1 ring-white/10 transition hover:bg-white/14 hover:text-text">

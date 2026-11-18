@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Bell, Clock, Gamepad2, Keyboard, Play, Sparkles, Star } from "lucide-react";
-import { Breadcrumbs, SectionTitle } from "@/components/ui/PageHero";
-import { GameCard } from "@/components/ui/GameCard";
+import { ChevronRight, Gamepad2, Keyboard, ListOrdered, MessageCircleQuestion, Play } from "lucide-react";
+import { GameStage } from "@/components/game/GameStage";
+import { GameRow } from "@/components/home/GameRow";
+import { GameTile } from "@/components/ui/GameTile";
 import { JsonLd } from "@/components/JsonLd";
-import { GameStatsCard } from "@/components/games/GameStatsCard";
+import { CATEGORY_ICON } from "@/components/layout/nav";
 import { CATEGORIES, CHARACTERS, GAMES, getGame } from "@/lib/games";
-import { SITE, abs } from "@/lib/site";
+import { categoryHref, inCategory, is3D, playHref, similarTo } from "@/lib/catalog";
+import { abs } from "@/lib/site";
 
 export function generateStaticParams() {
   return GAMES.map((g) => ({ slug: g.slug }));
@@ -20,8 +21,8 @@ export async function generateMetadata({ params }: PageProps<"/games/[slug]">): 
   const g = getGame(slug);
   if (!g) return {};
   const live = g.status === "live";
-  const cat = CATEGORIES.find((c) => c.id === g.categories[0])?.label ?? "Brain";
-  const title = !live ? `${g.title} — Coming Soon` : g.slug === "momo-shuffle" ? `${g.title} — Free Cup Game for Kids (3, 4 & 6 Cups)` : `${g.title} — Free ${cat} Game for Kids`;
+  const cat = CATEGORIES.find((c) => c.id === g.categories[0])?.label ?? "Online";
+  const title = !live ? `${g.title} — Coming Soon` : `${g.title} — Play Free Online ${cat} Game`;
   const og = live ? `/games/${g.slug}/og.jpg` : "/og.jpg";
   return {
     title,
@@ -33,12 +34,18 @@ export async function generateMetadata({ params }: PageProps<"/games/[slug]">): 
   };
 }
 
+function H2({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return <h2 className="mt-8 mb-3 flex items-center gap-2 text-xl font-bold text-white">{icon}{children}</h2>;
+}
+
 async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["params"] }) {
   const { slug } = await params;
   const g = getGame(slug);
   if (!g) notFound();
   const live = g.status === "live";
-  const related = GAMES.filter((x) => x.slug !== g.slug).slice(0, 4);
+  const next = similarTo(g, 14);
+  const main = CATEGORIES.find((c) => c.id === g.categories[0])!;
+  const released = g.released ? new Date(`${g.released}T12:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "2026";
 
   const ld = live && {
     "@context": "https://schema.org",
@@ -50,213 +57,173 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
         url: abs(`/games/${g.slug}`),
         description: g.description,
         image: [abs(g.hero), abs(`/games/${g.slug}/og.jpg`)],
-        genre: ["Puzzle", "Brain game", "Casual"],
+        genre: g.categories.map((c) => CATEGORIES.find((x) => x.id === c)?.label ?? c),
         gamePlatform: ["Web browser", "iOS", "Android", "Windows", "macOS"],
         applicationCategory: "GameApplication",
         operatingSystem: "Any (web browser)",
         playMode: "SinglePlayer",
         inLanguage: "en",
         isAccessibleForFree: true,
-        typicalAgeRange: "4-",
-        audience: { "@type": "PeopleAudience", suggestedMinAge: 4 },
         character: (g.slug === "momo-shuffle" ? ["Momo", "Kranky", "Tiki"] : [CHARACTERS.find((c) => c.id === g.host)?.name ?? "Momo"]).map((n) => ({ "@type": "Person", name: n })),
         publisher: { "@id": abs("/#org") },
         datePublished: g.released,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
         potentialAction: { "@type": "PlayAction", target: abs(`/play/${g.slug}`) },
       },
+      { "@type": "HowTo", name: `How to play ${g.title}`, step: g.howTo.map((h, i) => ({ "@type": "HowToStep", position: i + 1, name: h.title, text: h.text })) },
+      { "@type": "FAQPage", mainEntity: g.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
       {
-        "@type": "HowTo",
-        name: `How to play ${g.title}`,
-        step: g.howTo.map((h, i) => ({ "@type": "HowToStep", position: i + 1, name: h.title, text: h.text })),
-      },
-      {
-        "@type": "FAQPage",
-        mainEntity: g.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Games", item: abs("/games") },
+          { "@type": "ListItem", position: 2, name: `${main.label} games`, item: abs(categoryHref(main.id)) },
+          { "@type": "ListItem", position: 3, name: g.title, item: abs(`/games/${g.slug}`) },
+        ],
       },
     ],
   };
 
+  const facts: [string, string][] = [
+    ["Developer", "MOMOBLOBS"],
+    ["Released", released],
+    ["Technology", is3D(g) ? "3D · WebGL" : "HTML5"],
+    ["Platforms", "Browser (desktop, mobile, tablet)"],
+    ["Controls", g.controls.some((c) => /swipe|tap/i.test(c.keys)) ? "Keyboard, mouse and touch" : "Mouse, keyboard and touch"],
+    ["Price", "Free"],
+  ];
+
   return (
-    <>
+    <div className="page">
       {ld && <JsonLd data={ld} />}
-      <section className="relative mx-auto max-w-7xl px-5 pt-6 lg:px-6 lg:pt-10">
-        <Breadcrumbs items={[{ name: "Games", href: "/games" }, { name: g.title, href: `/games/${g.slug}` }]} />
-        <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
-          <div className="relative order-2 lg:order-1">
-            <div className="flex flex-wrap gap-2">
-              {g.categories.map((c) => {
-                const cat = CATEGORIES.find((x) => x.id === c)!;
-                return <Link key={c} href={`/games?category=${c}`} className="chip hover:bg-white/14">{cat.emoji} {cat.label}</Link>;
-              })}
-              <span className="chip">👶 Ages {g.ages}</span>
-              {live ? <span className="chip !bg-lime !text-ink">● Free · Live</span> : <span className="chip">🔒 Coming soon</span>}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid min-w-0 content-start gap-5">
+          {live ? <GameStage slug={g.slug} /> : (
+            <div className="grid aspect-video place-items-center rounded-2xl bg-[#140b2c] text-center ring-1 ring-white/[0.07]">
+              <div><p className="text-2xl font-bold">{g.title}</p><p className="mt-1 text-muted">Coming soon</p></div>
             </div>
-            <h1 className="text-clay mt-4 text-[3rem] leading-[0.95] text-cream sm:text-7xl">{g.title}</h1>
-            <p className="mt-3 text-xl font-semibold text-sun">{g.tagline}</p>
-            <p className="mt-4 max-w-2xl text-lg text-muted">{g.description}</p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {live ? (
-                <>
-                  <Link href={`/play/${g.slug}`} className="btn-clay lg"><Play className="size-6 fill-current" /> Play now — free</Link>
-                  <a href="#how" className="btn-clay ghost lg">How to play</a>
-                </>
-              ) : (
-                <>
-                  <span className="btn-clay ghost lg"><Bell className="size-5" /> Coming soon</span>
-                  <Link href="/play/momo-shuffle" className="btn-clay lg"><Play className="size-6 fill-current" /> Play Momo Shuffle</Link>
-                </>
+          )}
+
+          <div className="xl:hidden"><GameRow title="Play next" games={next} /></div>
+
+          {/* about the game */}
+          <article className="rounded-2xl bg-[#140b2c] p-5 ring-1 ring-white/[0.07] sm:p-7">
+            <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm font-medium text-faint">
+              <Link href="/games" className="hover:text-white">Games</Link>
+              <ChevronRight className="size-3.5" />
+              <Link href={categoryHref(main.id)} className="hover:text-white">{main.label}</Link>
+              <ChevronRight className="size-3.5" />
+              <span className="text-white/80">{g.title}</span>
+            </nav>
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h1 className="text-3xl leading-tight font-bold text-white sm:text-4xl">{g.title}</h1>
+                <p className="mt-1.5 text-[17px] text-muted">{g.tagline}</p>
+              </div>
+              {live && (
+                <Link href={playHref(g)} className="flex items-center gap-2 rounded-full bg-sun px-5 py-2.5 font-bold text-ink transition hover:brightness-105 active:scale-95 lg:hidden">
+                  <Play className="size-4 fill-current" /> Play full screen
+                </Link>
               )}
             </div>
-          </div>
-          <div className="relative order-1 lg:order-2">
-            <div className="absolute -inset-6 -z-10 rounded-[3rem] blur-3xl" style={{ background: `linear-gradient(135deg, ${g.accent}88, ${g.accent2}55)` }} />
-            {live ? (
-              <Link href={`/play/${g.slug}`} className="group relative block overflow-hidden rounded-[2rem] ring-2 ring-white/20">
-                <Image src={g.hero} alt={`${g.title} gameplay`} width={1600} height={900} priority sizes="(max-width: 1024px) 100vw, 50vw" className="aspect-video w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                <span className="absolute inset-0 flex items-end justify-end p-4 transition group-hover:bg-ink/20">
-                  <span className="btn-clay icon !size-16 !rounded-[1.4rem] sm:!size-20"><Play className="size-8 fill-current" /></span>
-                </span>
-              </Link>
-            ) : (
-              <div className="relative grid aspect-video place-items-center overflow-hidden rounded-[2rem] ring-2 ring-white/20" style={{ background: `radial-gradient(circle at 50% 30%, ${g.accent}, ${g.accent2} 70%)` }}>
-                <div className="sunburst absolute inset-0 animate-[spin-slow_80s_linear_infinite] opacity-60" style={{ scale: 2 }} />
-                <Image src={g.character} alt={g.title} width={420} height={420} priority className="relative w-1/2 animate-float drop-shadow-2xl" />
-                <span className="absolute bottom-4 rounded-full bg-ink/60 px-4 py-1.5 font-display text-lg backdrop-blur">Coming soon</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
-      {live && (
-        <div className="mx-auto mt-14 grid max-w-7xl gap-14 px-5 lg:px-6">
-          <section>
-            <SectionTitle kicker="Modes" title="Three ways to play" />
-            <div className="grid gap-4 sm:grid-cols-3">
-              {g.modes.map((m) => (
-                <Link key={m.id} href={`/play/${g.slug}?mode=${m.id}`} className="group relative overflow-hidden rounded-[1.75rem] p-6 ring-1 ring-white/15 transition hover:-translate-y-1" style={{ background: `linear-gradient(160deg, ${m.color}, #1b1040 85%)` }}>
-                  <div className="sunburst absolute inset-0 opacity-40" />
-                  <p className="relative font-display text-4xl text-cream" style={{ WebkitTextStroke: "0.1em #23305A", paintOrder: "stroke fill" }}>{m.label}</p>
-                  {m.cups ? <p className="relative mt-1 text-lg font-semibold">{m.cups} cups</p> : null}
-                  <p className="relative text-text/80">{m.desc}</p>
-                  {m.coins ? <p className="relative mt-3 flex items-center gap-1.5 font-display text-sun"><Star className="size-4 fill-current" /> +{m.coins} coins per find</p> : <p className="relative mt-3 flex items-center gap-1.5 font-display text-sun"><Star className="size-4 fill-current" /> Unlimited levels</p>}
-                  <span className="btn-clay sm relative mt-4">Play {m.label} →</span>
-                </Link>
+            <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-white/[0.06] sm:grid-cols-3">
+              {facts.map(([k, v]) => (
+                <div key={k} className="bg-[#170e33] px-4 py-3">
+                  <dt className="text-xs font-semibold tracking-wide text-faint uppercase">{k}</dt>
+                  <dd className="mt-0.5 font-semibold text-white">{v}</dd>
+                </div>
               ))}
+            </dl>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {g.categories.map((c) => {
+                const cat = CATEGORIES.find((x) => x.id === c)!;
+                const { icon: Icon, color } = CATEGORY_ICON[c];
+                return (
+                  <Link key={c} href={categoryHref(c)} className="flex items-center gap-1.5 rounded-full bg-white/[0.07] px-3.5 py-1.5 text-sm font-semibold text-white/85 ring-1 ring-white/[0.06] hover:bg-white/[0.12] hover:text-white">
+                    <Icon className="size-4" style={{ color }} /> {cat.label} <span className="text-faint">{inCategory(c).length}</span>
+                  </Link>
+                );
+              })}
+              {is3D(g) && <Link href="/c/3d" className="rounded-full bg-[#6d4aff]/25 px-3.5 py-1.5 text-sm font-semibold text-[#c9bcff] ring-1 ring-[#6d4aff]/40 hover:bg-[#6d4aff]/35">3D</Link>}
             </div>
-          </section>
 
-          <Suspense fallback={null}><GameStatsCard slug={g.slug} /></Suspense>
+            <H2 icon={<Gamepad2 className="size-5 text-sun" />}>About {g.title}</H2>
+            <p className="max-w-4xl text-[15.5px] leading-relaxed text-muted">{g.description}</p>
 
-          <section id="how" className="scroll-mt-24">
-            <SectionTitle kicker="Rules" title={`How to play ${g.title}`} />
-            <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <H2 icon={<ListOrdered className="size-5 text-mint" />}>How to play</H2>
+            <ol className="grid gap-3 sm:grid-cols-2">
               {g.howTo.map((h, i) => (
-                <li key={h.title} className="glass rounded-[1.5rem] p-5">
-                  <span className="grid size-11 place-items-center rounded-2xl bg-momo font-display text-2xl text-ink shadow-[0_4px_0_#e0631f]">{i + 1}</span>
-                  <h3 className="mt-3 font-display text-xl">{h.title}</h3>
-                  <p className="mt-1 text-muted">{h.text}</p>
+                <li key={h.title} className="flex gap-3 rounded-xl bg-white/[0.04] p-4 ring-1 ring-white/[0.05]">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-sun/15 font-bold text-sun">{i + 1}</span>
+                  <span><span className="block font-bold text-white">{h.title}</span><span className="mt-0.5 block text-sm leading-relaxed text-muted">{h.text}</span></span>
                 </li>
               ))}
             </ol>
-          </section>
 
-          <section className="grid gap-4 lg:grid-cols-2">
-            {g.slug === "momo-shuffle" ? (
-            <div className="glass rounded-[1.75rem] p-6">
-                <h2 className="flex items-center gap-2 font-display text-2xl"><Sparkles className="size-5 text-sun" /> Twists that keep it fresh</h2>
-                <ul className="mt-4 grid gap-3">
-                  {[
-                    ["⚡ Zigzag", "Kranky loves long swaps from end to end."],
-                    ["🃏 Fake-Out", "Kranky lifts an empty cup to trick you."],
-                    ["🌀 Triple Spin", "Every cup moves at once in a big circle."],
-                    ["🌙 Lights Off", "The lights go out mid-shuffle. Listen and guess!"],
-                    ["⭐ Bonus Round", "Every 5th level: more swaps, double coins."],
-                  ].map(([t, d]) => (
-                    <li key={t} className="flex gap-3 rounded-2xl bg-white/5 p-3"><span className="w-32 shrink-0 font-bold">{t}</span><span className="text-muted">{d}</span></li>
+            <H2 icon={<Keyboard className="size-5 text-[#9FB8FF]" />}>Controls</H2>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {g.controls.map((c) => (
+                <li key={c.keys + c.action} className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.04] px-4 py-2.5 ring-1 ring-white/[0.05]">
+                  <span className="text-sm text-muted">{c.action}</span>
+                  <kbd className="shrink-0 rounded-md bg-white/10 px-2 py-1 text-xs font-bold text-white">{c.keys}</kbd>
+                </li>
+              ))}
+            </ul>
+
+            {g.modes.length > 1 && (
+              <>
+                <H2 icon={<Play className="size-5 text-momo" />}>Game modes</H2>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {g.modes.map((m) => (
+                    <Link key={m.id} href={`${playHref(g)}?mode=${m.id}`} className="group rounded-xl p-4 ring-1 ring-white/[0.08] transition hover:-translate-y-0.5 hover:ring-white/25" style={{ background: `linear-gradient(150deg, ${m.color}40, #170e33 75%)` }}>
+                      <p className="text-lg font-bold text-white">{m.label}</p>
+                      <p className="mt-0.5 text-sm text-muted">{m.desc}</p>
+                      <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-sun">Play {m.label} <ChevronRight className="size-4 transition group-hover:translate-x-0.5" /></span>
+                    </Link>
                   ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="glass rounded-[1.75rem] p-6">
-                <h2 className="flex items-center gap-2 font-display text-2xl"><Sparkles className="size-5 text-sun" /> Levels &amp; score</h2>
-                <ul className="mt-4 grid gap-3">
-                  {[
-                    ["♾️ Unlimited", "Every level is generated fresh — it never repeats and never ends."],
-                    ["📈 Gentle ramp", "Each level is a little harder; new twists appear as you go."],
-                    ["🔥 Combo ×5", "Correct answers in a row multiply your points up to ×5."],
-                    ["⚡ Speed bonus", "Answer faster for bonus points. Perfect levels score extra."],
-                    ["🪙 Coins", "Clear levels to earn coins for the Rewards shop."],
-                  ].map(([t, d]) => (
-                    <li key={t} className="flex gap-3 rounded-2xl bg-white/5 p-3"><span className="w-32 shrink-0 font-bold">{t}</span><span className="text-muted">{d}</span></li>
-                  ))}
-                </ul>
-              </div>
+                </div>
+              </>
             )}
-            <div className="glass rounded-[1.75rem] p-6">
-              <h2 className="flex items-center gap-2 font-display text-2xl"><Keyboard className="size-5 text-mint" /> Controls</h2>
-              <ul className="mt-4 grid gap-2">
-                {g.controls.map((c) => (
-                  <li key={c.keys} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2.5"><span className="text-muted">{c.action}</span><kbd className="rounded-lg bg-white/12 px-2 py-1 font-display text-sm">{c.keys}</kbd></li>
-                ))}
-              </ul>
-              <p className="mt-4 flex items-center gap-2 text-sm text-muted"><Gamepad2 className="size-5" /> Gamepad supported · <Clock className="size-4" /> No time limit to pick</p>
-            </div>
-          </section>
 
-          {g.shots.length > 0 && <section>
-            <SectionTitle kicker="Gallery" title="Screenshots" />
-            <div className="no-scrollbar -mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-2 lg:mx-0 lg:grid lg:grid-cols-4 lg:px-0">
-              {g.shots.map((s, i) => (
-                <Image key={s} src={s} alt={`${g.title} screenshot ${i + 1}: Momo, Kranky and the clay cups`} width={1280} height={720} className="aspect-video w-[80%] shrink-0 snap-center rounded-2xl object-cover ring-1 ring-white/15 sm:w-[45%] lg:w-full" />
-              ))}
-            </div>
-          </section>}
-
-          <section className="mx-auto w-full max-w-4xl">
-            <SectionTitle kicker="FAQ" title={`${g.title} questions`} />
-            <div className="grid gap-3">
-              {g.faq.map((f) => (
-                <details key={f.q} className="glass group rounded-2xl p-5 open:bg-white/10">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold">
-                    <h3>{f.q}</h3>
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 transition group-open:rotate-45">+</span>
-                  </summary>
-                  <p className="mt-3 text-muted">{f.a}</p>
-                </details>
-              ))}
-            </div>
-          </section>
+            {g.faq.length > 0 && (
+              <>
+                <H2 icon={<MessageCircleQuestion className="size-5 text-bubble" />}>Questions</H2>
+                <div className="grid gap-2">
+                  {g.faq.map((f) => (
+                    <details key={f.q} className="group rounded-xl bg-white/[0.04] px-4 py-3 ring-1 ring-white/[0.05] open:bg-white/[0.07]">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-white">
+                        <h3>{f.q}</h3>
+                        <span className="grid size-6 shrink-0 place-items-center rounded-full bg-white/10 text-sm transition group-open:rotate-45">+</span>
+                      </summary>
+                      <p className="mt-2 text-sm leading-relaxed text-muted">{f.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </>
+            )}
+          </article>
         </div>
-      )}
 
-      {!live && (
-        <section className="mx-auto mt-12 max-w-3xl px-5 lg:px-6">
-          <div className="glass rounded-[1.75rem] p-6 text-center">
-            <p className="font-display text-2xl">Want to know when it&apos;s ready?</p>
-            <p className="mt-1 text-muted">Follow MOMOBLOBS on YouTube and Instagram — new games are announced there first.</p>
-            <div className="mt-4 flex justify-center gap-2">
-              <a href={SITE.social.youtube} target="_blank" rel="noopener noreferrer" className="btn-clay bubble sm">YouTube ↗</a>
-              <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer" className="btn-clay grape sm">Instagram ↗</a>
-            </div>
+        {/* play next */}
+        <aside className="hidden xl:block">
+          <h2 className="mb-2.5 text-lg font-bold text-white">Play next</h2>
+          <div className="grid grid-cols-2 gap-2.5">
+            {next.map((x) => <GameTile key={x.slug} g={x} sizes="150px" />)}
           </div>
-        </section>
-      )}
+        </aside>
+      </div>
 
-      <section className="mx-auto mt-14 max-w-7xl px-5 lg:px-6">
-        <SectionTitle kicker="More" title="You might also like" action={{ href: "/games", label: "All games" }} />
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
-          {related.map((r) => <GameCard key={r.slug} g={r} />)}
-        </div>
-      </section>
-    </>
+      <div className="mt-8 grid gap-8">
+        <GameRow title={`More ${main.label.toLowerCase()} games`} href={categoryHref(main.id)} games={inCategory(main.id).filter((x) => x.slug !== g.slug)} />
+      </div>
+    </div>
   );
 }
 
 export default function GamePage({ params }: PageProps<"/games/[slug]">) {
   return (
-    <Suspense fallback={<div className="mx-auto h-[60vh] max-w-7xl" />}>
+    <Suspense fallback={<div className="page"><div className="aspect-video w-full animate-pulse rounded-2xl bg-white/[0.04] xl:w-[calc(100%-320px)]" /></div>}>
       <GameDetail params={params} />
     </Suspense>
   );

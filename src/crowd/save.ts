@@ -71,7 +71,7 @@ export const useBrigade = create<BrigadeStore>()(
         return false;
       },
       setSettings: (p) => set({ settings: { ...get().settings, ...p } }),
-      setTutorialDone: (v) => set({ tutorialDone: v }),
+      setTutorialDone: (v) => { if (get().tutorialDone !== v) set({ tutorialDone: v }); },
       record: (won, pops, coins) => set({ plays: get().plays + 1, wins: get().wins + (won ? 1 : 0), pops: get().pops + pops, coinsEarned: get().coinsEarned + coins }),
       reset: () => set(initial()),
       setLeader: (id) => set({ leader: id }),

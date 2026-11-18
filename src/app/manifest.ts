@@ -14,7 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "any",
     background_color: "#160c33",
     theme_color: "#160c33",
-    categories: ["games", "kids", "education", "entertainment"],
+    categories: ["games", "entertainment"],
     lang: "en",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

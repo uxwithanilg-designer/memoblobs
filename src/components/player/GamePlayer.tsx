@@ -10,6 +10,7 @@ import { ArrowLeft, CircleHelp, Expand, House, Pause, Play, Settings as Cog, Shr
 import { PlayerContext, type MenuAction, type PlayerApi } from "@/components/player/PlayerContext";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 import { CoinPill } from "@/components/brand/CoinPill";
+import { Logo } from "@/components/brand/Logo";
 import { useHydrated, useSettings } from "@/lib/store";
 import { audio } from "@/lib/audio";
 import type { Game } from "@/lib/games";
@@ -25,7 +26,8 @@ const noop = () => () => {};
 type FsDoc = Document & { webkitFullscreenElement?: Element; webkitExitFullscreen?: () => Promise<void>; webkitFullscreenEnabled?: boolean };
 type FsEl = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
 
-export function GamePlayer({ game, children }: { game: Game; children: React.ReactNode }) {
+/** embedded = runs in the frame on a game page (the page owns the title, sound and fullscreen buttons); onExit ends it */
+export function GamePlayer({ game, children, embedded = false, onExit }: { game: Game; children: React.ReactNode; embedded?: boolean; onExit?: () => void }) {
   const router = useRouter();
   const hydrated = useHydrated();
   const settings = useSettings();
@@ -158,6 +160,7 @@ export function GamePlayer({ game, children }: { game: Game; children: React.Rea
     const d = document as FsDoc;
     if (document.fullscreenElement || d.webkitFullscreenElement) void (document.exitFullscreen?.() ?? d.webkitExitFullscreen?.());
     audio.stopMusic(0.2);
+    if (embedded) { onExit?.(); return; }
     if (window.history.length > 1) router.back(); else router.push(`/games/${game.slug}`);
   };
 
@@ -186,17 +189,17 @@ export function GamePlayer({ game, children }: { game: Game; children: React.Rea
 
         {/* top bar */}
         <div className={`pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start gap-2 p-3 sm:p-4 ${immersive ? "hidden" : ""}`} style={{ paddingTop: "calc(var(--safe-top) + 0.6rem)" }}>
-          <button onClick={exit} aria-label="Exit game" className={`${iconBtn} pointer-events-auto`}><ArrowLeft className="size-5" /></button>
-          <div className="pointer-events-auto hidden items-center gap-2 rounded-2xl bg-ink/45 py-1.5 pr-3 pl-1.5 ring-1 ring-white/15 backdrop-blur-md sm:flex">
+          {!embedded && <button onClick={exit} aria-label="Exit game" className={`${iconBtn} pointer-events-auto`}><ArrowLeft className="size-5" /></button>}
+          <div className={`pointer-events-auto hidden items-center gap-2 rounded-2xl bg-ink/45 py-1.5 pr-3 pl-1.5 ring-1 ring-white/15 backdrop-blur-md ${embedded ? "" : "sm:flex"}`}>
             <Image src={game.character} alt="" width={32} height={32} className="size-8 object-contain" />
             <span className="font-display text-lg">{game.title}</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <span className="pointer-events-auto"><CoinPill href={null} compact /></span>
-            <button onClick={() => settings.set({ muted: !settings.muted })} aria-label={settings.muted ? "Unmute" : "Mute"} className={`${iconBtn} pointer-events-auto`}>
+            <button onClick={() => settings.set({ muted: !settings.muted })} aria-label={settings.muted ? "Unmute" : "Mute"} className={`${iconBtn} pointer-events-auto ${embedded ? "!hidden" : ""}`}>
               {settings.muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
             </button>
-            {fsOk && (
+            {fsOk && !embedded && (
               <button onClick={toggleFs} aria-label={fs ? "Exit fullscreen" : "Fullscreen"} className={`${iconBtn} pointer-events-auto hidden sm:grid`}>
                 {fs ? <Shrink className="size-5" /> : <Expand className="size-5" />}
               </button>
@@ -217,8 +220,8 @@ export function GamePlayer({ game, children }: { game: Game; children: React.Rea
             <motion.div exit={{ opacity: 0, scale: 1.04 }} transition={{ duration: 0.45 }} className="absolute inset-0 z-40 grid place-items-center bg-night">
               <div className="sunburst absolute inset-0 animate-[spin-slow_60s_linear_infinite] opacity-60" style={{ transformOrigin: "50% 50%", scale: 2 }} />
               <div className="relative flex w-[min(86vw,420px)] flex-col items-center text-center">
-                <Image src="/brand/logo.webp" alt="MOMOBLOBS" width={420} height={69} priority className="w-64 drop-shadow-xl sm:w-80" />
-                <Image src="/brand/momo-wave.webp" alt="" width={260} height={193} priority className="mt-6 w-40 animate-[bob_1.2s_ease-in-out_infinite] drop-shadow-2xl" />
+                <Logo size={64} href={null} />
+                <Image src="/brand/momo-wave.webp" alt="" width={260} height={193} priority className={`mt-6 animate-[bob_1.2s_ease-in-out_infinite] drop-shadow-2xl ${embedded ? "w-28" : "w-40"}`} />
                 <p className="mt-6 font-display text-2xl">{game.title}</p>
                 <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-white/10 ring-1 ring-white/15">
                   <motion.div className="shine h-full rounded-full bg-gradient-to-r from-sun via-momo to-bubble" animate={{ width: `${Math.max(6, loading.p * 100)}%` }} transition={{ type: "spring", stiffness: 120, damping: 20 }} />
@@ -280,8 +283,10 @@ export function GamePlayer({ game, children }: { game: Game; children: React.Rea
                         <button onClick={() => setPanel("help")} className="btn-clay ghost w-full !text-base"><CircleHelp className="size-5" /> How to play</button>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <Link href="/" onClick={() => audio.stopMusic(0.2)} className="btn-clay ghost w-full !text-base"><House className="size-5" /> Home</Link>
-                        <button onClick={exit} className="btn-clay bubble w-full !text-base"><ArrowLeft className="size-5" /> Exit</button>
+                        {embedded
+                          ? <button onClick={() => setPanel("settings")} className="btn-clay ghost w-full !text-base"><Cog className="size-5" /> Sound</button>
+                          : <Link href="/" onClick={() => audio.stopMusic(0.2)} className="btn-clay ghost w-full !text-base"><House className="size-5" /> Home</Link>}
+                        <button onClick={exit} className="btn-clay bubble w-full !text-base"><ArrowLeft className="size-5" /> {embedded ? "Quit game" : "Exit"}</button>
                       </div>
                     </div>
                   </div>

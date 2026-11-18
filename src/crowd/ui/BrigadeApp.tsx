@@ -298,8 +298,8 @@ function TitleScreen({ title, spec, quality, stars, best, endless, onPlay, onEnd
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <Btn tone="blue" onClick={onLeaders} className="w-full px-2 text-base"><img src={L.img} alt="" className="size-7 rounded-full bg-white object-cover" />LEADERS</Btn>
           <Btn tone="mint" onClick={onShop} className="w-full px-2 text-base">SHOP</Btn>
-          <Btn tone="white" onClick={onWardrobe} label="Wardrobe" className="w-12 px-0 text-2xl">🎩</Btn>
-          <Btn tone="white" onClick={onSettings} label="Settings" className="w-12 px-0"><Settings2 className="size-6" /></Btn>
+          <Btn tone="white" onClick={onWardrobe} label="Wardrobe" className="w-12 !px-0 text-2xl">🎩</Btn>
+          <Btn tone="white" onClick={onSettings} label="Settings" className="w-12 !px-0"><Settings2 className="size-6" /></Btn>
         </div>
         {!endless && <p className="-mt-1 text-center text-[12.5px] font-bold text-[#2B1D52]/60">Beat stage 3 to open Daily and Endless</p>}
       </div>
@@ -443,6 +443,8 @@ function GameScreen({ run, quality, sensitivity, vibrate, tutorial, onTutorialDo
   const [bossMusic, setBossMusic] = useState(false);
   const [flash, setFlash] = useState(0);
   const tid = useRef(0);
+  const doneRef = useRef(onTutorialDone);
+  useEffect(() => { doneRef.current = onTutorialDone; });
   const def = run.def, spec = run.spec, w = def?.world ?? spec.world ?? 0;
 
   useEffect(() => { void audio.playMusic(music(w, true, bossMusic || run.mode === "rush")); }, [w, bossMusic, run.mode]);
@@ -457,7 +459,7 @@ function GameScreen({ run, quality, sensitivity, vibrate, tutorial, onTutorialDo
   // tutorial: drag, then the +1 tiles, then done
   useEffect(() => {
     if (tip < 0) return;
-    if (tip >= 2) { onTutorialDone(); return; }
+    if (tip >= 2) { doneRef.current(); return; }
     const s = sess.current;
     const start = s?.sim.tx ?? 0;
     const iv = setInterval(() => {
@@ -468,7 +470,7 @@ function GameScreen({ run, quality, sensitivity, vibrate, tutorial, onTutorialDo
     }, 150);
     const to = setTimeout(() => setTip((t) => (t === tip ? t + 1 : t)), tip === 0 ? 7000 : 9000);
     return () => { clearInterval(iv); clearTimeout(to); };
-  }, [tip, onTutorialDone]);
+  }, [tip]);
 
   const onToast = useCallback((t: Toast) => {
     const id = ++tid.current;

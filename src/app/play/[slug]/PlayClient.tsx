@@ -1,40 +1,24 @@
 "use client";
-import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { GamePlayer } from "@/components/player/GamePlayer";
+import { GameView } from "@/components/player/GameView";
 import { getGame } from "@/lib/games";
 import type { Difficulty } from "@/lib/store";
-import { ARCADE_MODULES } from "@/arcade/registry";
-import type { GameCtor } from "@/arcade/ArcadeHost";
-import type { CastId } from "@/arcade/engine";
-
-const MomoShuffle = dynamic(() => import("@/games/momo-shuffle/MomoShuffle"), { ssr: false });
-const RacingApp = dynamic(() => import("@/racing/ui/RacingApp"), { ssr: false });
-const BrigadeApp = dynamic(() => import("@/crowd/ui/BrigadeApp"), { ssr: false });
-const RollApp = dynamic(() => import("@/roll/ui/RollApp"), { ssr: false });
-const EscapeApp = dynamic(() => import("@/escape/ui/EscapeApp"), { ssr: false });
-const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
-
-function Arcade({ slug }: { slug: string }) {
-  const g = getGame(slug)!;
-  const [Ctor, setCtor] = useState<GameCtor | null>(null);
-  useEffect(() => {
-    let alive = true;
-    ARCADE_MODULES[slug]?.().then((m) => { if (alive) setCtor(() => m.default); });
-    return () => { alive = false; };
-  }, [slug]);
-  return Ctor ? <ArcadeHost game={g} Ctor={Ctor} host={(g.host ?? "momo") as CastId} /> : null;
-}
+import { useLibrary } from "@/lib/library";
 
 export function PlayClient({ slug }: { slug: string }) {
   const sp = useSearchParams();
   const g = getGame(slug)!;
   const m = sp.get("mode");
   const mode = m === "easy" || m === "medium" || m === "hard" ? (m as Difficulty) : undefined;
+  const embed = sp.get("embed") === "1";
+  useEffect(() => { useLibrary.getState().touch(slug); }, [slug]);
+  // in the game page's frame, "Quit game" hands control back to the page
+  const exit = () => window.parent.postMessage({ type: "momoblobs:exit", slug }, window.location.origin);
   return (
-    <GamePlayer game={g}>
-      {slug === "momo-shuffle" ? <MomoShuffle initialMode={mode} /> : g.engine === "racing" ? <RacingApp slug={slug} title={g.title} /> : g.engine === "brigade" ? <BrigadeApp slug={slug} title={g.title} /> : g.engine === "roll" ? <RollApp slug={slug} title={g.title} /> : g.engine === "escape" ? <EscapeApp slug={slug} title={g.title} /> : <Arcade slug={slug} />}
+    <GamePlayer game={g} embedded={embed} onExit={exit}>
+      <GameView slug={slug} mode={mode} />
     </GamePlayer>
   );
 }

@@ -116,7 +116,7 @@ export class BrigadeSession {
   // ---------------------------------------------------------------- loop
   private frame = (now: number) => {
     this.raf = requestAnimationFrame(this.frame);
-    const dt = Math.min(0.05, (now - this.last) / 1000);
+    const dt = Math.max(0, Math.min(0.05, (now - this.last) / 1000));
     this.last = now;
     if (this.paused) { this.r.render(); return; }
     if (this.keys.l || this.keys.r) this.sim.tx = Math.max(-HALF + 0.6, Math.min(HALF - 0.6, this.sim.tx + (this.keys.r ? 1 : -1) * 11 * dt));

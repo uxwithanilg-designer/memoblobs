@@ -1,6 +1,9 @@
 """Per-game social/hero art: clay character on a sunburst + title (1200x630 og.jpg, 1600x840 hero.webp).
 
 usage: python scripts/build_og.py
+
+The 30 arcade games now get gameplay thumbnails from scripts/build_arcade_thumbs.py; this script skips them unless
+you name a slug on the command line.
 """
 import math
 import os
@@ -102,8 +105,11 @@ def art(W, H, title, tag, char, c1, c2):
 
 
 ONLY = set(sys.argv[1:])
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from build_arcade_thumbs import GAMES as GAMEPLAY_THUMBS  # noqa: E402
 for slug, title, tag, char, c1, c2 in GAMES:
     if ONLY and slug not in ONLY: continue
+    if not ONLY and slug in GAMEPLAY_THUMBS: continue
     os.makedirs(os.path.join(PUB, "games", slug), exist_ok=True)
     art(1200, 630, title, tag, char, c1, c2).save(os.path.join(PUB, "games", slug, "og.jpg"), quality=86, optimize=True, progressive=True)
     art(1280, 720, title, tag, char, c1, c2).save(os.path.join(PUB, "games", slug, "hero.webp"), "WEBP", quality=84, method=6)
