@@ -7,7 +7,7 @@ export const COLS = 13;
 export const TPS = 60;
 /** runner hit radius (units) */
 export const R_RUN = 3.2;
-/** leap speed (units / tick) — 4 ticks per cell */
+/** dash speed (units / tick) — 4 ticks per cell */
 export const LEAP_V = 2.5;
 /** every hazard period divides this, so the solver can fold time */
 export const T_FOLD = 120;
@@ -80,7 +80,7 @@ export interface Room {
   name: string;
   fusion?: { name: string; atoms: string[]; key: string };
   finale?: string;
-  /** solver results: par time (entry 0) and the autopilot's leap ticks for each of the 4 entries */
+  /** solver results: par time from the entrance hatch, and the autopilot's moves ((tick << 2) | direction) */
   par: number;
   bots: number[][];
   /** wall decorations (signs, screens, alarm lights, vents, crates…) */
@@ -93,7 +93,7 @@ export interface Room {
 export type SimEvent =
   | { t: "leap"; x: number; y: number }
   | { t: "land"; x: number; y: number; g: Dir }
-  | { t: "corner" }
+  | { t: "bump"; x: number; y: number; d: Dir }
   | { t: "pickup"; k: PickupKind; x: number; y: number; n: number }
   | { t: "hit"; x: number; y: number; skin: string; shield: boolean }
   | { t: "life"; lives: number; delta: number }

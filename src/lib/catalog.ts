@@ -11,7 +11,7 @@ const rank = (g: Game) => { const i = PICKS.indexOf(g.slug); return i < 0 ? PICK
 export const ALL_PLAYABLE = [...LIVE_GAMES].sort((a, b) => rank(a) - rank(b));
 export const TOP_PICKS = ALL_PLAYABLE.slice(0, 12);
 export const NEW_GAMES = [...LIVE_GAMES].sort((a, b) => (b.released ?? "").localeCompare(a.released ?? "") || rank(a) - rank(b));
-const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll"]);
+const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape"]);
 export const is3D = (g: Game) => g.engine !== undefined && ENGINES_3D.has(g.engine);
 export const GAMES_3D = ALL_PLAYABLE.filter(is3D);
 /** NEW = everything from the latest release day */

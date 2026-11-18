@@ -4,7 +4,7 @@
 import { buildingOf, type Building } from "./data/buildings";
 import { crushK, crushSoon, floodY, laserOn, laserSeg, laserSoon, moverPos, pulseState, shots, spikeRect, spikesOn, spikesSoon, turretCharge } from "./hazards";
 import type { EscapeSim } from "./sim";
-import { COLS, DX, DY, U, type Dir, type Hazard, type Pickup, type Room } from "./types";
+import { COLS, DX, DY, opp, U, type Dir, type Hazard, type Pickup, type Room } from "./types";
 
 const TAU = Math.PI * 2;
 const FONT = "'Lilita One', ui-rounded, system-ui, sans-serif";
@@ -103,6 +103,11 @@ export class EscapeRenderer {
   }
   land() { this.squash = 1; }
   leap() { this.squash = -1; }
+  /** Momo tried to dash into a wall */
+  nudge() { this.squash = 0.6; }
+  /** where Momo was last drawn, in CSS pixels of the canvas (tap-to-move aims from here) */
+  momoAt() { return this.momoPt; }
+  private momoPt: { x: number; y: number } | null = null;
   private part(x: number, y: number, vx: number, vy: number, life: number, size: number, color: string, kind: 0 | 1 | 2) {
     if (this.parts.length > 260) this.parts.shift();
     this.parts.push({ x, y, vx, vy, life, max: life, size, color, kind, rot: Math.random() * TAU, vr: (Math.random() - 0.5) * 10 });
@@ -603,7 +608,11 @@ export class EscapeRenderer {
     const g = this.g, cs = this.cs, r = sim.r;
     if (sim.dead) return;
     const sx = toX(this.rx), sy = toY(this.ry);
-    // ink trail while leaping
+    {
+      const m = g.getTransform();
+      this.momoPt = { x: (m.a * sx + m.c * sy + m.e) / this.dpr, y: (m.b * sx + m.d * sy + m.f) / this.dpr };
+    }
+    // ink trail while dashing
     if (r.mode === 1) this.trail.push({ x: this.rx, y: this.ry, a: 1 });
     for (const p of this.trail) p.a -= 0.08;
     this.trail = this.trail.filter((p) => p.a > 0).slice(-14);
@@ -612,8 +621,8 @@ export class EscapeRenderer {
     g.globalAlpha = 1;
     const frozen = sim.frozen > 0;
     if (frozen && Math.floor(this.time * 10) % 2) return;
-    // orientation: "down" is towards the wall (g); while leaping, towards where he flies
-    const gdir = r.g;
+    // orientation: "down" is towards the wall (g); while dashing, towards where he flies (he lands feet first)
+    const gdir = r.mode === 1 ? r.d : r.g;
     if (gdir !== this.lastG && r.mode === 0) this.lastG = gdir;
     const downA = Math.atan2(DY[gdir] * -1, DX[gdir]) ; // screen y is flipped
     this.squash += (0 - this.squash) * 0.18;
@@ -625,11 +634,11 @@ export class EscapeRenderer {
     const off = r.mode === 0 ? cs * 0.5 - R - cs * 0.08 : 0;
     g.translate(0, off);
     const sq = r.mode === 1 ? -0.18 : this.squash * 0.22;
-    const run = sim.tick * 0.45;
-    // legs
+    // legs: planted while he waits for the player, tucked in while dashing
     if (r.mode === 0) {
+      const sway = Math.sin(this.time * 3) * R * 0.05;
       g.strokeStyle = "#3a1d0a"; g.lineWidth = Math.max(1.5, cs * 0.07); g.lineCap = "round";
-      for (const s of [-1, 1]) { const a = Math.sin(run + (s > 0 ? Math.PI : 0)) * 0.5; g.beginPath(); g.moveTo(s * R * 0.35, R * 0.75); g.lineTo(s * R * 0.35 + Math.sin(a) * R * 0.5 * (r.d === 1 || r.d === 0 ? 1 : -1), R * 1.18); g.stroke(); }
+      for (const s of [-1, 1]) { g.beginPath(); g.moveTo(s * R * 0.35, R * 0.75); g.lineTo(s * R * 0.45 + sway, R * 1.18); g.stroke(); }
     }
     // body
     g.scale(1 + sq, 1 - sq);
@@ -639,8 +648,9 @@ export class EscapeRenderer {
     g.strokeStyle = "#3a1d0a"; g.lineWidth = Math.max(1.2, cs * 0.045); g.stroke();
     // misregistered highlight
     g.fillStyle = "rgba(255,255,255,0.45)"; g.beginPath(); g.arc(-R * 0.35, -R * 0.35, R * 0.25, 0, TAU); g.fill();
-    // which way he faces (screen) — eyes look along the run direction
-    const fdx = DX[r.d], fdy = -DY[r.d];
+    // which way he looks (screen) — along the dash, or out into the room while he waits
+    const look = r.mode === 1 ? r.d : opp(r.g), lk = r.mode === 1 ? 1 : 0.45;
+    const fdx = DX[look] * lk, fdy = -DY[look] * lk;
     const ca = Math.cos(-(downA - Math.PI / 2)), sa = Math.sin(-(downA - Math.PI / 2));
     const lx = fdx * ca - fdy * sa, ly = fdx * sa + fdy * ca;
     const ex = lx * R * 0.28, ey = ly * R * 0.28 - R * 0.12;

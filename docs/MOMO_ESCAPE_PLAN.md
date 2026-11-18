@@ -31,10 +31,12 @@ the feel* only — not its name, hero, signage theme, art, levels or UI.
 
 ## 2. The game in one screen
 
-- **Run the walls.** Momo runs by himself along whatever surface he is on — floor, wall, ceiling. Inner corners carry
-  him up the next wall, outer corners wrap him around the edge. He never stops.
-- **Tap to leap.** One tap = leap straight off the surface to the opposite side of the room; he lands and keeps running.
-  That is the whole control — one thumb, perfect on phones, works the same in mirror / upside-down rooms.
+- **The player moves Momo.** Momo sticks to a wall and waits. Swipe up, down, left or right (or tap the side you want,
+  or use the arrow keys / WASD) and he dashes that way in a straight line until he sticks to the next wall. Nothing moves
+  him but the player (apart from bounce walls, conveyors, bumpers and teleport pads he dashes into). Directions follow
+  the screen, so mirror and upside-down rooms still feel right. *(Changed 2026-11-18 from the first build's auto-run +
+  tap-to-leap: players wanted full control in every direction.)*
+- **Stoppers.** Rooms get small stopper blocks beside inner gaps and the EXIT so a dash can end exactly underneath them.
 - **Escape upward, forever.** Every room is one floor of a building Kranky has locked down. Its **EXIT hatch** in the
   ceiling opens straight into the next floor — no "level complete" screens, no stage numbers, the run just continues.
   Every 10 floors the building changes (look, ink colours, music, hazards); floor 10 of each building is a finale.
@@ -364,8 +366,13 @@ fusion cards. Rest floors between buildings have a vending nook (spend coins on 
 
 ## 9. Look, sound, feel
 
-- **Look:** risograph print — paper grain, 2 fluorescent inks per building + ink-black, misregistered offset shadows,
-  halftone dots, stamp lettering, sticker-outlined Momo. Night buildings use dark paper with neon inks.
+- **Look (3D, 2026-11-18):** every floor is built from glossy rounded toy blocks in the building's ink colours on a
+  tiled back wall, lit by a soft sky + a warm key light with real shadows. Momo is a rigged clay toy (big glossy eyes
+  that blink and look where he dashes, cream belly, cheeks, open smile, sneakers, arms, sprout); the other rollers use
+  their 3D models from the other MOMOBLOBS games. Coins spin, diamonds are cut gems, and every trap is a 3D object
+  (glowing lasers, spike strips, striped crushers, turrets, saws, spiky grumpies, mines, drones, robots, barrels,
+  maces, lamps, steam, floods). Night buildings use dark walls with neon inks and a lantern on Momo. The first
+  build's risograph Canvas 2D renderer stays as the fallback when WebGL is missing.
 - **Juice:** squash & stretch, dust puffs, leap ink trail, near-miss slow-mo, screen shake on slams, coin chime that
   climbs in pitch on a streak, ink-splat confetti on a hit, room power-up flicker on entry.
 - **Sound:** original procedural soundtrack per building (layers rise with intensity, speed rushes speed it up);
@@ -407,8 +414,8 @@ All five phases are built (`src/escape/`, slug `momo-escape`, engine `escape`):
   leaping Momo, so there are only two ways in), coins on the route, diamonds on proven alternative routes, building
   schedule for floors 1–240, Fusion Director after that, per-mode recipes (run, Daily Heist, Speed Series, Room Lab).
   Floors are built in a Web Worker three ahead.
-- **Look & sound** — `render.ts` Canvas 2D risograph print (paper grain, misregistered halftone shadows, stamps,
-  night buildings), rule overlays (dark, fog, mirror, flip, tilt, strobe, alarm, memory); procedural soundtrack per
+- **Look & sound** — `render3d.ts` three.js renderer with `three/models.ts` (3D Momo rig, coins, gems, traps,
+  decor); `render.ts` Canvas 2D risograph print as the no-WebGL fallback; rule overlays (dark, fog, mirror, flip, tilt, strobe, alarm, memory); procedural soundtrack per
   building on the MOMOBLOBS music engine (tempo follows speed rushes); sound for every moment, panned by position.
 - **App** — `ui/EscapeApp.tsx` title (live attract demo), Buildings start picker, Modes (Daily Heist, Speed Series with
   medals, Room Lab with share codes), Concept Dex + fusion cards, Rollers (shared roster and coin jar with Sky Roll),

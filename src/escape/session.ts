@@ -1,5 +1,6 @@
 // Momo Escape session: owns the canvas, the fixed-step simulation (60 ticks per second of game time, scaled by speed
-// rushes / boosters / slow-mo), input (tap anywhere / space), the building soundtracks, sound effects for every moment,
+// rushes / boosters / slow-mo), input (swipe, tap towards a spot, arrow keys / WASD — Momo only moves when the player
+// says so), the building soundtracks, sound effects for every moment,
 // and the endless supply of floors (built in a worker, three floors ahead).
 import { audio, type Sound } from "@/lib/audio";
 import { RollMusic } from "../roll/music";
@@ -8,8 +9,9 @@ import { buildingOf } from "./data/buildings";
 import { buildRoom, MODE_FLOORS, recipeFor, type EscapeMode, type FusionMemory, type ModeParams } from "./gen";
 import { crushK, laserOn, pulseState, shots } from "./hazards";
 import { EscapeRenderer } from "./render";
+import { EscapeRenderer3D, type EscapeView, type Quality } from "./render3d";
 import { EscapeSim, MAX_LIVES } from "./sim";
-import { TPS, U, type Room, type SimEvent } from "./types";
+import { opp, TPS, U, type Dir, type Room, type SimEvent } from "./types";
 import type { EscapeAsk, EscapeReply } from "./worker";
 
 export type Phase = "count" | "play" | "over" | "done";
@@ -18,7 +20,7 @@ export interface EscapeHud {
   floor: number; floorsDone: number; building: number; buildingName: string; emoji: string; roomName: string;
   lives: number; maxLives: number; coins: number; diamonds: number; roomDiamonds: number; buddies: number;
   speed: number; rush: number; boost: number; slowmo: number; shield: boolean; ghost: boolean; magnet: boolean;
-  keyNeeded: boolean; hasKey: boolean; seconds: number; par: number; roomSeconds: number;
+  keyNeeded: boolean; hasKey: boolean; seconds: number; par: number; roomSeconds: number; moves: number;
 }
 export interface EscapeResult {
   mode: EscapeMode; completed: boolean; floorsDone: number; floor: number; building: number; coins: number; diamonds: number;
@@ -39,16 +41,22 @@ export interface EscapeOptions {
   mem: FusionMemory;
   ch: { id: string; color: string };
   haptics: boolean; shake: boolean; reduced: boolean; kid: boolean;
+  /** 3D graphics level (the 2D print look is the fallback when WebGL is missing) */
+  quality?: Quality;
   onHud?: (h: EscapeHud) => void;
   onEvent?: (e: SessionEvent) => void;
   onEnd?: (r: EscapeResult) => void;
 }
 
+/** screen direction of a drag / tap offset (screen y grows downwards) */
+const screenDir = (dx: number, dy: number): Dir => (Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : dy < 0 ? 0 : 2);
+const KEY_DIR: Record<string, Dir> = { ArrowUp: 0, KeyW: 0, ArrowRight: 1, KeyD: 1, ArrowDown: 2, KeyS: 2, ArrowLeft: 3, KeyA: 3 };
+
 const SECTIONS: [SectionKind, number][] = [["intro", 1], ["verse", 2], ["build", 2], ["chorus", 3], ["drop", 3], ["break", 1], ["verse", 2], ["chorus", 3]];
 
 export class EscapeSession {
   readonly sim: EscapeSim;
-  readonly r: EscapeRenderer;
+  readonly r: EscapeView;
   private host: HTMLElement;
   private o: EscapeOptions;
   private music: RollMusic | null = null;
@@ -83,9 +91,12 @@ export class EscapeSession {
 
   constructor(host: HTMLElement, o: EscapeOptions) {
     this.host = host; this.o = o;
-    this.r = new EscapeRenderer(host);
+    let view: EscapeView;
+    try { view = new EscapeRenderer3D(host, o.quality ?? "medium"); } catch { view = new EscapeRenderer(host); }
+    this.r = view;
     const first = buildRoom(recipeFor(o.mode, o.start, o.params, o.mem), 6);
-    this.sim = new EscapeSim(first, { lives: o.kid ? MAX_LIVES : 3, maxLives: MAX_LIVES, kid: o.kid, bot: o.mode === "attract" });
+    // the title screen shows the first floor ticking away with Momo waiting in the hatch — nobody plays for the player
+    this.sim = new EscapeSim(first, { lives: o.kid ? MAX_LIVES : 3, maxLives: MAX_LIVES, kid: o.kid });
     this.nextN = o.start + 1;
     this.plan = { bpm: 120, root: 48 + (o.start % 7), seed: 0x51a + o.start, zones: [], beats: 0 };
     this.ro = new ResizeObserver(() => this.resize());
@@ -93,6 +104,9 @@ export class EscapeSession {
     this.resize();
     const cv = this.r.cv;
     cv.addEventListener("pointerdown", this.onDown);
+    cv.addEventListener("pointermove", this.onMove);
+    cv.addEventListener("pointerup", this.onUp);
+    cv.addEventListener("pointercancel", this.onCancel);
     cv.addEventListener("contextmenu", this.noMenu);
     window.addEventListener("keydown", this.onKey);
     try {
@@ -168,18 +182,57 @@ export class EscapeSession {
   }
 
   // ---------------------------------------------------------------- input
+  // Swipe anywhere: Momo dashes that way (keep the finger down and turn to queue the next dash). A plain tap moves him
+  // towards the spot you tapped. Arrow keys / WASD on a keyboard. Directions are what the player SEES (mirror / flip
+  // floors turn them back into world directions).
+  private swipe: { id: number; x: number; y: number; last: number; fired: boolean } | null = null;
   private onDown = (e: PointerEvent) => {
     e.preventDefault();
     audio.ensure(); void audio.resume();
-    if (this.phase === "play" && !this.paused) this.sim.tap();
+    this.swipe = { id: e.pointerId, x: e.clientX, y: e.clientY, last: -1, fired: false };
+    try { this.r.cv.setPointerCapture(e.pointerId); } catch { /* not capturable */ }
   };
+  private onMove = (e: PointerEvent) => {
+    const s = this.swipe;
+    if (!s || s.id !== e.pointerId) return;
+    const dx = e.clientX - s.x, dy = e.clientY - s.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    const d = screenDir(dx, dy);
+    s.x = e.clientX; s.y = e.clientY;
+    if (d === s.last) return;
+    s.last = d; s.fired = true;
+    this.go(d);
+  };
+  private onUp = (e: PointerEvent) => {
+    const s = this.swipe;
+    if (!s || s.id !== e.pointerId) return;
+    this.swipe = null;
+    if (s.fired) return;
+    const m = this.r.momoAt();
+    if (!m) return;
+    const b = this.r.cv.getBoundingClientRect();
+    const dx = e.clientX - b.left - m.x, dy = e.clientY - b.top - m.y;
+    if (Math.hypot(dx, dy) < 10) return;
+    this.go(screenDir(dx, dy));
+  };
+  private onCancel = () => { this.swipe = null; };
   private noMenu = (e: Event) => e.preventDefault();
   private onKey = (e: KeyboardEvent) => {
-    if (e.repeat) return;
-    if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW" || e.code === "Enter") {
-      if (this.phase === "play" && !this.paused) { e.preventDefault(); this.sim.tap(); }
-    }
+    const d = KEY_DIR[e.code];
+    if (d === undefined || e.repeat || this.phase !== "play" || this.paused) return;
+    e.preventDefault();
+    audio.ensure(); void audio.resume();
+    this.go(d);
   };
+  /** a direction on screen → a dash in the world */
+  private go(screen: Dir) {
+    if (this.phase !== "play" || this.paused || this.o.mode === "attract") return;
+    const rules = this.sim.room.rules;
+    let d = screen;
+    if (rules.flip) d = opp(d);
+    if (rules.mirror && (d === 1 || d === 3)) d = opp(d);
+    this.sim.move(d);
+  }
 
   private resize() { const b = this.host.getBoundingClientRect(); this.r.resize(b.width, b.height); }
 
@@ -269,6 +322,7 @@ export class EscapeSession {
     switch (e.t) {
       case "leap": this.r.leap(); this.r.dust(e.x, e.y, s.r.g, 5); this.sfx("hop", 0.32, pan(e.x), 1.05 + Math.random() * 0.15); this.buzz(6); break;
       case "land": this.r.land(); this.r.dust(e.x, e.y, e.g, 7); this.sfx("a:tink", 0.18, pan(e.x), 0.8 + Math.random() * 0.2); break;
+      case "bump": this.r.nudge(); this.sfx("a:tink", 0.12, pan(e.x), 0.55); this.buzz(4); break;
       case "bounce": this.sfx("boing", 0.45); break;
       case "teleport": this.sfx("a:teleport", 0.45); this.r.sparkle(s.r.x, s.r.y, "#9b6bff", 16); break;
       case "pickup": {
@@ -343,7 +397,7 @@ export class EscapeSession {
       floor: room.n, floorsDone: s.floorsDone, building: room.building, buildingName: B.name, emoji: B.emoji, roomName: room.fusion?.name ?? room.name,
       lives: s.lives, maxLives: MAX_LIVES, coins: s.coins, diamonds: s.diamonds, roomDiamonds: s.roomDiamonds, buddies: s.buddies,
       speed: Math.round(this.speed * 10) / 10, rush: room.rush, boost: this.boostLeft, slowmo: this.slowLeft, shield: s.shield, ghost: s.ghostT > 0, magnet: s.magnetT > 0,
-      keyNeeded: room.key, hasKey: s.state.key, seconds: this.seconds, par: room.par / TPS, roomSeconds: s.localT(s.cur) / TPS,
+      keyNeeded: room.key, hasKey: s.state.key, seconds: this.seconds, par: room.par / TPS, roomSeconds: s.localT(s.cur) / TPS, moves: s.state.leaps,
     });
   }
 
@@ -384,6 +438,9 @@ export class EscapeSession {
     cancelAnimationFrame(this.raf);
     this.ro.disconnect();
     this.r.cv.removeEventListener("pointerdown", this.onDown);
+    this.r.cv.removeEventListener("pointermove", this.onMove);
+    this.r.cv.removeEventListener("pointerup", this.onUp);
+    this.r.cv.removeEventListener("pointercancel", this.onCancel);
     this.r.cv.removeEventListener("contextmenu", this.noMenu);
     window.removeEventListener("keydown", this.onKey);
     this.worker?.terminate();

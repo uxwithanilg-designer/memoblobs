@@ -1,19 +1,22 @@
-// Momo Escape simulation. One deterministic step function moves the runner (used by the game, the solver and the
-// autopilot): Momo runs along whatever surface he sticks to, climbs inner corners, wraps around outer corners, and a tap
-// leaps him straight across to the opposite surface. All motion is tick-aligned: run segments start and end on cell
-// centres (speeds 0.5 / 1 / 2 units per tick, U = 10), leaps move 2.5 units per tick and land on a cell centre.
+// Momo Escape simulation. One deterministic step function moves Momo (used by the game, the solver and the autopilot).
+// Momo sticks to a wall and stays put until the player picks a direction (swipe, tap or arrow key). Then he dashes that
+// way in a straight line, cell centre to cell centre, and sticks to the first wall in his way. Teleport pads move him
+// mid-dash, bumpers turn him around, a bounce wall throws him straight back, a conveyor carries him along, speed and
+// ice walls launch him fast and honey launches him slowly. All motion is tick-aligned (U = 10 units per cell).
 import { hits, nearHazard } from "./hazards";
 import { COLS, DX, DY, LEAP_V, opp, U, type Dir, type Face, type Hazard, type Pickup, type PickupKind, type Room, type SimEvent } from "./types";
 
 export interface Runner {
   x: number; y: number;
-  /** the side the wall is on */ g: Dir;
-  /** running direction */ d: Dir;
-  /** 0 run · 1 leap */ mode: 0 | 1;
-  tx: number; ty: number;
+  /** the side his wall is on (his feet point there) */ g: Dir;
+  /** dash direction (the last one while resting) */ d: Dir;
+  /** 0 resting on a wall · 1 dashing */ mode: 0 | 1;
+  /** next cell centre while dashing */ tx: number; ty: number;
   v: number;
-  /** standing on a cell centre, next move not chosen yet (the solver's decision point) */
+  /** resting and waiting for the player's next direction (the solver's decision point) */
   arrived: boolean;
+  /** bounces and teleports in this dash (capped, so every dash ends) */
+  kicks: number;
 }
 
 export interface Env {
@@ -23,96 +26,68 @@ export interface Env {
   pad(cx: number, cy: number): [number, number] | null;
 }
 
-export const F_LEAP = 1, F_LAND = 2, F_ARRIVE = 4, F_CORNER = 8, F_BOUNCE = 16, F_TELE = 32;
+/** dash started · landed · resting · tried to move into a wall · bounced · teleported */
+export const F_LEAP = 1, F_LAND = 2, F_ARRIVE = 4, F_BUMP = 8, F_BOUNCE = 16, F_TELE = 32;
+const MAX_KICKS = 6;
+/** no direction this tick */
+export const NO_MOVE = -1;
 
 export const cellOf = (v: number) => Math.floor(v / U);
 export const centre = (c: number) => (c + 0.5) * U;
 
-export function speedOf(f: Face | undefined, d: Dir) {
-  if (!f) return 1;
+/** how fast Momo leaves the wall he rests on */
+export function launchSpeed(f: Face | undefined) {
+  if (!f) return LEAP_V;
   switch (f.k) {
-    case "ice": case "speed": return 2;
-    case "honey": return 0.5;
-    case "conveyor": return f.dir === d ? 2 : 0.5;
-    default: return 1;
+    case "ice": case "speed": return LEAP_V * 1.6;
+    case "honey": return LEAP_V * 0.5;
+    default: return LEAP_V;
   }
 }
 
 export const cloneRunner = (r: Runner): Runner => ({ ...r });
 
-function startLeap(r: Runner) { r.mode = 1; r.arrived = false; }
+function launch(r: Runner, d: Dir, v: number) {
+  r.mode = 1; r.d = d; r.v = v; r.arrived = false;
+  r.tx = centre(cellOf(r.x) + DX[d]); r.ty = centre(cellOf(r.y) + DY[d]);
+}
 
-/** choose the next run segment from a cell centre (corners, wraps, pads, bumpers, bounce faces) */
-function arrive(r: Runner, env: Env): number {
+/** Momo reached a cell centre mid-dash: pads, bumpers, then stick to the wall ahead (bounce / conveyor walls kick him on) */
+function atCentre(r: Runner, env: Env): number {
   let flags = 0;
   let cx = cellOf(r.x), cy = cellOf(r.y);
-  const p = env.pad(cx, cy);
-  if (p) { cx = p[0]; cy = p[1]; r.x = centre(cx); r.y = centre(cy); flags |= F_TELE; }
-  if (env.bumper(cx, cy)) r.d = opp(r.d);
-  const under = env.face(cx + DX[r.g], cy + DY[r.g], opp(r.g));
-  if (under?.k === "bounce" && env.wall(cx + DX[r.g], cy + DY[r.g])) { startLeap(r); return flags | F_BOUNCE | F_LEAP; }
-  for (let i = 0; i < 4; i++) {
-    const sx = cx + DX[r.g], sy = cy + DY[r.g];
-    if (!env.wall(sx, sy)) {
-      // outer edge: wrap around the block we were standing on
-      const ng = opp(r.d), nd = r.g;
-      r.g = ng; r.d = nd;
-      const nx = cx + DX[nd], ny = cy + DY[nd];
-      r.tx = centre(nx); r.ty = centre(ny);
-      r.v = speedOf(env.face(nx + DX[ng], ny + DY[ng], opp(ng)), nd);
-      return flags | F_CORNER;
-    }
-    const nx = cx + DX[r.d], ny = cy + DY[r.d];
-    if (env.wall(nx, ny)) {
-      // inner corner: climb the wall ahead
-      const ng = r.d, nd = opp(r.g);
-      r.g = ng; r.d = nd;
-      flags |= F_CORNER;
-      continue;
-    }
-    r.tx = centre(nx); r.ty = centre(ny);
-    r.v = speedOf(env.face(nx + DX[r.g], ny + DY[r.g], opp(r.g)), r.d);
-    return flags;
-  }
-  // boxed in (should never happen): stay put
-  r.tx = r.x; r.ty = r.y; r.v = 1;
+  const p = r.kicks < MAX_KICKS ? env.pad(cx, cy) : null;
+  if (p) { cx = p[0]; cy = p[1]; r.x = centre(cx); r.y = centre(cy); r.kicks++; flags |= F_TELE; }
+  if (r.kicks < MAX_KICKS && env.bumper(cx, cy)) { r.d = opp(r.d); r.kicks++; flags |= F_BOUNCE; }
+  const ax = cx + DX[r.d], ay = cy + DY[r.d];
+  if (!env.wall(ax, ay)) { r.tx = centre(ax); r.ty = centre(ay); return flags; }
+  r.g = r.d; r.mode = 0; r.arrived = true; r.tx = r.x; r.ty = r.y;
+  flags |= F_LAND | F_ARRIVE;
+  if (r.kicks >= MAX_KICKS) return flags;
+  const f = env.face(ax, ay, opp(r.g));
+  if (f?.k === "bounce" && !env.wall(cx - DX[r.g], cy - DY[r.g])) { r.kicks++; launch(r, opp(r.g), LEAP_V * 1.3); flags |= F_BOUNCE | F_LEAP; }
+  else if (f?.k === "conveyor" && f.dir !== undefined && !env.wall(cx + DX[f.dir], cy + DY[f.dir])) { r.kicks++; launch(r, f.dir, LEAP_V * 0.5); flags |= F_LEAP; }
   return flags;
 }
 
-/** advance one tick. `leap` = the player taps now. Returns F_* flags. */
-export function stepRunner(r: Runner, env: Env, leap: boolean): number {
+/** advance one tick. `move` = the direction the player picked this tick (NO_MOVE for none). Returns F_* flags. */
+export function stepRunner(r: Runner, env: Env, move: number): number {
   let flags = 0;
   if (r.mode === 0) {
-    if (leap) { startLeap(r); flags |= F_LEAP; }
-    else if (r.arrived) { r.arrived = false; flags |= arrive(r, env); }
+    if (move < 0) return 0;
+    const d = (move & 3) as Dir, cx = cellOf(r.x), cy = cellOf(r.y);
+    if (env.wall(cx + DX[d], cy + DY[d])) return F_BUMP;
+    r.kicks = 0;
+    launch(r, d, launchSpeed(env.face(cx + DX[r.g], cy + DY[r.g], opp(r.g))));
+    flags |= F_LEAP;
   }
-  if (r.mode === 0) {
-    const dx = r.tx - r.x, dy = r.ty - r.y;
-    const dist = Math.abs(dx) + Math.abs(dy);
-    if (dist <= r.v + 1e-9) { r.x = r.tx; r.y = r.ty; r.arrived = true; flags |= F_ARRIVE; }
-    else { r.x += Math.sign(dx) * r.v; r.y += Math.sign(dy) * r.v; }
-    return flags;
-  }
-  // leap: straight away from the wall, landing on the first wall in the way
-  const L = opp(r.g), lx = DX[L], ly = DY[L];
-  let rem = LEAP_V;
-  for (let guard = 0; guard < 8 && rem > 1e-9; guard++) {
-    const cx = cellOf(r.x - lx * 1e-6), cy = cellOf(r.y - ly * 1e-6);
-    const along = lx ? r.x : r.y, cc = lx ? centre(cx) : centre(cy);
-    const sgn = lx || ly;
-    let toC = (cc - along) * sgn;
-    if (env.wall(cx + lx, cy + ly) && toC > -1e-9) {
-      if (toC <= rem + 1e-9) {
-        // land: snap onto this cell's centre
-        r.x = centre(cx); r.y = centre(cy);
-        r.g = L; r.mode = 0; r.arrived = true;
-        return flags | F_LAND | F_ARRIVE;
-      }
-      r.x += lx * rem; r.y += ly * rem; rem = 0; break;
-    }
-    if (toC <= 1e-9) toC += U;
-    const s = Math.min(rem, toC);
-    r.x += lx * s; r.y += ly * s; rem -= s;
+  let rem = r.v;
+  for (let guard = 0; guard < 16 && rem > 1e-9; guard++) {
+    const dx = r.tx - r.x, dy = r.ty - r.y, dist = Math.abs(dx) + Math.abs(dy);
+    if (dist > rem + 1e-9) { r.x += Math.sign(dx) * rem; r.y += Math.sign(dy) * rem; break; }
+    r.x = r.tx; r.y = r.ty; rem -= dist;
+    flags |= atCentre(r, env);
+    if (r.mode === 0) break;
   }
   return flags;
 }
@@ -139,13 +114,14 @@ export function roomEnv(room: Room, st: { key: boolean; inClosed: boolean }): En
   };
 }
 
-/** the four ways Momo can come into a room: up the left / right side of the hatch, or leaping through it */
-export function entryRunner(room: Room, variant: number): Runner {
-  const x = centre(room.inX);
-  if (variant < 2) return { x, y: centre(0), g: variant === 0 ? 3 : 1, d: 0, mode: 0, tx: x, ty: centre(0), v: 1, arrived: true };
-  return { x, y: 0, g: 2, d: variant === 2 ? 3 : 1, mode: 1, tx: x, ty: 0, v: 1, arrived: false };
+/** every floor starts the same way: Momo resting in the entrance hatch, waiting for the player */
+export function entryRunner(room: Room): Runner {
+  const x = centre(room.inX), y = centre(0);
+  return { x, y, g: 2, d: 0, mode: 0, tx: x, ty: y, v: LEAP_V, arrived: true, kicks: 0 };
 }
 
+/** the autopilot's move list packs (tick << 2) | direction */
+export const packMove = (t: number, d: number) => t * 4 + (d & 3);
 // ---------------------------------------------------------------- the game
 export interface SimOptions { lives: number; maxLives: number; kid?: boolean; bot?: boolean }
 interface RoomState { t0: number; active: boolean; inClosed: boolean; key: boolean; switched: boolean; got: Set<number>; variant: number; enterTick: number; leaps: number }
@@ -170,8 +146,9 @@ export class EscapeSim {
   frozen = 0;
   dead = false;
   events: SimEvent[] = [];
-  /** taps queued while airborne (input buffer) */
+  /** a direction picked mid-dash fires as soon as Momo lands (input buffer) */
   private buffer = 0;
+  private want: Dir = 0;
   private faces = new Map<number, Face>();
   private pads = new Map<number, [number, number]>();
   private bumps = new Set<number>();
@@ -192,7 +169,7 @@ export class EscapeSim {
     };
     this.add(first);
     // start: Momo comes up through the first hatch
-    this.r = entryRunner(first, 0);
+    this.r = entryRunner(first);
     this.activate(0, 0);
   }
 
@@ -221,6 +198,8 @@ export class EscapeSim {
   wallAt(cx: number, cy: number): boolean {
     if (cx < 0 || cx >= COLS || cy < 0) return true;
     const ri = this.roomAt(cy), room = this.rooms[ri], st = this.st[ri];
+    // the floors below are sealed once Momo is through their exit
+    if (ri < this.cur) return true;
     const ly = cy - room.y0;
     if (ly >= room.h) return true;
     if (ly === 0 && cx === room.inX) {
@@ -247,7 +226,8 @@ export class EscapeSim {
     this.events.push({ t: "room", n: this.rooms[i].n, room: this.rooms[i] });
   }
 
-  tap() { this.buffer = 8; }
+  /** the player picks a direction (world space); it fires now, or the moment Momo lands */
+  move(d: Dir) { this.want = d; this.buffer = 14; }
 
   /** advance one tick of game time */
   step() {
@@ -258,35 +238,33 @@ export class EscapeSim {
     if (this.nearT > 0) this.nearT--;
     if (this.frozen > 0) { this.frozen--; return; }
     const r = this.r;
-    let leap = false;
+    let move = NO_MOVE;
     if (this.o.bot) {
       const s = this.st[this.cur], room = this.rooms[this.cur];
-      const path = room.bots?.[s.variant] ?? [];
-      leap = path.includes(this.tick - s.t0);
+      const t = this.tick - s.t0;
+      const m = (room.bots?.[0] ?? []).find((v) => v >> 2 === t);
+      if (m !== undefined) move = m & 3;
     } else if (this.buffer > 0) {
-      if (r.mode === 0) { leap = true; this.buffer = 0; } else this.buffer--;
+      if (r.mode === 0) { move = this.want; this.buffer = 0; } else this.buffer--;
     }
-    const f = stepRunner(r, this.env, leap);
+    const f = stepRunner(r, this.env, move);
     if (f & F_LEAP) { this.events.push({ t: "leap", x: r.x, y: r.y }); this.st[this.cur].leaps++; }
     if (f & F_LAND) this.events.push({ t: "land", x: r.x, y: r.y, g: r.g });
-    if (f & F_CORNER) this.events.push({ t: "corner" });
+    if (f & F_BUMP) this.events.push({ t: "bump", x: r.x, y: r.y, d: move as Dir });
     if (f & F_BOUNCE) this.events.push({ t: "bounce" });
     if (f & F_TELE) this.events.push({ t: "teleport" });
 
-    // rooms: entering the next floor (its hatch row) · closing the hatch behind Momo
-    let cy = cellOf(r.y);
-    let ri = this.roomAt(cy);
-    // the hatch catches a leaping Momo onto its wall, so every floor starts one of two ways
-    if (ri > this.cur && r.mode === 1 && r.g === 2 && cy === this.rooms[ri].y0 && cellOf(r.x) === this.rooms[ri].inX) {
-      r.x = centre(this.rooms[ri].inX); r.y = centre(cy); r.mode = 0; r.g = r.d === 1 ? 1 : 3; r.d = 0; r.arrived = true;
-      cy = cellOf(r.y); ri = this.roomAt(cy);
-    }
-    if (ri > this.cur && r.mode === 0 && r.arrived && cy === this.rooms[ri].y0) {
+    // rooms: a dash up through the exit is caught by the next floor's hatch, and that floor starts · the hatch below closes
+    const cy = cellOf(r.y);
+    const ri = this.roomAt(cy);
+    if (ri > this.cur && r.mode === 1 && r.d === 0 && cy === this.rooms[ri].y0 && cellOf(r.x) === this.rooms[ri].inX) {
+      r.x = centre(this.rooms[ri].inX); r.y = centre(cy); r.tx = r.x; r.ty = r.y;
+      r.mode = 0; r.g = 2; r.arrived = true; r.kicks = 0;
+      this.buffer = 0;
       const done = this.rooms[this.cur], ds = this.st[this.cur];
       this.floorsDone++;
       this.events.push({ t: "exit", n: done.n, ticks: this.tick - ds.enterTick, diamonds: this.roomDiamonds });
-      const variant = r.g === 3 ? 0 : 1;
-      this.activate(ri, variant);
+      this.activate(ri, 0);
     }
     const room = this.rooms[this.cur], st = this.st[this.cur];
     if (!st.inClosed && cy >= room.y0 + 1) st.inClosed = true;
@@ -348,7 +326,7 @@ export class EscapeSim {
     const i = this.cur, room = this.rooms[i], st = this.st[i];
     st.inClosed = false; st.key = false; st.switched = false;
     for (const p of room.pickups) if (p.k === "key" || p.k === "switch") st.got.delete(p.id);
-    const e = entryRunner(room, 0);
+    const e = entryRunner(room);
     e.y += room.y0 * U; e.ty += room.y0 * U;
     this.r = e;
     st.t0 = this.tick + FREEZE; st.variant = 0;
