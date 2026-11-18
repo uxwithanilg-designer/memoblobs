@@ -1,5 +1,5 @@
 "use client";
-// Momo Escape app shell — phone-first and app-like: full-bleed canvas, one-thumb play (tap anywhere to leap), bottom
+// Momo Escape app shell — phone-first and app-like: full-bleed canvas, one-thumb play (swipe, or tap where Momo should go), bottom
 // sheets, haptics, safe areas. Escape Run is one continuous climb (no level screens); Daily Heist, Speed Series and Room
 // Lab are separate modes.
 import Image from "next/image";
@@ -12,6 +12,7 @@ import { CHARACTERS, useRoll } from "../../roll/save";
 import { BUILDINGS, buildingOf } from "../data/buildings";
 import { CAT_LABEL, CONCEPT, CONCEPTS, type ConceptCat } from "../data/concepts";
 import { PLACERS, type EscapeMode, type ModeParams } from "../gen";
+import { autoQuality, type Quality } from "../render3d";
 import { dailyKeyNow, useEscape, useEscapeHydrated, type Outcome } from "../save";
 import { EscapeSession, registerDev, type EscapeHud, type EscapeResult, type SessionEvent } from "../session";
 
@@ -34,6 +35,7 @@ interface StageProps {
   cfg: RunCfg; runId: number; kid: boolean; ch: string;
   onSession: (s: EscapeSession | null) => void; onHud?: (h: EscapeHud) => void; onEvent?: (e: SessionEvent) => void; onEnd?: (r: EscapeResult) => void;
 }
+const gfx = (q: string | undefined): Quality => (q === "low" || q === "medium" || q === "high" ? q : autoQuality());
 function Stage(p: StageProps) {
   const host = useRef<HTMLDivElement>(null);
   const cb = useRef(p);
@@ -48,6 +50,7 @@ function Stage(p: StageProps) {
     const s = new EscapeSession(host.current, {
       mode: p.cfg.mode, start: p.cfg.start, params: p.cfg.params, mem: useEscape.getState().memory(), ch: chOf(p.ch),
       haptics: st.haptics, shake: st.cameraShake, reduced: st.reducedMotion, kid: p.kid,
+      quality: p.cfg.mode === "attract" ? (gfx(st.quality) === "high" ? "medium" : gfx(st.quality)) : gfx(st.quality),
       onHud: (h) => cb.current.onHud?.(h), onEvent: (e) => cb.current.onEvent?.(e), onEnd: (r) => cb.current.onEnd?.(r),
     });
     registerDev(s);
@@ -218,8 +221,8 @@ export default function EscapeApp({ title }: { slug: string; title: string }) {
       </AnimatePresence>
 
       {screen === "game" && hud && !over && !done && <EscapeHudView hud={hud} best={best} mode={cfg.mode} />}
-      {screen === "game" && hud?.phase === "count" && hud.count > 0 && <CountIn n={hud.count} sub={!tutorial ? "Tap anywhere to leap!" : undefined} />}
-      {screen === "game" && !tutorial && hud && hud.phase === "play" && hud.floorsDone === 0 && hud.roomSeconds < 6 && <TapHint />}
+      {screen === "game" && hud?.phase === "count" && hud.count > 0 && <CountIn n={hud.count} sub={!tutorial ? "Swipe to move Momo!" : undefined} />}
+      {screen === "game" && !tutorial && hud && hud.phase === "play" && hud.floorsDone === 0 && hud.moves < 2 && <TapHint />}
       {hurt > 0 && screen === "game" && <motion.div key={hurt} initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 0.8 }} className="pointer-events-none absolute inset-0 z-10" style={{ boxShadow: "inset 0 0 110px rgba(255,40,80,0.8)" }} />}
       {screen === "game" && hud && hud.boost > 0 && !over && <div className="pointer-events-none absolute inset-0 z-10" style={{ boxShadow: "inset 0 0 80px rgba(70,210,255,0.4)" }} />}
       <AnimatePresence>{screen === "game" && toasts.length > 0 && !over && !done && <Toasts key="t" toasts={toasts} />}</AnimatePresence>
@@ -250,7 +253,7 @@ function TitleScreen({ title, best, bank, reached, onPlay, onNav }: { title: str
       className="absolute inset-0 flex flex-col items-center justify-between px-5 text-center short:flex-row short:justify-around short:gap-6 short:px-8"
       style={{ paddingTop: "calc(var(--safe-top) + 4.5rem)", paddingBottom: "calc(var(--safe-bottom) + 1.25rem)", background: "linear-gradient(180deg, rgba(255,244,230,0.85) 0%, rgba(255,244,230,0.2) 34%, rgba(20,12,40,0) 52%, rgba(20,12,40,0.82) 100%)" }}>
       <div className="flex flex-col items-center">
-        <motion.p initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="rotate-[-2deg] border-2 border-[#ff3d6e] bg-white px-3 py-1 text-xs font-extrabold tracking-[0.2em] text-[#ff3d6e] shadow-[3px_3px_0_#2fb8ff]">TAP TO LEAP · RUN THE WALLS</motion.p>
+        <motion.p initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="rotate-[-2deg] border-2 border-[#ff3d6e] bg-white px-3 py-1 text-xs font-extrabold tracking-[0.2em] text-[#ff3d6e] shadow-[3px_3px_0_#2fb8ff]">SWIPE TO DASH · ESCAPE EVERY FLOOR</motion.p>
         <motion.h1 initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.15 }} className="mt-3 font-display leading-[0.85]">
           <span className="block text-[clamp(3.2rem,16vw,6.5rem)] text-[#2b1d4e] [text-shadow:5px_5px_0_#ff5fa2] short:text-[min(16vh,4.6rem)]">{first}</span>
           <span className="block -rotate-2 text-[clamp(3rem,15vw,6rem)] text-[#ff3d6e] [text-shadow:5px_5px_0_#2fb8ff] short:text-[min(15vh,4.4rem)]">{rest.join(" ").toUpperCase()}</span>
@@ -502,8 +505,9 @@ function CountIn({ n, sub }: { n: number; sub?: string }) {
 function TapHint() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col items-center px-6 text-center" style={{ paddingBottom: "calc(var(--safe-bottom) + 2rem)" }}>
-      <motion.div animate={{ scale: [1, 0.85, 1] }} transition={{ duration: 0.8, repeat: Infinity }}><Hand className="size-12 fill-white text-ink drop-shadow-lg" /></motion.div>
-      <p className="mt-2 rounded-full bg-ink/75 px-4 py-2 text-base font-bold text-white">Momo runs by himself — tap to leap to the other wall!</p>
+      <motion.div animate={{ x: [0, 0, 26, 26, 0], y: [0, -26, -26, 0, 0] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}><Hand className="size-12 fill-white text-ink drop-shadow-lg" /></motion.div>
+      <p className="mt-2 rounded-full bg-ink/75 px-4 py-2 text-base font-bold text-white">Swipe ↑ ↓ ← → (or tap where to go) — Momo dashes until he hits a wall!</p>
+      <p className="mt-1.5 hidden rounded-full bg-ink/60 px-3 py-1 text-xs font-semibold text-white/85 [@media(hover:hover)]:block">Keyboard: arrow keys or W A S D</p>
     </motion.div>
   );
 }

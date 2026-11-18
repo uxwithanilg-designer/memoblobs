@@ -32,7 +32,7 @@ const B = (id: number, name: string, emoji: string, blurb: string, inks: [string
 });
 
 export const BUILDINGS: Building[] = [
-  B(1, "Toy Factory", "🧸", "Kranky's wind-up factory. Learn to run the walls and leap across.", ["#fff4e6", "#2b1d4e", "#ff5fa2", "#ff3d6e", "#2fb8ff", "#2b1d4e"], "M01", "M01", "toy-playroom", 118,
+  B(1, "Toy Factory", "🧸", "Kranky's wind-up factory. Learn to swipe and dash from wall to wall.", ["#fff4e6", "#2b1d4e", "#ff5fa2", "#ff3d6e", "#2fb8ff", "#2b1d4e"], "M01", "M01", "toy-playroom", 118,
     ["S01", "S02", "S03", "S04", "S05", "S17", "H01", "H06", "H24", "O01", "O16", "O26", "O28", "A08", "X01", "X02", "X03"], "B01", "TOYS"),
   B(2, "Candy Lab", "🍬", "Sticky honey walls, slippery sugar ice and blinking lasers.", ["#fff1f4", "#3a1f3d", "#ff9e3d", "#ff2f7a", "#14c2b5", "#3a1f3d"], "M02", "M05", "candy-frosting", 124,
     ["S06", "S07", "S08", "S15", "H02", "H07", "H08", "O09", "O06", "A12"], "A09", "SWEET"),

@@ -1,8 +1,9 @@
 // Momo Escape room generator + director. A floor recipe (building, concepts, difficulty) becomes a room: a shape from the
-// room grammar, then every concept is placed where Momo's route goes and re-checked by the solver (a placement that
-// makes the room impossible is undone). Finally all four ways into the room must be solvable, coins line the route,
-// diamonds sit in reachable risky spots, and the autopilot gets its taps. Floors 1–240 follow the building schedule;
-// after that the Fusion Director mixes concepts into new named ones forever, with anti-repeat memory.
+// room grammar (with stopper blocks, so a dash can end under a gap or the exit), then every concept is placed where
+// Momo's route goes and re-checked by the solver (a placement that makes the room impossible is undone). Finally the
+// room must be escapable from its entrance hatch, coins line the route, diamonds sit in reachable risky spots, and the
+// autopilot gets its moves. Floors 1–240 follow the building schedule; after that the Fusion Director mixes concepts
+// into new named ones forever, with anti-repeat memory.
 import { hash32, Rng } from "../roll/rng";
 import { ALWAYS, BUILDINGS, buildingOf, JOURNEY_FLOORS } from "./data/buildings";
 import { CONCEPT } from "./data/concepts";
@@ -39,9 +40,17 @@ function shell(h: number, inX: number, outX: number) {
   g.set(inX, 0, 0); g.set(outX, h - 1, 0);
   return g;
 }
-function clearHoles(g: Grid, inX: number, outX: number) {
+function clearHoles(g: Grid, inX: number, outX: number, side: boolean) {
   for (let x = inX - 1; x <= inX + 1; x++) for (let y = 1; y <= 2; y++) if (x > 0 && x < COLS - 1) g.set(x, y, 0);
   for (let x = outX - 1; x <= outX + 1; x++) for (let y = g.h - 3; y <= g.h - 2; y++) if (x > 0 && x < COLS - 1) g.set(x, y, 0);
+  // a stopper beside the exit: a dash along the ceiling from the other side ends right under the hatch
+  g.set(outX + (side ? 1 : -1), g.h - 2);
+}
+/** the fallback room: an empty shell with only the exit stopper (always escapable) */
+function openRoom(h: number, inX: number, outX: number, side: boolean) {
+  const g = shell(h, inX, outX);
+  clearHoles(g, inX, outX, side);
+  return g;
 }
 
 // ---------------------------------------------------------------- room grammar
@@ -72,6 +81,12 @@ function levels(rng: Rng, h: number, inX: number, outX: number, style: "zigzag" 
     }
     g.rect(1, y, COLS - 2, 1);
     for (const [a, b] of gaps) g.rect(a, y, b - a + 1, 1, 0);
+    // a stopper hanging next to an inner gap: a dash along the ceiling ends right under the gap
+    for (const [a, b] of gaps) {
+      if (a <= 1 || b >= COLS - 2) continue;
+      const sx = rng.chance(0.5) ? a - 1 : b + 1;
+      if (y - 1 > 2 && !g.get(sx, y - 2)) g.set(sx, y - 1);
+    }
     prevGaps = gaps;
     // posts inside the level below this partition (lasers and saws hang off them)
     if (rng.chance(posts)) {
@@ -92,7 +107,7 @@ const SHAPES: Record<string, { h: [number, number]; fn: ShapeFn }> = {
       const w = rng.int(1, 2), hh = rng.int(1, 2), x = rng.int(2, 11 - w), y = rng.int(4, h - 4 - hh);
       if (g.free(x, y, w, hh, 1)) { g.rect(x, y, w, hh); k++; }
     }
-    // a lid over the exit so it is not one leap away
+    // a lid over the exit so it is not one dash away
     const lx = Math.max(1, outX - 2), ly = h - 4;
     if (g.free(lx, ly, 5, 1, 0)) g.rect(lx, ly, Math.min(5, COLS - 1 - lx), 1);
     return g;
@@ -131,7 +146,8 @@ const SHAPES: Record<string, { h: [number, number]; fn: ShapeFn }> = {
     let i = 0;
     for (let y = rng.int(4, 5); y <= h - 5; y += rng.int(4, 5), i++) {
       g.rect(1, y, COLS - 2, 1);
-      if (i % 2) g.rect(5, y, 3, 1, 0); else { g.rect(1, y, 2, 1, 0); g.rect(COLS - 3, y, 2, 1, 0); }
+      // the centre gap gets a stopper on one side so a dash along the ceiling can end under it
+      if (i % 2) { g.rect(5, y, 3, 1, 0); g.set(rng.chance(0.5) ? 4 : 8, y - 1); } else { g.rect(1, y, 2, 1, 0); g.rect(COLS - 3, y, 2, 1, 0); }
       const px = rng.int(2, 4), py = y - 2;
       if (py > 2 && g.free(px, py, 1, 1, 1) && g.free(COLS - 1 - px, py, 1, 1, 1)) { g.set(px, py); g.set(COLS - 1 - px, py); }
     }
@@ -600,7 +616,8 @@ function apply(r: Room, ch: Change) {
 // ---------------------------------------------------------------- building a room
 /** reject reasons (QA) */
 export const BUILD_STATS = { noRoute: 0, short: 0, entries: 0, built: 0 };
-const allVariants = (room: Room, margin: number, maxT = 3000) => [0, 1].map((v) => solve(room, v, { margin, maxT }));
+/** every floor starts in its entrance hatch; this is the proof that it can be escaped from there */
+const proven = (room: Room, margin: number, maxT = 3600) => solve(room, { margin, maxT });
 
 export function buildRoom(rec: FloorRecipe, inX: number): Room {
   for (let attempt = 0; attempt < 10; attempt++) {
@@ -616,8 +633,9 @@ function tryBuild(rec: FloorRecipe, inX: number, attempt: number, force = false)
   const h = rec.h || rng.int(shapeDef.h[0], shapeDef.h[1]);
   let outX = rng.int(2, COLS - 3);
   if (rec.shape === "shaft") outX = Math.max(2, Math.min(COLS - 3, inX + rng.int(-3, 3)));
+  const side = outX <= 2 ? true : outX >= COLS - 3 ? false : rng.chance(0.5);
   const g = shapeDef.fn(rng, h, inX, outX);
-  clearHoles(g, inX, outX);
+  clearHoles(g, inX, outX, side);
   const rules: RoomRules = {};
   for (const a of rec.atoms) {
     switch (a) {
@@ -634,11 +652,18 @@ function tryBuild(rec: FloorRecipe, inX: number, attempt: number, force = false)
     concepts: [], name: rec.name, fusion: rec.fusion, finale: rec.finale, par: 0, bots: [], seed: rec.seed, difficulty: rec.d, shape: rec.shape, decor: [],
   };
   const margin = rec.kid ? 3.2 : Math.max(0.9, 2.6 - 1.8 * rec.d);
-  let base = solve(room, 0, { margin: 0 });
-  if (!base.ok) { BUILD_STATS.noRoute++; return null; }
-  // a floor should take a while to cross (no one-leap rooms): reject short layouts before any hazard work
-  const minPar = rec.calm ? 90 : Math.round(60 * (3 + 3.2 * Math.min(1, rec.d)) * (rec.shape === "shaft" || rec.shape === "spiral" || rec.shape === "twin" ? 0.5 : 1));
-  if (!force && base.t < minPar) { BUILD_STATS.short++; return null; }
+  let base = solve(room, { margin: 0 });
+  if (!base.ok) {
+    BUILD_STATS.noRoute++;
+    if (!force) return null;
+    // the last resort: an empty shell with the exit stopper always has a way out
+    room.cells.set(openRoom(h, inX, outX, side).c);
+    base = solve(room, { margin: 0 });
+    if (!base.ok) return null;
+  }
+  // a floor should take a few moves to cross (no one-dash rooms): reject short layouts before any hazard work
+  const minMoves = rec.calm ? 2 : Math.round((4 + 4 * Math.min(1, rec.d)) * (rec.shape === "shaft" || rec.shape === "spiral" || rec.shape === "twin" ? 0.75 : 1));
+  if (!force && base.leaps.length < minMoves) { BUILD_STATS.short++; return null; }
   let hid = 0;
   const ctx: Ctx = {
     room, rng, d: rec.d, margin, path: base.path, reach: base.reach, base,
@@ -660,8 +685,8 @@ function tryBuild(rec: FloorRecipe, inX: number, attempt: number, force = false)
       const s = snap(room);
       apply(room, ch);
       // still escapable along the last route? (cheap) — else search again
-      if (!ch.posts?.length && !ch.faces?.length && !ch.bumpers?.length && !ch.pads?.length && !ch.door?.length && !ch.key && replay(room, 0, base.leaps, margin)) { ok = true; continue; }
-      const r = solve(room, 0, { margin, maxT: Math.min(2400, base.t * 2 + 360) });
+      if (!ch.posts?.length && !ch.faces?.length && !ch.bumpers?.length && !ch.pads?.length && !ch.door?.length && !ch.key && replay(room, base.leaps, margin)) { ok = true; continue; }
+      const r = solve(room, { margin, maxT: Math.min(3000, base.t * 2 + 600) });
       if (r.ok) { ok = true; base = r; ctx.path = r.path; ctx.reach = r.reach; }
       else restore(room, s);
     }
@@ -670,32 +695,33 @@ function tryBuild(rec: FloorRecipe, inX: number, attempt: number, force = false)
   // a rising flood (chase floors)
   const flood = atoms.find((a) => a === "H36" || a === "H37" || a === "A09");
   if (flood && base.ok) {
-    let rate = ((h - 1) * U) / (base.t * (flood === "H37" ? 1.35 : 1.7) + 60);
+    // the flood leaves time to think: the fastest route plus a moment per move
+    let rate = ((h - 1) * U) / (base.t * (flood === "H37" ? 1.35 : 1.7) + base.leaps.length * (flood === "H37" ? 30 : 42) + 90);
     for (let k = 0; k < 5; k++) {
       const fh: Hazard = { k: "flood", id: hid++, skin: flood === "H37" ? "lava" : buildingOf(rec.building).id === 22 ? "dino" : "slime", concept: flood === "A09" ? "H36" : flood, y0: -4, delay: 70, rate };
       room.hazards.push(fh);
-      if (allVariants(room, margin).every((r) => r.ok)) { used.push(flood); break; }
+      if (proven(room, margin).ok) { used.push(flood); break; }
       room.hazards.pop();
       rate *= 0.75;
     }
   }
-  // all four ways in must work; peel hazards off until they do
-  let vs = allVariants(room, margin);
-  while (!vs.every((r) => r.ok) && room.hazards.length) {
+  // the room must be escapable with the full safety margin; peel hazards off until it is
+  let fin = proven(room, margin);
+  while (!fin.ok && room.hazards.length) {
     room.hazards.pop();
-    vs = allVariants(room, margin);
+    fin = proven(room, margin);
   }
-  if (!vs.every((r) => r.ok)) {
+  if (!fin.ok) {
     BUILD_STATS.entries++;
     if (!force) return null;
-    // even the bare shape fails from a leap entry: drop the leap entries' bots, the run entries are proven
+    fin = base;
   }
   BUILD_STATS.built++;
-  room.par = vs[0].t;
-  room.bots = vs.map((r) => r.leaps);
-  base = vs[0];
+  room.par = fin.t;
+  room.bots = [fin.leaps];
+  base = fin;
   ctx.path = base.path; ctx.reach = base.reach;
-  ctx.alt = [...new Set(vs.slice(1).flatMap((r) => r.path))].filter((c) => !base.path.includes(c));
+  ctx.alt = [...base.reach].filter((c) => !base.path.includes(c));
   room.concepts = [...new Set([...used, ...rec.atoms.filter((a) => !PLACERS[a] || used.includes(a)), `W${String(((rec.building - 1) % 24) + 1).padStart(2, "0")}`, buildingOf(rec.building).music, ...(rec.finale ? [rec.finale] : []), "S01", "S02", "S03", "S04", "O01", "X01"])].filter((c) => CONCEPT[c]);
   placePickups(room, rec, ctx, margin);
   placeDecor(room, rec, rng);
@@ -726,7 +752,7 @@ function placePickups(room: Room, rec: FloorRecipe, c: Ctx, margin: number) {
       if (!q) return false;
       const x = C(q[0]), y = C(q[1]);
       if (room.pickups.some((p) => Math.abs(p.x - x) < 6 && Math.abs(p.y - y) < 6)) continue;
-      if (solve(room, 0, { margin, must: { x, y }, maxT: Math.min(3000, room.par * 2 + 600) }).ok) { add(k, x, y); return true; }
+      if (solve(room, { margin, must: { x, y }, maxT: Math.min(3600, room.par * 2 + 900) }).ok) { add(k, x, y); return true; }
     }
     return false;
   };
