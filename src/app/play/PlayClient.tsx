@@ -3,10 +3,10 @@
 // frame). One page for all games keeps each game to its own page on the site (see AGENTS.md, "6–9 files per game").
 import Link from "next/link";
 import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GamePlayer } from "@/components/player/GamePlayer";
 import { GameView } from "@/components/player/GameView";
-import { getGame } from "@/lib/games";
+import { SLUG_ALIASES, getGame } from "@/lib/games";
 import type { Difficulty } from "@/lib/store";
 import { useLibrary } from "@/lib/library";
 
@@ -18,6 +18,14 @@ export function PlayClient() {
   const m = sp.get("mode");
   const mode = m === "easy" || m === "medium" || m === "hard" ? (m as Difficulty) : undefined;
   const embed = sp.get("embed") === "1";
+  // a renamed game's old link moves to the new slug (keeping mode / embed)
+  const router = useRouter();
+  const alias = SLUG_ALIASES[slug];
+  useEffect(() => {
+    if (!alias) return;
+    const q = new URLSearchParams(sp.toString()); q.set("g", alias);
+    router.replace(`/play?${q.toString()}`);
+  }, [alias, sp, router]);
   useEffect(() => {
     if (!live || !g) return;
     useLibrary.getState().touch(slug);
@@ -29,6 +37,7 @@ export function PlayClient() {
     return () => clearTimeout(t);
   }, [live, g, slug]);
 
+  if (alias) return <div className="fixed inset-0 bg-night" />;
   if (!g || !live) {
     return (
       <div className="fixed inset-0 grid place-items-center bg-night p-6 text-center">

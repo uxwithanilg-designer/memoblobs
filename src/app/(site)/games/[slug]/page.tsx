@@ -64,7 +64,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
         playMode: "SinglePlayer",
         inLanguage: "en",
         isAccessibleForFree: true,
-        character: (g.slug === "momo-shuffle" ? ["Momo", "Kranky", "Tiki"] : [CHARACTERS.find((c) => c.id === g.host)?.name ?? "Momo"]).map((n) => ({ "@type": "Person", name: n })),
+        character: (g.slug === "momo-shuffle" ? ["Momo", "Kranky", "Tiki"] : [CHARACTERS.find((c) => c.id === g.host)?.name ?? (g.host ? g.host[0].toUpperCase() + g.host.slice(1) : "Momo")]).map((n) => ({ "@type": "Person", name: n })),
         publisher: { "@id": abs("/#org") },
         datePublished: g.released,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },

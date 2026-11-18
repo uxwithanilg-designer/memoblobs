@@ -2,10 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { House, Play } from "lucide-react";
 import { playHref } from "@/lib/catalog";
+import { RenamedGameRedirect } from "@/components/RenamedGameRedirect";
 
 export default function NotFound() {
   return (
     <main className="grid min-h-dvh place-items-center px-6 text-center">
+      <RenamedGameRedirect />
       <div>
         <div className="relative mx-auto w-fit">
           <Image src="/brand/cup.webp" alt="" width={420} height={410} className="mx-auto w-44 -rotate-6 drop-shadow-2xl" />

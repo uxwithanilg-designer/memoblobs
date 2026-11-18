@@ -41,7 +41,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland";
   host?: string;
 }
 
@@ -585,10 +585,63 @@ export const GAMES: Game[] = [
     engine: "jungle",
     host: "kiko",
   },
+  {
+    slug: "puddo-clayland",
+    title: "Puddo's Clayland",
+    short: "Blast the Dust Army across 400 clay stages",
+    tagline: "Rain Raid — blast, bomb and bring back the rain!",
+    description:
+      "Puddo's Clayland: Rain Raid is a free 3D run-and-gun platform adventure. Kranky the crab stole the 20 Rain Bells and built the Dust Engine, which drinks the rain and bakes the Dust Army — grey, cracked clay soldiers. Puddo, a little sprite of rain-soaked clay, fights back with his Rain Blaster: hold fire to soak Dusties back into mud and grab the coins they drop, throw Storm Bombs at shields, heavies and Dust Hives, and fill the Storm meter for a screen-clearing Super Rain. Every stage is its own idea — frontline pushes, ambush gates, rooftops, collapsing bridges, tower climbs, shaft dives, mine carts, raft rivers, rescues, pump raids, holding the well, key hunts, coin vaults and arenas — across 20 zones and 400 stages, with a general's war machine and a boss in every zone. Then the Endless Storm mixes it all forever.",
+    status: "live",
+    categories: ["adventure", "action"],
+    ages: "7+",
+    accent: "#3DA8FF",
+    accent2: "#FFC21A",
+    cover: "/games/puddo-clayland/card.webp",
+    hero: "/games/puddo-clayland/hero.webp",
+    character: "/games/puddo-clayland/puddo.webp",
+    shots: [],
+    modes: [
+      { id: "zones", label: "20 Zones", color: "#FFC21A", desc: "400 stages in 5 acts — a war machine at stage 10 and a boss with a Rain Bell at stage 20 of every zone", coins: 0 },
+      { id: "daily", label: "Daily Storm", color: "#3DA8FF", desc: "One new stage a day for everyone — keep your streak for bigger rewards", coins: 0 },
+      { id: "endless", label: "Endless Storm", color: "#9F7BFF", desc: "After the last bell, looks, armies and stage ideas mix forever — and keep getting tougher", coins: 0 },
+    ],
+    howTo: [
+      { title: "Blast the Dust Army", text: "Hold FIRE (X on a keyboard) — the Rain Blaster shoots rain pellets and bends a little toward the nearest enemy, so flyers and snipers on ledges can be hit too. Dusties melt into mud and drop coins; melt them quickly in a row for a combo (up to ×5 coins)." },
+      { title: "Bombs and Super Rain", text: "Storm Bombs (BOMB / C) burst into a thunder-splash: they break shields, cracked floors, Dust Pumps and Dust Hives. Every melt fills the Storm meter — when it's full, SUPER (V) pours rain on everything on screen." },
+      { title: "Weapons", text: "Crates and gold elite Dusties drop pickups: Sprinkler (3-way), Downpour (rapid), Hailstone (pierces), Thunder (chains), Rainbow (homing) and Geyser (big close blast). A hit takes your pickup away." },
+      { title: "Every stage is different", text: "Ambush gates lock until every wave melts; towers go up, shafts go down (↓ + FIRE shoots down); ride mine carts and rafts (jump the gaps, duck the beams); free caged Sprouts, smash Dust Pumps, find 3 crystal keys, hold the Rain Well, or grab coins in a 60-second vault." },
+      { title: "Tough but fair", text: "3 hearts and 3 lives a stage. Every enemy attack flashes before it fires. The Blaster Shop sells more fire rate, power, bombs, hearts and a coin magnet; Bonbon's Snack Stop packs a treat for the next stage." },
+      { title: "Medals", text: "Every stage hides 3 Rain Drops, and you can earn a No-hit star by finishing without a single hit." },
+    ],
+    controls: [
+      { keys: "◀ ▶ / ← → / A D", action: "Run" },
+      { keys: "▲ / ↑ / W / Space / Z", action: "Jump (hold for higher) · climb vines" },
+      { keys: "FIRE / X / J", action: "Fire the Rain Blaster (hold)" },
+      { keys: "BOMB / C / K", action: "Throw a Storm Bomb" },
+      { keys: "SUPER / V / L", action: "Super Rain (when the Storm meter is full)" },
+      { keys: "▼ / ↓ / S", action: "Duck · stomp in the air · ↓ + FIRE shoots down" },
+      { keys: "P / Esc", action: "Pause" },
+    ],
+    faq: [
+      { q: "Is Puddo's Clayland free?", a: "Yes. Puddo's Clayland: Rain Raid is free to play in your browser with no sign-up and nothing to download." },
+      { q: "How many levels are there?", a: "400 designed stages in 20 zones and 5 acts. Every stage has its own idea — runs, ambushes, rooftops, collapsing bridges, tower climbs, shaft dives, mine carts, rafts, rescues, pump raids, holding the well, key hunts, vaults, arenas, war machines and bosses. After stage 400 the Endless Storm mixes them forever." },
+      { q: "Is it hard?", a: "It's tough on purpose. The first zone teaches the blaster gently, then the Dust Army grows: more enemies, shields, turrets, hives, heavies and faster shots. Upgrades in the Blaster Shop help." },
+      { q: "Is my progress saved?", a: "Yes, on your device: the zone map shows every stage you've cleared with its Rain Drops and No-hit stars, and Continue takes you to the next stage." },
+      { q: "Does it work on phones?", a: "Yes — ◀ ▲ ▶ on the left thumb, FIRE, BOMB and SUPER on the right, landscape or portrait, and automatic graphics settings." },
+    ],
+    skills: ["Timing", "Hand-eye coordination", "Planning", "Reaction speed"],
+    released: "2026-11-18",
+    art: "cover",
+    engine: "clayland",
+    host: "puddo",
+  },
   ...ARCADE_GAMES,
 ];
 
 export const getGame = (slug: string) => GAMES.find((g) => g.slug === slug);
+/** renamed games: old slug → new slug, so old links (/play?g=…, /games/…) still open the game */
+export const SLUG_ALIASES: Record<string, string> = { "momo-clayland": "puddo-clayland" };
 export const LIVE_GAMES = GAMES.filter((g) => g.status === "live");
 
 export const CHARACTERS = [
