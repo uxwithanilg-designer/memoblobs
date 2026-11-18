@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { abs, SITE } from "@/lib/site";
 
+/** built once into a static file (the whole site is prerendered; Cloudflare serves it as files) */
+export const dynamic = "force-static";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [

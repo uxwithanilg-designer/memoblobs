@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { SITE } from "@/lib/site";
 
+/** built once into a static file (the whole site is prerendered; Cloudflare serves it as files) */
+export const dynamic = "force-static";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "MOMOBLOBS — Clay games for sharp eyes",

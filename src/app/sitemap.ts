@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { CATEGORIES, GAMES } from "@/lib/games";
 import { abs } from "@/lib/site";
 
+/** built once into a static file (the whole site is prerendered; Cloudflare serves it as files) */
+export const dynamic = "force-static";
+
 const UPDATED = new Date("2026-11-18");
 
 export default function sitemap(): MetadataRoute.Sitemap {
