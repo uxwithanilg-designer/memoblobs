@@ -290,6 +290,11 @@ function worldGrumps(world: number, s: number): [GrumpKind, number][] {
 const BOSS_TOUGH: Record<BossKind, number> = { mega: 1, jelly: 1, kranky: 0.9, cloud: 1, balloon: 1, spiky: 1, chef: 1, yeti: 0.95, robo: 0.6, boat: 0.95, ghost: 0.7, golem: 0.5, magma: 0.85, ufo: 0.9, mech: 0.8 };
 /** how hard the march pushes (0.3 + per-stage and per-world steps) */
 export let PRESSURE_BASE = 0.9;
+/** the first worlds are gentler: enemy HP ramps from about half in Garden up to the tuned values in world 4 */
+export function earlyEase(world: number, s: number) {
+  const t = Math.min(1, (world * 10 + s - 1) / 30);
+  return 0.5 + 0.5 * t * t;
+}
 /** per-stage HP trim (index = world * 10 + stage - 1), measured by scripts/brigade_tune.mjs; 1 = as generated */
 export const STAGE_TUNE: number[] = [
   4.14, 1.48, 3.20, 1.00, 0.95, 1.50, 0.86, 1.60, 1.01, 1.16,
@@ -542,7 +547,9 @@ export function buildStage(def: StageDef, math: MathMode, o: BuildOpts = {}): St
     }
   }
   // the per-stage trim measured by scripts/brigade_tune.mjs (every stage a real fight, none a wall)
-  const tn = o.tune ?? (def.id.startsWith("daily") ? 1 : STAGE_TUNE[world * 10 + def.s - 1] ?? 1);
+  // ...eased in the first worlds so a new player can find their feet (the stage-1 trims were tuned for strong players)
+  const trim = STAGE_TUNE[world * 10 + def.s - 1] ?? 1;
+  const tn = o.tune ?? (def.id.startsWith("daily") ? 1 : (world <= 2 ? Math.min(1.6, trim) : trim) * earlyEase(world, def.s));
   if (tn !== 1) {
     seg.horde = seg.horde.map((g) => ({ ...g, hp: hpR((g.hp ?? GRUMP_HP[g.kind]) * tn) }));
     seg.boss.hp = Math.max(10, Math.round(seg.boss.hp * tn));

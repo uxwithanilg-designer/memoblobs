@@ -47,7 +47,6 @@ export class DashSession {
   private touch: { id: number; x: number; y: number; moved: boolean } | null = null;
   private lastTap = 0;
   private snd: Record<string, number> = {};
-  private noteI = 0;
   private countT: number; private lastBeep = 4;
   autopilot = false;
 
@@ -76,7 +75,7 @@ export class DashSession {
       window.addEventListener("pointercancel", this.onUp);
       window.addEventListener("keydown", this.onKey);
       void audio.preload([
-        "a:dash_chime", "a:dash_jump", "a:dash_land", "a:dash_swipe", "a:dash_squish", "a:dash_trick", "a:dash_melody", "a:dash_power", "a:dash_wobble",
+        "a:dash_coin", "a:dash_jump", "a:dash_land", "a:dash_swipe", "a:dash_squish", "a:dash_trick", "a:dash_melody", "a:dash_power", "a:dash_wobble",
         "a:dash_crash", "a:dash_count", "a:dash_go", "a:dash_pad", "a:dash_fever", "a:dash_horn", "a:dash_catch",
         "a:bubble", "a:whooshIn", "a:whistle", "a:ding", "a:blip", "popBig", "pop", "tada", "a:cheer", "sadtrombone", "a:rocket", "a:teleport", "a:poof", "a:crunch", "a:splat", "confetti", "clack", "impact",
       ]);
@@ -99,10 +98,13 @@ export class DashSession {
   private onMove = (e: PointerEvent) => {
     const t = this.touch;
     if (!t || e.pointerId !== t.id || this.paused) return;
+    // one swipe = one move: after the first lane change / jump / slide, the rest of that finger's travel is ignored
+    // until it lifts (a long swipe used to fire again and jump two lanes)
+    if (t.moved) return;
     const dx = e.clientX - t.x, dy = e.clientY - t.y;
     if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return;
     if (Math.abs(dx) > Math.abs(dy)) this.act(dx > 0 ? "right" : "left"); else this.act(dy < 0 ? "up" : "down");
-    t.x = e.clientX; t.y = e.clientY; t.moved = true;
+    t.moved = true;
   };
   private onUp = (e: PointerEvent) => {
     const t = this.touch;
@@ -190,7 +192,7 @@ export class DashSession {
     for (const e of ev) {
       if (e.t === "end") { this.ended = true; this.endT = 1.4; this.vibe(280); }
       else if (e.t === "trick") { this.floater(`+${e.pts}`, TRICK_TEXT[e.kind] + (e.combo > 1 ? ` ×${e.combo}` : ""), "gold"); this.vibe(10); }
-      else if (e.t === "melody") this.floater("+100", "COIN MELODY ♪", "good");
+      else if (e.t === "melody") this.floater("+100", "COIN LINE!", "good");
       else if (e.t === "power") this.o.onToast?.({ text: `${POWERS[e.id].icon} ${POWERS[e.id].name}!`, tone: "gold", big: true });
       else if (e.t === "boost" && e.on) { this.o.onToast?.({ text: `🚀 BOOSTER ×${e.x}! ${boostTime(e.x)} seconds of turbo!`, tone: "gold", big: true }); this.vibe([30, 30, 60]); }
       else if (e.t === "boost" && !e.on) this.o.onToast?.({ text: "Booster over — back to normal speed", tone: "info" });
@@ -230,12 +232,9 @@ export class DashSession {
     this.snd[name] = now;
     audio.play(name, { gain, rate, duck: false, delay, pan });
   }
-  /** coins play the song: a coin line plays its own phrase, loose coins carry on the tune */
-  private coinNote(line?: number, idx?: number) {
-    const tune = this.sim.sec.tune;
-    const k = line != null && idx != null ? ((line * 8) % tune.length) + idx : this.noteI++;
-    const m = tune[k % tune.length];
-    this.play("a:dash_chime", 0.36, 2 ** ((m - 72) / 12), 35, 0, Math.max(-0.5, Math.min(0.5, this.sim.x / (LW * 2))));
+  /** every coin is a bright gold 'cling' (the same sound each time, a hair of random pitch so a line doesn't drone) */
+  private coinNote() {
+    this.play("a:dash_coin", 0.32, 0.985 + Math.random() * 0.03, 35, 0, Math.max(-0.5, Math.min(0.5, this.sim.x / (LW * 2))));
   }
   private sounds(ev: SimEvent[]) {
     const pan = Math.max(-0.5, Math.min(0.5, this.sim.x / (LW * 2)));
@@ -246,8 +245,8 @@ export class DashSession {
         case "land": if (e.v < -4) this.play("a:dash_land", Math.min(0.5, 0.18 + -e.v * 0.025), 1, 60, 0, pan); break;
         case "squish": this.play("a:dash_squish", 0.42, 1, 80, 0, pan); break;
         case "slam": this.play("a:dash_squish", 0.4, 0.8, 80); this.play("a:dash_land", 0.5, 0.8); break;
-        case "coin": this.coinNote(e.line, e.idx); break;
-        case "melody": this.play("a:dash_melody", 0.5); break;
+        case "coin": this.coinNote(); break;
+        case "melody": this.play("a:dash_melody", 0.42); break;
         case "power": this.play("a:dash_power", 0.55); if (e.id === "shield") this.play("a:bubble", 0.5); break;
         case "powerEnd": this.play("a:blip", 0.25, 0.8, 200); break;
         case "boost": if (e.on) { this.play("a:rocket", 0.7); this.play("a:dash_fever", 0.5); } else this.play("a:dash_land", 0.5, 0.7); break;

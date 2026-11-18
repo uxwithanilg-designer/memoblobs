@@ -31,6 +31,8 @@ export interface RunResult {
 /** endless run: booster multiplier, and the cap for rush × booster */
 export const BOOST_K = 1.5;
 export const RUN_MAX_SPEED = 2.2;
+/** the normal pace: every mode (except Kid Mode) plays the song and rolls 15 % faster than its written tempo */
+export const PACE = 1.15;
 
 export interface SessionOptions {
   quality: Quality;
@@ -98,7 +100,7 @@ export class RollSession {
 
   constructor(host: HTMLElement, L: Level, o: SessionOptions) {
     this.host = host; this.L = L; this.o = o;
-    const bpmScale = o.kid ? 0.85 : 1;
+    const bpmScale = o.kid ? 0.85 : PACE;
     this.bps = (L.bpm * bpmScale) / 60;
     this.sim = new Sim(L, { bot: !!o.attract, kid: o.kid, ch: o.ch, run: !!o.run });
     this.startWorld = L.world;
@@ -276,8 +278,9 @@ export class RollSession {
   private rushFor(zi: number) {
     if (this.o.kid) return zi % 5 === 4 ? 1.25 : 1;
     if (zi < 2) return 1.08;
-    if (zi % 9 === 8) return 2;
-    if (zi % 4 === 3) return 1.5;
+    // rushes stay where they were (PACE already speeds everything up)
+    if (zi % 9 === 8) return 2 / PACE;
+    if (zi % 4 === 3) return 1.5 / PACE;
     return 1.08 + Math.min(0.17, zi * 0.007);
   }
   private runTick(dt: number) {

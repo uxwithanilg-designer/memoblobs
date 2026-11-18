@@ -20,7 +20,7 @@ type Screen = "title" | "game" | "over" | "shop" | "settings";
 interface GameRun { key: number; spec: RunSpec }
 interface Over { res: SimResult; reward: number; newBest: boolean; done: Mission[]; levelUp: boolean; daily?: string; streak: number }
 
-const UI_SOUNDS: Sound[] = ["a:click", "a:whooshOut", "a:whooshIn", "a:ding", "a:levelup", "tada", "a:cheer", "sadtrombone", "a:dash_chime", "a:dash_trick", "a:bwomp"];
+const UI_SOUNDS: Sound[] = ["a:click", "a:whooshOut", "a:whooshIn", "a:ding", "a:levelup", "tada", "a:cheer", "sadtrombone", "a:dash_coin", "a:dash_trick", "a:bwomp"];
 const musicOf = (id: string): MusicName => (id === "chase" ? "a:dash_chase_action" : `a:dash_${id}_action`) as MusicName;
 const isAutomation = () => typeof navigator !== "undefined" && Boolean((navigator as Navigator & { webdriver?: boolean }).webdriver);
 const isPhone = () => typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches ?? false) && Math.min(window.innerWidth, window.innerHeight) < 600;

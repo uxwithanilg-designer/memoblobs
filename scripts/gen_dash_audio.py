@@ -1,5 +1,5 @@
-"""Momo Dash! sound pack: music per world (calm = menus, action = the run), a boss-chase track, the coin-melody chime
-(pitch-shifted in the browser so coin lines play the song) and the runner's CG sound effects.
+"""Momo Dash! sound pack: music per world (calm = menus, action = the run), a boss-chase track, the coin pickup 'cling'
+(and the older coin-melody chime) and the runner's CG sound effects.
 
 usage: python scripts/gen_dash_audio.py <momo/tools> <out-wav-dir> [--mp3 <public/audio/arcade>] [names...]
   names = pier, candy, chase (or e.g. pier_calm), sfx. Files: music_dash_<style>_<calm|action>, sfx_dash_<name>.
@@ -343,6 +343,17 @@ def sfx():
     n = ns(1.2); y = np.zeros(n)
     put(y, i_glock(72, 0.4), 0, 0.9); put(y, i_bell(84, 0.7), 0, 0.22); put(y, mono(i_musicbox(84, 0.4)), 0.004, 0.25)
     S_["chime"] = y
+    # coin pickup: a bright gold-coin 'cling' (E6 → B6) with a metal ring — the same every time, not a tune
+    def ctone(f, d, dec):
+        m = ns(d); t = tt(m)
+        w = np.sin(2 * np.pi * f * t) + 0.28 * np.sin(2 * np.pi * 2 * f * t) + 0.12 * np.sin(2 * np.pi * 3 * f * t)
+        w = w + 0.25 * np.sin(2 * np.pi * 2.76 * f * t) * np.exp(-t / 0.035)
+        return w * env(m, 0.0012, dec)
+    n = ns(0.45); y = np.zeros(n)
+    put(y, ctone(1319, 0.06, 0.04), 0, 0.5)
+    put(y, ctone(1976, 0.4, 0.12), 0.05, 0.7)
+    put(y, hp(nz(ns(0.05)), 7500) * env(ns(0.05), 0.001, 0.012), 0.05, 0.07)
+    S_["coin"] = y
     # jump: a springy boing up
     d = 0.32; n = ns(d); t = tt(n)
     f = 260 * (2.6 ** (t / d)) * (1 + 0.06 * np.sin(2 * np.pi * 28 * t) * np.exp(-t / 0.12))
@@ -365,10 +376,11 @@ def sfx():
     for i, m in enumerate((84, 88, 91, 96)): put(y, i_glock(m, 0.3), 0.04 * i, 0.75 - i * 0.08)
     y += hp(nz(n), 7000) * np.exp(-tt(n) / 0.2) * 0.06
     S_["trick"] = y
-    # melody complete: a harp flourish
-    n = ns(1.3); y = np.zeros(n)
-    for i, m in enumerate((72, 76, 79, 84, 88, 91, 96)): put(y, i_harp(m, 0.6), 0.045 * i, 0.5)
-    put(y, i_bell(96, 0.8), 0.32, 0.3)
+    # a whole coin line collected: a quick coin shower (cling-cling-cling + sparkle), not a tune
+    n = ns(0.9); y = np.zeros(n)
+    for i, f in enumerate((1568, 1976, 2349)): put(y, ctone(f, 0.35, 0.1), 0.065 * i, 0.5 - i * 0.05)
+    put(y, ctone(3136, 0.5, 0.2), 0.2, 0.3)
+    put(y, hp(nz(ns(0.5)), 6500) * np.exp(-tt(ns(0.5)) / 0.12) * 0.07, 0.19)
     S_["melody"] = y
     # power-up: riser + chord sparkle
     n = ns(1.0); y = np.zeros(n)

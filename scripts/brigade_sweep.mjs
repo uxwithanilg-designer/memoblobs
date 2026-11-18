@@ -48,11 +48,14 @@ if (process.env.MODE) {
   process.exit(0);
 }
 console.log("stage              type      won stars  final/peak   lost  time  ms/step  goal");
-for (const def of STAGES) {
+// FIRST=20: only the first N campaign stages (and no Endless run); FROM=20 skips the ones before
+const FIRST = Number(process.env.FIRST ?? STAGES.length);
+for (const def of STAGES.slice(Number(process.env.FROM ?? 0), FIRST)) {
   const rs = Array.from({ length: runs }, () => play(buildStage(def, math)));
   const won = rs.filter((r) => r.won).length, avg = (k) => rs.reduce((a, r) => a + r[k], 0) / rs.length;
   const spec = buildStage(def, math);
   console.log(`${def.id.padEnd(18)} ${def.type.padEnd(9)} ${won}/${runs}  ${rs.map((r) => r.stars).join("")}   ${String(Math.round(avg("count"))).padStart(5)}/${String(Math.round(avg("peak"))).padEnd(5)} ${String(Math.round(avg("lost"))).padStart(5)} ${avg("time").toFixed(0).padStart(5)}s  ${avg("ms").toFixed(2).padStart(6)}  ${spec.goal.text} [${rs.map((r) => (r.goalMet ? "y" : "n")).join("")}]`);
 }
+if (process.env.FIRST) process.exit(0);
 const e = Array.from({ length: runs }, (_, i) => play(endlessSpec(1000 + i, math), 900));
 console.log(`endless waves: ${e.map((r) => r.wave).join(", ")}  peak: ${e.map((r) => r.peak).join(", ")}  scores: ${e.map((r) => r.score).join(", ")}  time: ${e.map((r) => Math.round(r.time)).join(", ")}s  ms/step: ${e.map((r) => r.ms.toFixed(2)).join(", ")}`);

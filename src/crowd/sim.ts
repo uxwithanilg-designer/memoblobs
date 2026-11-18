@@ -319,7 +319,10 @@ export class Sim {
     }
     // Pip's freeze stops the march; Prof. Hoot's slow-mo slows it
     const ts = this.freezeT > 0 ? 0 : this.slowT > 0 ? 0.4 : 1;
-    this.adaptK = this.spec.expect ? Math.min(4, Math.max(1, (this.n / Math.max(12, this.ex)) ** ADAPT_EXP)) : 1;
+    // adaptive difficulty: a bigger-than-expected brigade fights harder grumps; in the first worlds a smaller-than-expected
+    // one gets a quiet helping hand (grumps bite less, bubbles hit harder)
+    const floor = (this.spec.world ?? 9) <= 1 ? 0.7 : (this.spec.world ?? 9) === 2 ? 0.85 : 1;
+    this.adaptK = this.spec.expect ? Math.min(4, Math.max(floor, (this.n / Math.max(12, this.ex)) ** ADAPT_EXP)) : 1;
     this.fire(dt);
     this.stepHorde(dt * ts);
     this.stepBubbles(dt);

@@ -89,7 +89,7 @@ const orgLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${lilita.variable} ${fredoka.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" className={`${lilita.variable} ${fredoka.variable} antialiased`} suppressHydrationWarning>
       <body className="min-h-dvh">
         <JsonLd data={orgLd} />
         <Providers>{children}</Providers>

@@ -119,10 +119,13 @@ export class KikoSession {
   private onMove = (e: PointerEvent) => {
     const t = this.touch;
     if (!t || e.pointerId !== t.id || this.paused) return;
+    // one swipe = one move: after the first lane change / jump / slide, the rest of that finger's travel is ignored
+    // until it lifts (a long swipe used to fire again and jump two lanes)
+    if (t.moved) return;
     const dx = e.clientX - t.x, dy = e.clientY - t.y;
     if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return;
     if (Math.abs(dx) > Math.abs(dy)) this.act(dx > 0 ? "right" : "left"); else this.act(dy < 0 ? "up" : "down");
-    t.x = e.clientX; t.y = e.clientY; t.moved = true;
+    t.moved = true;
   };
   private onUp = (e: PointerEvent) => {
     const t = this.touch;

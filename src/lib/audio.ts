@@ -31,7 +31,7 @@ export type ArcadeSfx =
   | "boing_marimba" | "boing_musicbox" | "boing_bells" | "boing_perfect"
   | "boing_toypiano" | "boing_steel" | "boing_celesta" | "boing_kalimba" | "boing_xylo" | "boing_synth" | "boing_horn"
   // Momo Dash! pack (scripts/gen_dash_audio.py): the coin-melody chime + runner effects
-  | "dash_chime" | "dash_jump" | "dash_land" | "dash_swipe" | "dash_squish" | "dash_trick" | "dash_melody" | "dash_power" | "dash_wobble"
+  | "dash_chime" | "dash_coin" | "dash_jump" | "dash_land" | "dash_swipe" | "dash_squish" | "dash_trick" | "dash_melody" | "dash_power" | "dash_wobble"
   | "dash_crash" | "dash_count" | "dash_go" | "dash_pad" | "dash_fever" | "dash_horn" | "dash_catch"
   // Kiko's Jungle Quest pack (scripts/gen_kiko_audio.py): the banana-melody marimba + jungle effects and ambience
   | "kiko_banana" | "kiko_coin" | "kiko_fruit" | "kiko_jump" | "kiko_land" | "kiko_swipe" | "kiko_slide" | "kiko_bounce" | "kiko_vine" | "kiko_heart"
