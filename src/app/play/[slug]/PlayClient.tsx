@@ -12,6 +12,8 @@ import type { CastId } from "@/arcade/engine";
 const MomoShuffle = dynamic(() => import("@/games/momo-shuffle/MomoShuffle"), { ssr: false });
 const RacingApp = dynamic(() => import("@/racing/ui/RacingApp"), { ssr: false });
 const BrigadeApp = dynamic(() => import("@/crowd/ui/BrigadeApp"), { ssr: false });
+const RollApp = dynamic(() => import("@/roll/ui/RollApp"), { ssr: false });
+const EscapeApp = dynamic(() => import("@/escape/ui/EscapeApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 function Arcade({ slug }: { slug: string }) {
@@ -32,7 +34,7 @@ export function PlayClient({ slug }: { slug: string }) {
   const mode = m === "easy" || m === "medium" || m === "hard" ? (m as Difficulty) : undefined;
   return (
     <GamePlayer game={g}>
-      {slug === "momo-shuffle" ? <MomoShuffle initialMode={mode} /> : g.engine === "racing" ? <RacingApp slug={slug} title={g.title} /> : g.engine === "brigade" ? <BrigadeApp slug={slug} title={g.title} /> : <Arcade slug={slug} />}
+      {slug === "momo-shuffle" ? <MomoShuffle initialMode={mode} /> : g.engine === "racing" ? <RacingApp slug={slug} title={g.title} /> : g.engine === "brigade" ? <BrigadeApp slug={slug} title={g.title} /> : g.engine === "roll" ? <RollApp slug={slug} title={g.title} /> : g.engine === "escape" ? <EscapeApp slug={slug} title={g.title} /> : <Arcade slug={slug} />}
     </GamePlayer>
   );
 }

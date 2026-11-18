@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* phones held sideways (and other short screens): compact game layouts */
+@custom-variant short (@media (max-height: 520px));
+
 /* ───────────────────────── MOMOBLOBS brand tokens ───────────────────────── */
 @theme {
   --color-ink: #0c061f;

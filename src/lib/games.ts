@@ -39,7 +39,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "roll" | "escape";
   host?: string;
 }
 
@@ -95,6 +95,101 @@ export const GAMES: Game[] = [
     ],
     skills: ["Focus", "Visual tracking", "Attention", "Reaction"],
     released: "2026-11-16",
+  },
+  {
+    slug: "sky-roll",
+    title: "Momo Sky Roll",
+    short: "Roll Momo to the beat — forever",
+    tagline: "Momo curls into a ball and rolls across 20 sky worlds — to the music, without end!",
+    description:
+      "Momo Sky Roll is a free 3D rolling-ball music game for kids. Momo curls up into a clay ball and rolls along floating paths in the sky while the music plays. Drag left and right to steer, fly off jump pads, zoom over boost arrows and dodge mallets, spinners, lasers, crushers and rolling barrels that all move to the beat. It is one endless run: Clay Garden, Candy Kitchen, Ice Floe, Neon Night, Space Port, Volcano Forge and 14 more worlds flow straight into each other, then 217 game concepts keep mixing into brand-new track forever. The music speeds up to 1.5× and 2× in rushes and calms down again, rocket boosters give 30 seconds of turbo, gold coins line the road, hearts give extra lives and grumpy spike balls take them away. Every world has its own music style, from clay pop and synthwave to Bollywood-style dance, tabla fusion and phonk. Spend coins on 11 rollers, fill your Concept Dex, and play Daily Fusion, Boss Rush or build your own level in the Concept Lab.",
+    status: "live",
+    categories: ["speed", "focus"],
+    ages: "5+",
+    accent: "#FF8A3D",
+    accent2: "#45B8FF",
+    cover: "/games/sky-roll/card.webp",
+    hero: "/games/sky-roll/hero.webp",
+    character: "/brand/momo-wave.webp",
+    shots: ["/games/sky-roll/shot-candy.webp", "/games/sky-roll/shot-neon.webp"],
+    modes: [
+      { id: "run", label: "Sky Run", color: "#2FA866", desc: "One endless run through 20 worlds — then concepts fuse forever", coins: 0 },
+      { id: "daily", label: "Daily Fusion", color: "#D99A1E", desc: "One new level every day", coins: 0 },
+      { id: "lab", label: "Concept Lab", color: "#FF6F91", desc: "Build a level, share its code", coins: 0 },
+      { id: "rush", label: "Boss Rush", color: "#E8504F", desc: "15 bosses back to back", coins: 0 },
+    ],
+    howTo: [
+      { title: "Touch to roll", text: "Tap Play and Momo starts rolling forward by himself, right on the beat of the music." },
+      { title: "Drag to steer", text: "Drag left or right anywhere on the screen (or use ← → / A D) to keep Momo on the path." },
+      { title: "Fly, zoom and dodge", text: "Pads fling you over gaps, arrows make you zoom, and every hazard moves to the music — pass it on the safe side." },
+      { title: "Coins, hearts and boosters", text: "Collect gold coins (a coin streak starts Fever ×2), grab hearts for extra lives and the lightning booster for 30 seconds of turbo. Never touch the grumpy spike balls — they cost a life!" },
+    ],
+    controls: [
+      { keys: "Drag / ← → / A D", action: "Steer" },
+      { keys: "Tap / ↑ / W", action: "Jump (with a jump power)" },
+      { keys: "P / Esc", action: "Pause" },
+      { keys: "M", action: "Mute" },
+      { keys: "F", action: "Fullscreen" },
+    ],
+    faq: [
+      { q: "Is Momo Sky Roll free?", a: "Yes. Momo Sky Roll is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Does it ever end?", a: "No. The run goes through all 20 worlds and then keeps mixing game ideas into brand-new track forever. Reach a world once and you can start your next run from it." },
+      { q: "What happens if Momo falls?", a: "You lose a heart and Momo floats back onto the track in a bubble. Run out of hearts and the run ends — or spend the coins you collected to keep rolling." },
+      { q: "Is it too fast for little kids?", a: "Turn on Kid Mode in Settings: the music and Momo slow down and soft bumpers stop him rolling off the sides." },
+      { q: "Does it work on phones?", a: "Yes — it is made for phones first. Hold the phone upright and drag with one thumb. Tablets and computers work too." },
+    ],
+    skills: ["Hand-eye coordination", "Rhythm", "Timing", "Focus"],
+    released: "2026-11-17",
+    art: "cover",
+    engine: "roll",
+    host: "momo",
+  },
+  {
+    slug: "momo-escape",
+    title: "Momo Escape",
+    short: "Run the walls, tap to leap, escape!",
+    tagline: "Momo runs on floors, walls and ceilings — tap to leap and escape Kranky's buildings, floor after floor, forever!",
+    description:
+      "Momo Escape is a free one-tap escape game for kids. Kranky has locked Momo inside his buildings, and every floor is a room full of traps. Momo runs by himself along the floor, up the walls and across the ceiling; tap anywhere and he leaps straight across to the other side. Dodge lasers, spikes, crushers, turrets, saws and grumpy spike balls, grab the coins and the three diamonds, and slip through the EXIT hatch into the next floor — the climb never stops. 24 buildings (Toy Factory, Candy Lab, Ice Vault, Neon Arcade, Space Station, Haunted Mansion, Film Studio, Cricket Stadium and more) each bring new tricks, their own risograph ink colours and their own music, with a finale at the top. After floor 240 the 212 game concepts keep fusing into brand-new named mixes forever. Hearts, boosters, speed rushes, Daily Heist, Speed Series and your own Room Lab — every room is checked by a solver so it can always be escaped.",
+    status: "live",
+    categories: ["speed", "focus"],
+    ages: "5+",
+    accent: "#FF3D6E",
+    accent2: "#2FB8FF",
+    cover: "/games/momo-escape/card.webp",
+    hero: "/games/momo-escape/hero.webp",
+    character: "/brand/momo-cheer.webp",
+    shots: ["/games/momo-escape/shot-robot.webp", "/games/momo-escape/shot-neon.webp"],
+    modes: [
+      { id: "run", label: "Escape Run", color: "#FF3D6E", desc: "One endless climb through 24 buildings — then concepts fuse forever", coins: 0 },
+      { id: "daily", label: "Daily Heist", color: "#D99A1E", desc: "The same 10 floors for everyone today", coins: 0 },
+      { id: "series", label: "Speed Series", color: "#2E86FF", desc: "3 floors against the clock for medals", coins: 0 },
+      { id: "lab", label: "Room Lab", color: "#9B5DE5", desc: "Mix concepts into your own building and share the code", coins: 0 },
+    ],
+    howTo: [
+      { title: "Momo runs by himself", text: "He runs along the floor, climbs walls at corners and wraps around edges — he sticks to every surface." },
+      { title: "Tap to leap", text: "Tap anywhere (or press Space) and Momo leaps straight across to the opposite wall, floor or ceiling." },
+      { title: "Dodge and collect", text: "Lasers blink, crushers slam, turrets fire and saws roll — time your leaps. Grab coins, 3 diamonds per floor, hearts and boosters." },
+      { title: "Find the EXIT", text: "Every floor has an EXIT hatch in the ceiling. Slip through and the next floor begins — keys open locked hatches." },
+    ],
+    controls: [
+      { keys: "Tap / Space / ↑", action: "Leap" },
+      { keys: "P / Esc", action: "Pause" },
+      { keys: "M", action: "Mute" },
+      { keys: "F", action: "Fullscreen" },
+    ],
+    faq: [
+      { q: "Is Momo Escape free?", a: "Yes. It is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Does it ever end?", a: "No. After 24 buildings the game keeps mixing its 212 concepts into new rooms forever, and every new mix gets a card in your Concept Dex." },
+      { q: "What if Momo gets hit?", a: "He loses a heart and starts the floor again. Hearts can be picked up along the way; out of hearts, spend coins to keep going or start a new climb." },
+      { q: "Is it fair?", a: "Every floor is checked by a solver before you see it, so there is always a way out — even on speed rushes." },
+      { q: "Is it too fast for little kids?", a: "Turn on Kid Mode in Settings: everything slows down and Momo gets 5 hearts." },
+    ],
+    skills: ["Timing", "Planning", "Reaction", "Focus"],
+    released: "2026-11-18",
+    art: "cover",
+    engine: "escape",
+    host: "momo",
   },
   {
     slug: "nitro-rush",

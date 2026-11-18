@@ -392,6 +392,8 @@ class AudioEngine {
   get musicName() { return this.want; }
   /** raw bus inputs for real-time synths (racing engines etc.); call ensure() first */
   get sfxOut(): AudioNode | null { return this.ctx ? this.sfxBus : null; }
+  /** music bus input (volume + mute + ducking apply) for real-time music engines (Sky Roll) */
+  get musicOut(): AudioNode | null { return this.ctx ? this.musicBus : null; }
   get reverbOut(): AudioNode | null { return this.ctx ? this.reverbIn : null; }
   get isMuted() { return this.vol.muted; }
 
