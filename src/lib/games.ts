@@ -41,7 +41,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine";
   host?: string;
 }
 
@@ -635,6 +635,102 @@ export const GAMES: Game[] = [
     art: "cover",
     engine: "clayland",
     host: "puddo",
+  },
+  {
+    slug: "slurp-lab",
+    title: "Slurp Lab",
+    short: "A shiny 3D brain puzzle: slurp every Gloopy",
+    tagline: "Drag the glowing Slurpers — each drinks its own colour, exactly its number",
+    description:
+      "Slurp Lab is a free 3D brain puzzle. Gloop's little jelly cousins, the Gloopies, escaped all over Prof. Hoot's lab, and his glowing glass Slurpers must collect them. Drag a Slurper over Gloopies of its own colour and it slurps them up; its number shows how many it still drinks, and at zero it pops. Gloopies of other colours block the way, so the order you clear them in is the whole puzzle. Thirty labs bring new ideas — ice, goo, locks, bubbles, rainbows, portals, crates, bombs, mirrors, fuses and more — across 600 stages, then the Endless Lab keeps making fresh trays on your device. Every stage is built from a planned solution and checked, so every tray can be cleared — and the fewest moves earns 3 stars.",
+    status: "live",
+    categories: ["puzzle", "brain"],
+    ages: "7+",
+    accent: "#5C7CFA",
+    accent2: "#FFD23F",
+    cover: "/games/slurp-lab/card.webp",
+    hero: "/games/slurp-lab/hero.webp",
+    character: "/brand/chars/hoot-happy.webp",
+    shots: [],
+    modes: [
+      { id: "labs", label: "30 Labs", color: "#5C7CFA", desc: "600 stages from Bubble Lab to the Grand Lab — every lab adds a new idea and mixes in the old ones", coins: 0 },
+      { id: "exams", label: "Hoot's Exams", color: "#FFD23F", desc: "Stage 20 of every lab is the hardest tray of the lab, with a lab badge", coins: 0 },
+      { id: "daily", label: "Daily Brain Jar", color: "#FF7EB6", desc: "One new tray a day for everyone, with a streak", coins: 0 },
+      { id: "endless", label: "Endless Lab", color: "#20C997", desc: "Opens after Lab 10: fresh trays made on your device that never repeat, plus a weekly Lab Mutation", coins: 0 },
+      { id: "rush", label: "Exam Rush", color: "#FF4D6D", desc: "Five of Hoot's Exams in a row", coins: 0 },
+    ],
+    howTo: [
+      { title: "Drag a Slurper", text: "Press on a glowing Slurper and drag. It follows your finger one cell at a time and stops when something is in the way." },
+      { title: "Slurp its colour", text: "Moving over Gloopies of its own colour slurps them up. The number on the Slurper is how many it still drinks — at 0 it pops and frees its space." },
+      { title: "Plan the order", text: "Gloopies of other colours, walls, gates and other Slurpers block the way. Clear one colour to open a lane for the next. Two Slurpers of one colour? Decide who drinks which." },
+      { title: "New ideas every lab", text: "Ice slides you along, goo stops you, locked Slurpers wait for a key colour, bubbled Gloopies pop when a neighbour is slurped, rainbow Gloopies feed any colour, portals, turn pads, crates, bombs, mirrors and fuses all change the plan." },
+      { title: "Stars and hints", text: "Clear the tray in the par number of moves for 3 stars. Undo and Restart are free. Prof. Hoot's Hint shows a good next move from where you are. Boosters can help too, for 2 stars at most." },
+    ],
+    controls: [
+      { keys: "Drag", action: "Move a Slurper (touch or mouse)" },
+      { keys: "Tab / 1–9", action: "Pick a Slurper" },
+      { keys: "← ↑ → ↓ / WASD", action: "Move it one cell" },
+      { keys: "Space / Enter", action: "End the move" },
+      { keys: "Z · R · H", action: "Undo · Restart · Hint" },
+    ],
+    faq: [
+      { q: "Is Slurp Lab free?", a: "Yes. Slurp Lab is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Can every stage be solved?", a: "Yes. Every stage is made by walking a planned solution first and placing the Gloopies along it, then a solver checks it and sets the par." },
+      { q: "How many stages are there?", a: "600 stages in 30 labs, each lab with a new idea, a Big Tray at stage 10 and Hoot's Exam at stage 20. After that the Endless Lab makes new trays forever, and the Daily Brain Jar brings one new tray every day." },
+      { q: "Is it hard?", a: "It starts gentle and gets tougher every stage: bigger trays, more colours, twin Slurpers, big shapes and a new idea every lab that mixes with the old ones. Undo, Restart and Hint are always there." },
+      { q: "Does it work on phones?", a: "Yes. It's made for one thumb in portrait: drag the Slurpers, with Undo, Restart and Hint at the bottom." },
+    ],
+    skills: ["Planning", "Logic", "Counting", "Spatial thinking"],
+    released: "2026-11-19",
+    art: "cover",
+    engine: "slurp",
+    host: "hoot",
+  },
+  {
+    slug: "tondu-vine-climb",
+    title: "Tondu's Vine Climb",
+    short: "A 3D garden-lizard climb up endless green vines",
+    tagline: "Flip round the vine, snap the bugs, drop your tail — and keep climbing",
+    description:
+      "Tondu's Vine Climb is a free 3D climbing game. Tondu is a garden lizard, and Kaaki the crow has stolen the garden's glowing Sun Seeds and flown them to the top of the Great Banyan. Tondu climbs after him up winding vines: tap to flip round the vine away from the thorns, snap bugs as you pass, hold to cling and wait for thistle buds to close, and leap the gaps when the rings glow. A thorn costs Tondu his tail — just like a real lizard, it drops off and grows back after enough bugs. Thirty green worlds bring new ideas — falling mangoes, bamboo rushes, forks, lotus hops, rolling burrs, spiral trunks, waterfalls, camouflage, growing vines, crow chases and races against Zeeza — across 600 stages that flow one into the next with no stop, each world ending with a guardian to climb past. After stage 600 the Wild Canopy mixes everything, forever.",
+    status: "live",
+    categories: ["action", "adventure"],
+    ages: "7+",
+    accent: "#3FAE3A",
+    accent2: "#FFE36A",
+    cover: "/games/tondu-vine-climb/card.webp",
+    hero: "/games/tondu-vine-climb/hero.webp",
+    character: "/games/tondu-vine-climb/tondu.webp",
+    shots: [],
+    modes: [
+      { id: "climb", label: "The Climb", color: "#3FAE3A", desc: "600 stages in 30 green worlds, one after another with no stop — the climb always picks up where you left it", coins: 0 },
+      { id: "guardians", label: "Guardians", color: "#FF8A3D", desc: "Stage 20 of every world: climb past the guardian to win back a Sun Seed", coins: 0 },
+      { id: "wild", label: "Wild Canopy", color: "#7CC4EE", desc: "After stage 600: worlds, ideas and guardians mixed into fresh stages that don't repeat", coins: 0 },
+      { id: "daily", label: "Daily Vine", color: "#FFE36A", desc: "One new vine a day for everyone, with a streak", coins: 0 },
+    ],
+    howTo: [
+      { title: "Tap to flip", text: "Tondu climbs by himself. Tap anywhere and he swings round to the other side of the vine — away from the thorns, toward the bugs." },
+      { title: "Hold to cling", text: "From World 3, hold the CLING pad to slow right down: wait for thistle buds to close, bees to pass or a swinging root to turn green." },
+      { title: "Leap the gaps", text: "From World 4, the vine breaks. When the rings glow, press LEAP to jump to the next piece." },
+      { title: "Tail, bugs and powers", text: "A hit drops Tondu's tail; snap enough bugs and it grows back. Without a tail, the next hit is a fall — back to the last flower gate. Sun Rush, Moss Shield, Bug Magnet and Leaf Glide help on the way." },
+    ],
+    controls: [
+      { keys: "Tap / Space / ↑ / ← / →", action: "Flip round the vine" },
+      { keys: "Hold CLING / Shift / ↓", action: "Cling and slow down" },
+      { keys: "LEAP / Enter", action: "Leap a gap" },
+    ],
+    faq: [
+      { q: "Is Tondu's Vine Climb free?", a: "Yes. It's free to play in your browser with no sign-up and nothing to download." },
+      { q: "How many stages are there?", a: "600 stages in 30 worlds, and they flow one into the next without a stop. After that the Wild Canopy keeps making new stages that don't repeat, and the Daily Vine brings a new one every day." },
+      { q: "Is it hard?", a: "It starts gentle and gets tougher every stage: faster climbing, more thorns, less time to react, and a new idea in every world that mixes with the old ones." },
+      { q: "What is Tondu?", a: "Tondu is a garden lizard — the name comes from tonda, the Telugu word for it. Like a real one he has a spiny crest, a very long tail he can drop when he's caught, and a head that flushes orange-red when he's excited." },
+      { q: "Does it work on phones?", a: "Yes. It's made for one thumb in portrait: tap anywhere to flip, with the CLING and LEAP pads at the bottom." },
+    ],
+    skills: ["Reaction", "Timing", "Focus", "Planning ahead"],
+    released: "2026-11-19",
+    art: "cover",
+    engine: "vine",
+    host: "tondu",
   },
   ...ARCADE_GAMES,
 ];

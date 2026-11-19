@@ -20,6 +20,8 @@ const KikoApp = dynamic(() => import("@/jungle/ui/KikoApp"), { ssr: false });
 const RollApp = dynamic(() => import("@/roll/ui/RollApp"), { ssr: false });
 const EscapeApp = dynamic(() => import("@/escape/ui/EscapeApp"), { ssr: false });
 const ClaylandApp = dynamic(() => import("@/clayland/ui/ClaylandApp"), { ssr: false });
+const SlurpApp = dynamic(() => import("@/slurp/ui/SlurpApp"), { ssr: false });
+const VineApp = dynamic(() => import("@/vine/ui/VineApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 /** each engine's code (the same chunks the players below load) */
@@ -33,6 +35,8 @@ const ENGINE_CODE: Record<string, () => Promise<unknown>> = {
   roll: () => import("@/roll/ui/RollApp"),
   escape: () => import("@/escape/ui/EscapeApp"),
   clayland: () => import("@/clayland/ui/ClaylandApp"),
+  slurp: () => import("@/slurp/ui/SlurpApp"),
+  vine: () => import("@/vine/ui/VineApp"),
   arcade: () => import("@/arcade/ArcadeHost"),
 };
 
@@ -74,6 +78,8 @@ export function GameView({ slug, mode }: { slug: string; mode?: Difficulty }) {
     case "roll": return <RollApp slug={slug} title={g.title} />;
     case "escape": return <EscapeApp slug={slug} title={g.title} />;
     case "clayland": return <ClaylandApp slug={slug} title={g.title} />;
+    case "slurp": return <SlurpApp slug={slug} title={g.title} />;
+    case "vine": return <VineApp slug={slug} title={g.title} />;
     default: return <Arcade slug={slug} />;
   }
 }
