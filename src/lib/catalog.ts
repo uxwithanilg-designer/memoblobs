@@ -3,7 +3,7 @@ import { CATEGORIES, GAMES, LIVE_GAMES, type Category, type Game } from "./games
 
 /** hand-picked order for "Top picks" and the default sort (best and biggest first) */
 const PICKS = [
-  "kiko-jungle-quest", "momo-escape", "momo-dash", "nitro-rush", "blob-brigade", "sky-roll", "momo-boing", "momo-shuffle", "drift-kings", "moto-rush",
+  "rollo-rush", "momo-jelly-jam", "kiko-jungle-quest", "momo-escape", "momo-dash", "nitro-rush", "blob-brigade", "sky-roll", "momo-boing", "momo-shuffle", "drift-kings", "moto-rush",
   "highway-heat", "whack-a-gloop", "fish-watch", "turbo-dash", "maze-munch", "spot-the-sneak", "memory-bridge", "count-fast",
 ];
 const rank = (g: Game) => { const i = PICKS.indexOf(g.slug); return i < 0 ? PICKS.length + GAMES.indexOf(g) : i; };
@@ -11,7 +11,7 @@ const rank = (g: Game) => { const i = PICKS.indexOf(g.slug); return i < 0 ? PICK
 export const ALL_PLAYABLE = [...LIVE_GAMES].sort((a, b) => rank(a) - rank(b));
 export const TOP_PICKS = ALL_PLAYABLE.slice(0, 12);
 export const NEW_GAMES = [...LIVE_GAMES].sort((a, b) => (b.released ?? "").localeCompare(a.released ?? "") || rank(a) - rank(b));
-const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape", "clayland", "slurp", "vine"]);
+const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape", "clayland", "slurp", "vine", "jelly", "rush"]);
 export const is3D = (g: Game) => g.engine !== undefined && ENGINES_3D.has(g.engine);
 /** the sound files a game's engine uses (audio/arcade/{sfx,music,voice}_<family>_*.mp3), for background loading */
 const SOUND_FAMILY: Partial<Record<NonNullable<Game["engine"]>, string>> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine" };
