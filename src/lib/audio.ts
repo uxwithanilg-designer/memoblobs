@@ -463,6 +463,12 @@ class AudioEngine {
 
   get musicName() { return this.want; }
   /** raw bus inputs for real-time synths (racing engines etc.); call ensure() first */
+  /** dip whatever music is playing (file or live engine) for a while, e.g. under a voice line */
+  duckFor(seconds: number, level = 0.4) {
+    const c = this.ctx; if (!c || !this.duckGain) return;
+    const t0 = c.currentTime, dg = this.duckGain.gain;
+    dg.cancelScheduledValues(t0); dg.setTargetAtTime(level, t0, 0.05); dg.setTargetAtTime(1, t0 + seconds, 0.35);
+  }
   get sfxOut(): AudioNode | null { return this.ctx ? this.sfxBus : null; }
   /** music bus input (volume + mute + ducking apply) for real-time music engines (Sky Roll) */
   get musicOut(): AudioNode | null { return this.ctx ? this.musicBus : null; }

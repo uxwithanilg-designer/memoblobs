@@ -41,7 +41,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "jelly" | "rush";
   host?: string;
 }
 
@@ -192,6 +192,111 @@ export const GAMES: Game[] = [
     released: "2026-11-18",
     art: "cover",
     engine: "escape",
+    host: "momo",
+  },
+  {
+    slug: "rollo-rush",
+    title: "Rollo Rush",
+    short: "An endless 3D speed run",
+    tagline: "Mayamma the Sky Witch has snatched Rollo's little brother! Sprint after her down one endless road through 25 worlds, dodging her magic all the way.",
+    description:
+      "Rollo Rush is a free 3D speed-running game made for phones, with a story. It opens with a fully voiced cinematic: Rollo and his little brother Chintu are playing catch with a glowing pearl on a moonlit beach when Mayamma the Sky Witch — a spooky floating ghost-witch in a white saree — swoops out of the moon, snatches Chintu and dares Rollo to follow her. So he runs! Every second stage she bursts back out of the sky with a laugh, the music turns dark, and she hurls her magic at him — fire bombs, ice spears, poison puddles, thunder rings, shadow curtains, halo traps and more: 220 different magics from 11 elements, all written into her spellbook as you dodge them. Every stage has its own big obstacle too: logs that pop up from below, logs and boulders that fall from above, giant hammers, swinging logs, rolling wheels, geysers, crushers, snowballs and more. Rollo, an athletic armoured pangolin in mint high-tops and a coral scarf, sprints by himself down one endless road — drag anywhere to steer, swipe up to hop, swipe down to curl into his glowing Curl Ball, and tap for a Burst of speed. There are no stage menus and no stops: each stretch of road joins straight onto the next, through 25 worlds — Moonlit Bay, Sunrise Meadows, Coral Coast, Candy Canyon, Bamboo Breeze, Crystal Caves, Neon Night City, Snow Peak, Sky Islands, Volcano Run, Jungle Ruins, Mirage Dunes, Toy Factory, Starlight Carnival, Deep Sea Tubes, Autumn Woods, Thunder Plains, Glow Shroom Forest, Clockwork Tower, Rainbow Highway, Haunted Moors, Orbit Ring, Cyber Grid, Blossom Peaks and Kranky's Sky Fortress. Grab Spark Pearls, hop pits and hurdles, curl under bars, grind rails, bounce on springs and cannons, hop across lily pads and floating islands, outrun boulders, waves and avalanches, race ghosts and rivals, ground-pound switches, Star Hop between targets and beat 25 Kranky boss machines. Every stretch brings one new idea — 500 of them — and the road keeps getting faster and busier; then the Remix Run mixes everything into new stretches forever, never the same mix twice. A cinematic camera swings round the loops, the music changes as you go, and every pearl chimes in the song's key. Pick up gold coins, power orbs and hearts — hearts are saved lives that keep you running. Beside the journey there are five modes: the Endless Moon Run, a Daily Sprint that is the same for everybody, Time Trials against your own ghost, a Boss Rush and a Trick Park. Fill the Concept Dex and Mayamma's spellbook, and dress Rollo in Rollo's Locker (armour, scarf, sneakers, trail and Curl Ball colours, just for looks). Every stretch is played by a fair-play robot runner with human reaction times before you see it, so there is always a way through.",
+    status: "live",
+    categories: ["adventure", "action", "speed"],
+    ages: "5+",
+    accent: "#2EC4B6",
+    accent2: "#2B3C8F",
+    cover: "/games/rollo-rush/card.webp",
+    hero: "/games/rollo-rush/hero.webp",
+    character: "/brand/momo-cheer.webp",
+    shots: ["/games/rollo-rush/shot-witch.webp", "/games/rollo-rush/shot-bay.webp", "/games/rollo-rush/shot-loop.webp", "/games/rollo-rush/shot-meadow.webp"],
+    modes: [
+      { id: "journey", label: "Journey", color: "#2EC4B6", desc: "Chase Mayamma down one endless road through 25 worlds — no menus, no stops, picks up at your last checkpoint", coins: 0 },
+      { id: "endless", label: "Endless Moon Run", color: "#3F63C8", desc: "One run along the moonlit coast that keeps getting faster — how far can you go?", coins: 0 },
+      { id: "daily", label: "Daily Sprint", color: "#FF9E6B", desc: "A new stage every day, the same for everybody — keep your streak", coins: 0 },
+      { id: "trial", label: "Time Trial", color: "#5CF2C9", desc: "Race your own ghost on any stage you have cleared", coins: 0 },
+      { id: "boss", label: "Boss Rush", color: "#FF5A7A", desc: "Every Kranky boss you have beaten, back to back", coins: 0 },
+      { id: "park", label: "Trick Park", color: "#B88CFF", desc: "90 seconds of springs, kickers and hoops — flick for tricks", coins: 0 },
+    ],
+    howTo: [
+      { title: "Steer", text: "Rollo runs by himself. Drag anywhere on the screen to steer him left and right." },
+      { title: "Hop and curl", text: "Swipe up to hop over gaps, spikes and hurdles. Swipe down to curl into the Curl Ball and smash crates and Clankers." },
+      { title: "Pearls and speed", text: "Grab the glowing pearls, ride the dash pads and springs, and tap for a Burst when the meter glows." },
+      { title: "Dodge Mayamma's magic", text: "Every second stage the Sky Witch swoops in and throws fire bombs, rings and spells. Watch where her magic lands and steer or hop clear." },
+      { title: "Keep running", text: "The road never ends — new worlds and new tricks just keep coming. Lanterns are checkpoints, hearts are saved lives, and every 100 pearls rebuild an armour scale." },
+    ],
+    controls: [
+      { keys: "Drag", action: "Steer" },
+      { keys: "Swipe up / down", action: "Hop / curl into a ball" },
+      { keys: "Tap", action: "Burst (when the meter glows)" },
+      { keys: "← → / A D", action: "Steer (keyboard)" },
+      { keys: "↑ W Space / ↓ S", action: "Hop / curl (keyboard)" },
+      { keys: "P / Esc", action: "Pause" },
+    ],
+    faq: [
+      { q: "Is Rollo Rush free?", a: "Yes. It is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Do I pick the stages?", a: "No — the run simply continues stage after stage, and when you come back it starts again at your last checkpoint." },
+      { q: "Does it ever end?", a: "No. The journey brings a new idea every stage across 25 worlds; after the built worlds the Remix Run keeps mixing them into new stages forever." },
+      { q: "Is it hard?", a: "It starts gently and gets faster and trickier with every world. Checkpoints are never far, and running out of armour only sends you back to the last lantern." },
+      { q: "Does it work on phones?", a: "Yes — it is made for phones: one thumb to steer and swipe, vibration, and automatic graphics settings." },
+    ],
+    skills: ["Reflexes", "Timing", "Focus", "Planning"],
+    released: "2026-11-19",
+    art: "cover",
+    engine: "rush",
+    host: "momo",
+  },
+  {
+    slug: "momo-jelly-jam",
+    title: "Momo Jelly Jam",
+    short: "Squish jelly blocks, fit the gates",
+    tagline: "Drag glossy jelly, squish matching colours into perfect blocks and pop each one out of the gate that fits — stage after stage, forever!",
+    description:
+      "Momo Jelly Jam is a free 3D jelly block puzzle. Every stage is a toy tray full of wobbly, glossy jelly pieces with little faces. Drag a piece with your finger: it slides through the free cells and drops where you let go. Push same-colour pieces together so they make a perfect rectangle and they squish into one big block — then slide that block to the gate of its colour that is exactly the same size, and it pops out. Clear the tray and the next stage begins straight away, with no menus in between; close the game and it carries on from the exact same board next time. A new idea arrives every few stages — 400 of them across 1,200 stages in 20 themed worlds, from the Jelly Kitchen and the Candy Factory to the Robot Lab, the Haunted Pantry, the Neon Arcade and Kranky’s Jelly Fortress, each with its own 3D table, props and music: turn and flip pads, belts, ice and mud, teleports, switches and laser doors, keys and locked gates, crates, pits and bridges, floor drains and packing boxes, stone, gold, rainbow, heavy, ghost and bubble jellies, paint and colour mixing, gravity, wind and magnets, wrap-around trays, fog, move limits, clocks, exit orders and a boss from Kranky at the end of every world. Trays grow bigger and trickier world after world, and every grab, squish and pop is a soft, satisfying sound tuned to the stage’s own music, over a little ambience for each world. After that the Fusion Jam mixes all 400 ideas into brand-new named puzzles forever. There is a Daily Jam, a Kranky Weekly, a 3-minute Rush, a calm Zen mode, Puzzle Packs, a Jam Lab where you mix your own stage, a Concept Dex, a Jelly Shop and 13 helpers earned with stars. Every stage is built backwards from its solution and checked, so there is always a way out — with Undo, Restart and Hints when you get stuck.",
+    status: "live",
+    categories: ["puzzle", "brain", "focus"],
+    ages: "5+",
+    accent: "#FF4FB4",
+    accent2: "#8E5BFF",
+    cover: "/games/momo-jelly-jam/card.webp",
+    hero: "/games/momo-jelly-jam/hero.webp",
+    character: "/brand/momo-cheer.webp",
+    shots: [
+      "/games/momo-jelly-jam/shot-kitchen.webp", "/games/momo-jelly-jam/shot-candy.webp", "/games/momo-jelly-jam/shot-space.webp",
+      "/games/momo-jelly-jam/shot-neon.webp", "/games/momo-jelly-jam/shot-fortress.webp",
+    ],
+    modes: [
+      { id: "journey", label: "Jelly Journey", color: "#FF4FB4", desc: "One endless run of stages — no menus, picks up where you left off", coins: 0 },
+      { id: "daily", label: "Daily Jam", color: "#E8459A", desc: "One new stage a day from the ideas you know — keep your streak", coins: 0 },
+      { id: "weekly", label: "Kranky Weekly", color: "#9E2B3A", desc: "A boss mix every week", coins: 0 },
+      { id: "rush", label: "Rush", color: "#FF7A3D", desc: "Three minutes, as many quick stages as you can", coins: 0 },
+      { id: "zen", label: "Zen", color: "#2EA67A", desc: "No limits, no clocks — just squishing", coins: 0 },
+      { id: "lab", label: "Jam Lab", color: "#6A45E0", desc: "Pick up to three ideas and mix your own stage", coins: 0 },
+    ],
+    howTo: [
+      { title: "Drag the jelly", text: "Put your finger on a jelly piece and drag it. It slides through free cells and drops where you let go." },
+      { title: "Squish into blocks", text: "Same-colour pieces that make a perfect rectangle together squish into one big block." },
+      { title: "Fit the gate", text: "A block pops out through the gate of its colour that is exactly its size. Clear the tray to finish the stage." },
+      { title: "Stuck?", text: "Undo, Restart or ask for a Hint. Finish within the par moves for 3 stars." },
+    ],
+    controls: [
+      { keys: "Drag", action: "Move a jelly piece" },
+      { keys: "Undo / Restart / Hint", action: "Buttons under the tray" },
+      { keys: "P / Esc", action: "Pause" },
+      { keys: "M", action: "Mute" },
+    ],
+    faq: [
+      { q: "Is Momo Jelly Jam free?", a: "Yes. It is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Do I pick the stages?", a: "No — the game simply continues stage after stage, and when you come back it carries on from the exact same board." },
+      { q: "Does it ever end?", a: "No. The journey teaches 400 puzzle ideas over 1,200 stages in 20 worlds; after that the Fusion Jam keeps mixing them into brand-new puzzles forever." },
+      { q: "Can I lose a stage?", a: "Some stages have a move limit, a clock or a countdown jelly. If time or moves run out you can undo or try again straight away." },
+      { q: "Is every stage solvable?", a: "Yes. Every stage is built backwards from its own solution and checked before you see it." },
+      { q: "Does it work on phones?", a: "Yes — it is made for phones: one finger to drag, big buttons, vibration and automatic graphics settings." },
+    ],
+    skills: ["Planning", "Shapes", "Logic", "Focus"],
+    released: "2026-11-18",
+    art: "cover",
+    engine: "jelly",
     host: "momo",
   },
   {

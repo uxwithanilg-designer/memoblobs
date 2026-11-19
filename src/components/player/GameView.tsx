@@ -16,6 +16,8 @@ const DashApp = dynamic(() => import("@/dash/ui/DashApp"), { ssr: false });
 const KikoApp = dynamic(() => import("@/jungle/ui/KikoApp"), { ssr: false });
 const RollApp = dynamic(() => import("@/roll/ui/RollApp"), { ssr: false });
 const EscapeApp = dynamic(() => import("@/escape/ui/EscapeApp"), { ssr: false });
+const JellyApp = dynamic(() => import("@/jelly/ui/JellyApp"), { ssr: false });
+const RushApp = dynamic(() => import("@/rush/ui/RushApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 function Arcade({ slug }: { slug: string }) {
@@ -40,6 +42,8 @@ export function GameView({ slug, mode }: { slug: string; mode?: Difficulty }) {
     case "jungle": return <KikoApp slug={slug} title={g.title} />;
     case "roll": return <RollApp slug={slug} title={g.title} />;
     case "escape": return <EscapeApp slug={slug} title={g.title} />;
+    case "jelly": return <JellyApp slug={slug} title={g.title} />;
+    case "rush": return <RushApp slug={slug} title={g.title} />;
     default: return <Arcade slug={slug} />;
   }
 }
