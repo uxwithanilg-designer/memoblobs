@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { BUBIRD_URL, BuBirdLogo } from "@/components/brand/BuBird";
 import { CATEGORIES } from "@/lib/games";
 import { categoryHref } from "@/lib/catalog";
 import { FOOTER_LINKS } from "@/components/layout/nav";
@@ -10,7 +11,7 @@ export function SiteFooter() {
     <footer className="mt-10 border-t border-white/[0.06] bg-[#0d0720]">
       <div className="mx-auto grid max-w-[1680px] gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <Logo size={38} />
+          <Logo size={38} byline />
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">
             Free online games made by MOMOBLOBS — 3D runners, racing, action and brain games starring Momo and the clay crew. Play instantly in your browser on any phone, tablet or computer.
           </p>
@@ -18,6 +19,11 @@ export function SiteFooter() {
             <a href={SITE.social.youtube} target="_blank" rel="noopener noreferrer" className="rounded-full bg-white/[0.07] px-3.5 py-1.5 hover:bg-white/[0.12]">YouTube</a>
             <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer" className="rounded-full bg-white/[0.07] px-3.5 py-1.5 hover:bg-white/[0.12]">Instagram</a>
           </div>
+          <a href={BUBIRD_URL} target="_blank" rel="noopener noreferrer" aria-label="MOMOBLOBS is made by BuBird — visit bubird.com"
+            className="group mt-6 inline-flex items-center gap-3 rounded-2xl bg-white/[0.04] px-4 py-3 ring-1 ring-white/[0.07] transition hover:bg-white/[0.08] hover:ring-[#5B9BFF]/50">
+            <span className="text-[11px] font-bold tracking-[0.16em] text-faint uppercase">from</span>
+            <BuBirdLogo height={24} className="transition group-hover:scale-[1.03]" />
+          </a>
         </div>
         <div>
           <p className="mb-3 text-xs font-bold tracking-[0.14em] text-faint uppercase">Categories</p>
@@ -34,7 +40,10 @@ export function SiteFooter() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/[0.05] px-4 py-4 text-center text-xs text-faint sm:px-6">© MOMOBLOBS · {SITE.tagline}</div>
+      <div className="border-t border-white/[0.05] px-4 py-4 text-center text-xs text-faint sm:px-6">
+        © MOMOBLOBS · {SITE.tagline} · from{" "}
+        <a href={BUBIRD_URL} target="_blank" rel="noopener noreferrer" className="font-bold text-white/80 hover:text-white"><span className="text-[#5B9BFF]">Bu</span>Bird</a>
+      </div>
     </footer>
   );
 }

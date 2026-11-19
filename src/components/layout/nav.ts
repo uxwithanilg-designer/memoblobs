@@ -1,6 +1,6 @@
 import {
   Box, Brain, CarFront, Calculator, Clock, Compass, Crosshair, Flame, Gamepad2, House, Layers, Puzzle, Settings,
-  Sparkles, Bookmark, Trophy, UserRound, Users, Zap, Gauge, type LucideIcon,
+  Sparkles, Bookmark, Trophy, UserRound, Users, Zap, Footprints, type LucideIcon,
 } from "lucide-react";
 import type { Category } from "@/lib/games";
 
@@ -17,14 +17,14 @@ export const NAV_MAIN: NavItem[] = [
 ];
 
 export const CATEGORY_ICON: Record<Category, { icon: LucideIcon; color: string }> = {
-  action: { icon: Zap, color: "#FFD25A" },
+  runner: { icon: Footprints, color: "#FF9AC3" },
   adventure: { icon: Compass, color: "#74C94E" },
   racing: { icon: CarFront, color: "#5BB5FF" },
-  brain: { icon: Brain, color: "#D2A8FF" },
   puzzle: { icon: Puzzle, color: "#9FB8FF" },
+  brain: { icon: Brain, color: "#D2A8FF" },
   memory: { icon: Layers, color: "#2EC4B6" },
   focus: { icon: Crosshair, color: "#FF6F91" },
-  speed: { icon: Gauge, color: "#FF8A3D" },
+  reflex: { icon: Zap, color: "#FFB37F" },
   numbers: { icon: Calculator, color: "#FFE27F" },
 };
 

@@ -249,7 +249,7 @@ export function ArcadeHost({ game, Ctor, host }: { game: Game; Ctor: GameCtor; h
                 <span className="flex items-center gap-1">Max level {stats.maxLevel[mode]}</span>
               </div>
               <button autoFocus onClick={() => start(mode)} className="btn-clay lg mt-3 w-full">
-                <Play className="size-6 fill-current" /> {stats.level[mode] > 1 && game.slug && !game.categories.includes("speed") ? `Continue · Level ${stats.level[mode]}` : "Play"}
+                <Play className="size-6 fill-current" /> {stats.level[mode] > 1 && game.slug && game.category !== "reflex" ? `Continue · Level ${stats.level[mode]}` : "Play"}
               </button>
               {stats.level[mode] > 1 && (
                 <button onClick={() => start(mode, true)} className="mt-2 w-full py-1 text-center text-sm font-semibold text-faint">Start again from level 1</button>

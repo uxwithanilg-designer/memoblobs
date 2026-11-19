@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Bookmark, Dices, House, LayoutGrid, Menu, Search, UserRound, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
+import { BuBirdLink } from "@/components/brand/BuBird";
 import { CoinPill } from "@/components/brand/CoinPill";
 import { SearchDialog } from "@/components/layout/SearchDialog";
 import { CATEGORY_ICON, FOOTER_LINKS, NAV_MAIN, NAV_ME, type NavItem } from "@/components/layout/nav";
@@ -139,7 +140,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button onClick={menu} aria-label="Menu" className="grid size-10 shrink-0 place-items-center rounded-xl text-white/85 transition hover:bg-white/[0.08] active:scale-95">
             <Menu className="size-6" />
           </button>
-          <Logo size={34} className="mr-1" />
+          <Logo size={34} byline className="mr-1" />
           <button
             onClick={() => setSearch(true)}
             className="mx-auto hidden h-11 w-full max-w-xl items-center gap-3 rounded-full bg-white/[0.07] px-5 text-[15px] font-medium text-white/50 ring-1 ring-white/[0.06] transition hover:bg-white/[0.1] hover:text-white/70 md:flex"
@@ -151,6 +152,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button onClick={() => setSearch(true)} aria-label="Search" className={`${iconBtn} md:hidden`}><Search className="size-5" /></button>
             <button onClick={random} aria-label="Random game" title="Random game" className={`${iconBtn} hidden md:grid`}><Dices className="size-5" /></button>
             <Link href="/saved" aria-label="Saved games" title="Saved games" className={`${iconBtn} hidden md:grid`}><Bookmark className="size-5" /></Link>
+            <BuBirdLink />
             <CoinPill compact />
             <span className="hidden lg:block"><Avatar /></span>
           </div>
@@ -176,7 +178,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               style={{ paddingTop: "var(--safe-top)", paddingBottom: "var(--safe-bottom)" }}
             >
               <div className="flex h-16 items-center gap-2 border-b border-white/[0.06] px-3">
-                <Logo size={34} />
+                <Logo size={34} byline />
                 <button onClick={() => setDrawer(false)} aria-label="Close menu" className="ml-auto grid size-10 place-items-center rounded-full bg-white/[0.07]"><X className="size-5" /></button>
               </div>
               <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">

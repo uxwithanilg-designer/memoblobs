@@ -1,2 +1,5 @@
 # every game now plays on one shared page (/play?g=<slug>); old per-game player links keep working
 /play/:slug /play?g=:slug 301
+# categories were rebuilt so every game sits on one shelf: Action became Runner, Speed became Reflex
+/c/action /c/runner 301
+/c/speed /c/reflex 301

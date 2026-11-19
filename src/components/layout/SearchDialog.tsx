@@ -20,7 +20,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
     const games: Item[] = ALL_PLAYABLE.map((g) => ({
       href: gameHref(g),
       title: g.title,
-      sub: `${g.short} · ${g.categories.map((c) => CATEGORIES.find((x) => x.id === c)?.label).filter(Boolean).join(", ")}`,
+      sub: `${g.short} · ${CATEGORIES.find((x) => x.id === g.category)?.label ?? ""}`,
       img: thumbOf(g),
       thumb: true,
     }));

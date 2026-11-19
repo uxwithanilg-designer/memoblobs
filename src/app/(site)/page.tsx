@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { Flame, Sparkles, Box } from "lucide-react";
+import { Flame, Sparkles, Box, LayoutGrid } from "lucide-react";
 import { GameRow, RowTitle } from "@/components/home/GameRow";
 import { AppCard, ContinueRow, SavedRow } from "@/components/home/HomeClient";
+import { Spotlight } from "@/components/home/Spotlight";
+import { CategoryChips, CategoryTiles } from "@/components/home/CategoryTiles";
 import { GameTile } from "@/components/ui/GameTile";
 import { JsonLd } from "@/components/JsonLd";
 import { CATEGORY_ICON } from "@/components/layout/nav";
 import { CATEGORIES, LIVE_GAMES } from "@/lib/games";
-import { GAMES_3D, NEW_GAMES, TOP_PICKS, categoryHref, inCategory } from "@/lib/catalog";
+import { ALL_PLAYABLE, GAMES_3D, NEW_GAMES, TOP_PICKS, categoryHref, inCategory } from "@/lib/catalog";
 
 const FAQ = [
   { q: "What is MOMOBLOBS?", a: "MOMOBLOBS is a free games website with 3D runners, racing games, action games and quick brain games, starring Momo the orange clay blob and the clay crew from the MOMOBLOBS videos." },
@@ -17,66 +19,68 @@ const FAQ = [
 ];
 
 export default function Home() {
-  const [big1, a, b, c, d, big2] = TOP_PICKS;
+  // the spotlight shows the newest big games; the top-picks grid the rest of the picks
+  const spot = NEW_GAMES.filter((g) => g.engine && g.engine !== "arcade").slice(0, 6);
+  // one feature + 8 cards fills the grid exactly on every width (2, 3 and 4 columns)
+  const picks = [...new Set([...TOP_PICKS, ...ALL_PLAYABLE])].filter((g) => !spot.includes(g)).slice(0, 9);
+  const [feature, ...rest] = picks;
+  // every game sits in exactly one category, so these rows never show the same game twice
+  const catRows = CATEGORIES.map((c) => ({ c, games: inCategory(c.id) })).filter((r) => r.games.length > 0);
   return (
-    <div className="page grid gap-7 sm:gap-9">
+    <div className="page grid grid-cols-1 gap-8 sm:gap-10">
       <JsonLd data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }} />
       <h1 className="sr-only">MOMOBLOBS — free online games</h1>
 
-      {/* top picks mosaic */}
+      <div className="grid min-w-0 grid-cols-1 gap-4">
+        <Spotlight games={spot} />
+        <CategoryChips />
+      </div>
+
+      <ContinueRow />
+
+      {/* top picks: one big feature and a grid of cards */}
       <section>
         <RowTitle title="Top picks today" href="/top" icon={<Flame className="size-5 text-momo" />} />
-        <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
-          <GameTile g={big1} big priority />
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-            {[a, b, c, d].map((g) => <GameTile key={g.slug} g={g} priority />)}
-          </div>
-          <div className="hidden xl:block"><GameTile g={big2} big priority className="h-full" /></div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          <GameTile g={feature} variant="feature" priority className="col-span-2 row-span-2 aspect-[16/11] sm:aspect-auto" />
+          {rest.slice(0, 4).map((g) => <GameTile key={g.slug} g={g} priority />)}
+          {rest.slice(4, 8).map((g) => <GameTile key={g.slug} g={g} className="hidden sm:flex" />)}
         </div>
       </section>
 
-      <ContinueRow />
       <GameRow title="New games" href="/new" games={NEW_GAMES.slice(0, 16)} icon={<Sparkles className="size-5 text-mint" />} />
       <GameRow title="3D games" href="/c/3d" games={GAMES_3D} icon={<Box className="size-5 text-[#9FB8FF]" />} />
       <AppCard />
       <SavedRow />
 
-      {CATEGORIES.map((c) => {
+      {catRows.map(({ c, games }) => {
         const { icon: Icon, color } = CATEGORY_ICON[c.id];
-        return <GameRow key={c.id} title={`${c.label} games`} href={categoryHref(c.id)} games={inCategory(c.id)} icon={<Icon className="size-5" style={{ color }} />} />;
+        return <GameRow key={c.id} title={`${c.label} games`} href={categoryHref(c.id)} games={games} icon={<Icon className="size-5" style={{ color }} />} />;
       })}
 
-      {/* explore by category */}
       <section>
-        <RowTitle title="Explore by category" />
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-          {CATEGORIES.map((c) => {
-            const { icon: Icon, color } = CATEGORY_ICON[c.id];
-            return (
-              <Link key={c.id} href={categoryHref(c.id)} className="group flex items-center gap-3 rounded-xl bg-white/[0.05] p-3 ring-1 ring-white/[0.06] transition hover:bg-white/[0.09] hover:ring-white/15">
-                <span className="grid size-10 place-items-center rounded-lg" style={{ background: `${color}22` }}><Icon className="size-5" style={{ color }} /></span>
-                <span className="min-w-0">
-                  <span className="block font-bold text-white">{c.label}</span>
-                  <span className="block text-xs text-faint">{inCategory(c.id).length} games</span>
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+        <RowTitle title="Explore by category" href="/categories" icon={<LayoutGrid className="size-5 text-sun" />} />
+        <CategoryTiles />
       </section>
 
       {/* about */}
-      <section className="grid gap-6 rounded-2xl bg-white/[0.035] p-5 ring-1 ring-white/[0.06] sm:p-7 lg:grid-cols-[1.2fr_1fr]">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Free online games at MOMOBLOBS</h2>
+      <section className="relative grid gap-6 overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[#1d1240] to-[#120a2a] p-5 ring-1 ring-white/[0.07] sm:p-8 lg:grid-cols-[1.2fr_1fr]">
+        <div className="pointer-events-none absolute -top-24 -left-16 size-72 rounded-full bg-momo/15 blur-3xl" />
+        <div className="relative">
+          <h2 className="font-display text-3xl leading-tight text-white sm:text-4xl">Free online games at <span className="text-sun">MOMOBLOBS</span></h2>
           <div className="mt-3 grid gap-3 text-[15px] leading-relaxed text-muted">
             <p>MOMOBLOBS has {LIVE_GAMES.length} free games you can play instantly in your browser — no download, no sign-up. Run through 300 jungle places in <Link className="text-sun hover:underline" href="/games/kiko-jungle-quest">Kiko&apos;s Jungle Quest</Link>, dash across twelve worlds in <Link className="text-sun hover:underline" href="/games/momo-dash">Momo Dash</Link>, race 30+ cars in <Link className="text-sun hover:underline" href="/games/nitro-rush">Nitro Rush</Link> or lead a giant crowd in <Link className="text-sun hover:underline" href="/games/blob-brigade">Blob Brigade</Link>.</p>
             <p>Every game is made in-house with our own clay characters — Momo, Kranky, Tiki and friends — and works on phones, tablets and computers. Your coins, trophies and saved games stay on your device.</p>
           </div>
+          <div className="mt-5 grid grid-cols-3 gap-2 sm:max-w-md">
+            {[[LIVE_GAMES.length, "games"], [GAMES_3D.length, "in 3D"], ["Free", "to play"]].map(([n, l]) => (
+              <div key={l as string} className="rounded-2xl bg-white/[0.05] px-3 py-3 text-center ring-1 ring-white/[0.06]"><div className="font-display text-2xl text-white">{n}</div><div className="text-xs font-semibold text-faint">{l}</div></div>
+            ))}
+          </div>
         </div>
-        <div className="grid gap-2">
+        <div className="relative grid content-start gap-2">
           {FAQ.map((f) => (
-            <details key={f.q} className="group rounded-xl bg-white/[0.04] px-4 py-3 open:bg-white/[0.07]">
+            <details key={f.q} className="group rounded-2xl bg-white/[0.04] px-4 py-3 ring-1 ring-white/[0.05] open:bg-white/[0.07]">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-white">
                 {f.q}
                 <span className="grid size-6 shrink-0 place-items-center rounded-full bg-white/10 text-sm transition group-open:rotate-45">+</span>

@@ -45,3 +45,8 @@ next-env.d.ts
 
 # local `wrangler dev` state
 .wrangler/
+
+# poster / thumbnail / title-logo pipeline: fonts are fetched by scripts/art/get_fonts.py, renders are scratch
+/scripts/art/fonts/
+/scripts/art/out/
+/scripts/art/__pycache__/

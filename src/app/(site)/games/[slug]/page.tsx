@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ChevronRight, Gamepad2, Keyboard, ListOrdered, MessageCircleQuestion, Play } from "lucide-react";
 import { GameStage } from "@/components/game/GameStage";
 import { GameRow } from "@/components/home/GameRow";
-import { GameTile } from "@/components/ui/GameTile";
+import { GameListItem } from "@/components/ui/GameTile";
 import { JsonLd } from "@/components/JsonLd";
 import { CATEGORY_ICON } from "@/components/layout/nav";
 import { CATEGORIES, CHARACTERS, GAMES, getGame } from "@/lib/games";
-import { categoryHref, inCategory, is3D, playHref, similarTo } from "@/lib/catalog";
+import { categoryHref, inCategory, is3D, playHref, posterOf, similarTo } from "@/lib/catalog";
 import { abs, absAsset } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: PageProps<"/games/[slug]">): 
   const g = getGame(slug);
   if (!g) return {};
   const live = g.status === "live";
-  const cat = CATEGORIES.find((c) => c.id === g.categories[0])?.label ?? "Online";
+  const cat = CATEGORIES.find((c) => c.id === g.category)?.label ?? "Online";
   const title = !live ? `${g.title} — Coming Soon` : `${g.title} — Play Free Online ${cat} Game`;
   const og = live ? absAsset(`/games/${g.slug}/og.jpg`) : "/og.jpg";
   return {
@@ -44,7 +45,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
   if (!g) notFound();
   const live = g.status === "live";
   const next = similarTo(g, 14);
-  const main = CATEGORIES.find((c) => c.id === g.categories[0])!;
+  const main = CATEGORIES.find((c) => c.id === g.category)!;
   const released = g.released ? new Date(`${g.released}T12:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "2026";
 
   const ld = live && {
@@ -56,8 +57,8 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
         name: g.title,
         url: abs(`/games/${g.slug}`),
         description: g.description,
-        image: [absAsset(g.hero), absAsset(`/games/${g.slug}/og.jpg`)],
-        genre: g.categories.map((c) => CATEGORIES.find((x) => x.id === c)?.label ?? c),
+        image: [absAsset(g.hero), absAsset(posterOf(g)), absAsset(`/games/${g.slug}/og.jpg`)],
+        genre: [main.label],
         gamePlatform: ["Web browser", "iOS", "Android", "Windows", "macOS"],
         applicationCategory: "GameApplication",
         operatingSystem: "Any (web browser)",
@@ -95,18 +96,16 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
   return (
     <div className="page">
       {ld && <JsonLd data={ld} />}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="grid min-w-0 content-start gap-5">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid min-w-0 grid-cols-1 content-start gap-5">
           {live ? <GameStage slug={g.slug} /> : (
             <div className="grid aspect-video place-items-center rounded-2xl bg-[#140b2c] text-center ring-1 ring-white/[0.07]">
               <div><p className="text-2xl font-bold">{g.title}</p><p className="mt-1 text-muted">Coming soon</p></div>
             </div>
           )}
 
-          <div className="xl:hidden"><GameRow title="Play next" games={next} /></div>
-
           {/* about the game */}
-          <article className="rounded-2xl bg-[#140b2c] p-5 ring-1 ring-white/[0.07] sm:p-7">
+          <article className="rounded-[1.5rem] bg-[#140b2c] p-5 ring-1 ring-white/[0.07] sm:p-7">
             <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm font-medium text-faint">
               <Link href="/games" className="hover:text-white">Games</Link>
               <ChevronRight className="size-3.5" />
@@ -136,20 +135,30 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
             </dl>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {g.categories.map((c) => {
-                const cat = CATEGORIES.find((x) => x.id === c)!;
-                const { icon: Icon, color } = CATEGORY_ICON[c];
+              {(() => {
+                const { icon: Icon, color } = CATEGORY_ICON[g.category];
                 return (
-                  <Link key={c} href={categoryHref(c)} className="flex items-center gap-1.5 rounded-full bg-white/[0.07] px-3.5 py-1.5 text-sm font-semibold text-white/85 ring-1 ring-white/[0.06] hover:bg-white/[0.12] hover:text-white">
-                    <Icon className="size-4" style={{ color }} /> {cat.label} <span className="text-faint">{inCategory(c).length}</span>
+                  <Link href={categoryHref(g.category)} className="flex items-center gap-1.5 rounded-full bg-white/[0.07] px-3.5 py-1.5 text-sm font-semibold text-white/85 ring-1 ring-white/[0.06] hover:bg-white/[0.12] hover:text-white">
+                    <Icon className="size-4" style={{ color }} /> {main.label} games <span className="text-faint">{inCategory(g.category).length}</span>
                   </Link>
                 );
-              })}
+              })()}
               {is3D(g) && <Link href="/c/3d" className="rounded-full bg-[#6d4aff]/25 px-3.5 py-1.5 text-sm font-semibold text-[#c9bcff] ring-1 ring-[#6d4aff]/40 hover:bg-[#6d4aff]/35">3D</Link>}
             </div>
 
-            <H2 icon={<Gamepad2 className="size-5 text-sun" />}>About {g.title}</H2>
-            <p className="max-w-4xl text-[15.5px] leading-relaxed text-muted">{g.description}</p>
+            <div className="grid grid-cols-1 gap-x-7 md:grid-cols-[minmax(0,1fr)_230px] lg:grid-cols-[minmax(0,1fr)_260px]">
+              <div className="min-w-0">
+                <H2 icon={<Gamepad2 className="size-5 text-sun" />}>About {g.title}</H2>
+                <p className="max-w-4xl text-[15.5px] leading-relaxed text-muted">{g.description}</p>
+              </div>
+              {live && (
+                <figure className="mx-auto mt-6 w-full max-w-[300px] md:mt-8">
+                  <Image src={posterOf(g)} alt={`${g.title} poster`} width={1000} height={1500} sizes="(max-width: 768px) 300px, 260px"
+                    className="h-auto w-full rounded-2xl shadow-[0_24px_50px_-20px_rgb(0_0_0/0.8)] ring-1 ring-white/10" />
+                  <figcaption className="mt-2 text-center text-xs font-semibold text-faint">Official {g.title} poster</figcaption>
+                </figure>
+              )}
+            </div>
 
             <H2 icon={<ListOrdered className="size-5 text-mint" />}>How to play</H2>
             <ol className="grid gap-3 sm:grid-cols-2">
@@ -203,18 +212,23 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
               </>
             )}
           </article>
+
+          {/* phones and tablets: play next comes after the game's details */}
+          <div className="xl:hidden"><GameRow title="Play next" games={next} /></div>
         </div>
 
         {/* play next */}
         <aside className="hidden xl:block">
-          <h2 className="mb-2.5 text-lg font-bold text-white">Play next</h2>
-          <div className="grid grid-cols-2 gap-2.5">
-            {next.map((x) => <GameTile key={x.slug} g={x} sizes="150px" />)}
+          <div className="sticky top-20 rounded-[1.5rem] bg-[#140b2c] p-3 ring-1 ring-white/[0.07]">
+            <h2 className="mb-1.5 px-2 pt-1 text-lg font-bold text-white">Play next</h2>
+            <div className="grid gap-0.5">
+              {next.slice(0, 10).map((x) => <GameListItem key={x.slug} g={x} />)}
+            </div>
           </div>
         </aside>
       </div>
 
-      <div className="mt-8 grid gap-8">
+      <div className="mt-8 grid grid-cols-1 gap-8">
         <GameRow title={`More ${main.label.toLowerCase()} games`} href={categoryHref(main.id)} games={inCategory(main.id).filter((x) => x.slug !== g.slug)} />
       </div>
     </div>

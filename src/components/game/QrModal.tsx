@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import qrcode from "qrcode-generator";
 import { Check, Copy, Smartphone, X } from "lucide-react";
-import { MomoMark } from "@/components/brand/Logo";
+import { AppIcon } from "@/components/brand/Logo";
 import type { Game } from "@/lib/games";
 import { playHref, thumbOf } from "@/lib/catalog";
 
@@ -72,7 +72,7 @@ export function QrModal({ game, open, onClose }: { game: Game; open: boolean; on
                   <path d={qr.d} fill="#140b2e" />
                 </svg>
                 <span className="absolute top-1/2 left-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-xl bg-white p-1" style={{ width: `${(logo / qr.size) * 100 + 6}%`, aspectRatio: "1" }}>
-                  <MomoMark size={44} className="h-full w-full" />
+                  <AppIcon size={44} className="h-full w-full" />
                 </span>
               </div>
               <div className="mt-5 flex w-full items-center gap-2 rounded-xl bg-white/[0.06] p-1.5 pl-3 ring-1 ring-white/10">

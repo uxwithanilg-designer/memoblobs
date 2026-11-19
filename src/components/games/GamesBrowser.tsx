@@ -10,7 +10,8 @@ import { GameGrid } from "@/components/home/GameRow";
 export function GamesBrowser() {
   const sp = useSearchParams();
   const router = useRouter();
-  const cat = (sp.get("category") as Category | null) ?? null;
+  const raw = sp.get("category");
+  const cat = CATEGORIES.some((c) => c.id === raw) ? (raw as Category) : null;
   const q = sp.get("q") ?? "";
   const sort = sp.get("sort") ?? "top";
 
@@ -23,7 +24,7 @@ export function GamesBrowser() {
   const list = useMemo(() => {
     const base = sort === "new" ? NEW_GAMES : sort === "az" ? [...ALL_PLAYABLE].sort((a, b) => a.title.localeCompare(b.title)) : ALL_PLAYABLE;
     const s = q.trim().toLowerCase();
-    return base.filter((g) => (!cat || g.categories.includes(cat)) && (!s || `${g.title} ${g.short} ${g.tagline}`.toLowerCase().includes(s)));
+    return base.filter((g) => (!cat || g.category === cat) && (!s || `${g.title} ${g.short} ${g.tagline}`.toLowerCase().includes(s)));
   }, [cat, q, sort]);
 
   return (

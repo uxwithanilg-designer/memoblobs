@@ -2,18 +2,19 @@
 // menu, search, sitemap and JSON-LD entry picks it up.
 
 export type GameStatus = "live" | "soon";
-export type Category = "action" | "adventure" | "racing" | "brain" | "focus" | "memory" | "speed" | "puzzle" | "numbers";
+export type Category = "runner" | "adventure" | "racing" | "puzzle" | "brain" | "memory" | "focus" | "reflex" | "numbers";
 
+/** the shelves, in menu order — built from the games we have; each game sits on exactly one of them */
 export const CATEGORIES: { id: Category; label: string; emoji: string; blurb: string }[] = [
-  { id: "action", label: "Action", emoji: "💥", blurb: "Fast 3D action: crowds, runs and jumps." },
-  { id: "adventure", label: "Adventure", emoji: "🗺️", blurb: "Run, swing and bounce through big 3D worlds." },
-  { id: "racing", label: "Racing", emoji: "🏎️", blurb: "Big 3D races, nitro and 30+ cars." },
-  { id: "focus", label: "Focus", emoji: "🎯", blurb: "Keep your eyes on the prize." },
-  { id: "brain", label: "Brain", emoji: "🧠", blurb: "Think fast, think smart." },
-  { id: "memory", label: "Memory", emoji: "🧩", blurb: "Remember the pattern." },
-  { id: "speed", label: "Speed", emoji: "⚡", blurb: "Quick hands, quick eyes." },
-  { id: "numbers", label: "Numbers", emoji: "🔢", blurb: "Count it up." },
-  { id: "puzzle", label: "Puzzle", emoji: "🚪", blurb: "Pick the right path." },
+  { id: "runner", label: "Runner", emoji: "🏃", blurb: "Endless 3D runs: swipe, dodge, roll and dash as fast as you can." },
+  { id: "adventure", label: "Adventure", emoji: "🗺️", blurb: "Big 3D worlds to climb, bounce, blast and march through, stage after stage." },
+  { id: "racing", label: "Racing", emoji: "🏎️", blurb: "3D car, drift, highway and motorbike races with nitro and 30+ rides." },
+  { id: "puzzle", label: "Puzzle", emoji: "🧩", blurb: "Slide, squish, connect and solve — puzzles that make you plan ahead." },
+  { id: "brain", label: "Brain", emoji: "🧠", blurb: "Logic, patterns and odd-one-out teasers that make you think." },
+  { id: "memory", label: "Memory", emoji: "💡", blurb: "Watch, remember and repeat — sequences, pairs and orders." },
+  { id: "focus", label: "Focus", emoji: "🎯", blurb: "Keep your eyes sharp: spot, track and find what changed." },
+  { id: "reflex", label: "Reflex", emoji: "⚡", blurb: "Quick taps and quick eyes — catch, bonk and react in time." },
+  { id: "numbers", label: "Numbers", emoji: "🔢", blurb: "Count, add and compare against the clock." },
 ];
 
 export interface GameMode { id: string; label: string; cups?: number; color: string; desc: string; coins: number }
@@ -25,7 +26,8 @@ export interface Game {
   tagline: string;
   description: string;
   status: GameStatus;
-  categories: Category[];
+  /** the one shelf this game sits on (every game is in exactly one category) */
+  category: Category;
   ages: string;
   accent: string;
   accent2: string;
@@ -56,12 +58,12 @@ export const GAMES: Game[] = [
     description:
       "Momo Shuffle is a free claymation cup game (the classic shell game) starring Momo, Kranky the crab and Tiki the bird. Momo hops under a cup, Kranky shuffles the cups faster and faster, and you tap the cup you think Momo is hiding under. Every correct answer earns coins, levels never end, and twists like Zigzag, Fake-Out, Triple Spin and Lights Off keep every round fresh. Play Easy with 3 cups, Medium with 4 cups or Hard with 6 cups.",
     status: "live",
-    categories: ["focus", "brain", "speed"],
+    category: "focus",
     ages: "4+",
     accent: "#8E6CE0",
     accent2: "#FF8A3D",
     cover: "/games/momo-shuffle/cover-1.webp",
-    hero: "/games/momo-shuffle/hero.webp",
+    hero: "/games/momo-shuffle/cover.webp",
     character: "/brand/momo-cheer.webp",
     shots: [
       "/games/momo-shuffle/shot-main-stage.webp",
@@ -106,12 +108,12 @@ export const GAMES: Game[] = [
     description:
       "Momo Sky Roll is a free 3D rolling-ball music game. Momo curls up into a clay ball and rolls along floating paths in the sky while the music plays. Drag left and right to steer, fly off jump pads, zoom over boost arrows and dodge mallets, spinners, lasers, crushers and rolling barrels that all move to the beat. It is one endless run: Clay Garden, Candy Kitchen, Ice Floe, Neon Night, Space Port, Volcano Forge and 14 more worlds flow straight into each other, then 217 game concepts keep mixing into brand-new track forever. The music speeds up to 1.5× and 2× in rushes and calms down again, rocket boosters give 30 seconds of turbo, gold coins line the road, hearts give extra lives and grumpy spike balls take them away. Every world has its own music style, from clay pop and synthwave to Bollywood-style dance, tabla fusion and phonk. Spend coins on 11 rollers, fill your Concept Dex, and play Daily Fusion, Boss Rush or build your own level in the Concept Lab.",
     status: "live",
-    categories: ["action", "speed", "focus"],
+    category: "runner",
     ages: "5+",
     accent: "#FF8A3D",
     accent2: "#45B8FF",
     cover: "/games/sky-roll/card.webp",
-    hero: "/games/sky-roll/hero.webp",
+    hero: "/games/sky-roll/cover.webp",
     character: "/brand/momo-wave.webp",
     shots: ["/games/sky-roll/shot-candy.webp", "/games/sky-roll/shot-neon.webp"],
     modes: [
@@ -154,12 +156,12 @@ export const GAMES: Game[] = [
     description:
       "Momo Escape is a free 3D swipe escape game. Kranky has locked Momo inside his buildings, and every floor is a room full of traps. Momo only moves when you say so: swipe up, down, left or right (or tap where to go) and he dashes that way until he sticks to the next wall. Pick your moment, dodge lasers, spikes, crushers, turrets, saws and grumpy spike balls, grab the coins and the three diamonds, and slip through the EXIT hatch into the next floor — the climb never stops. 24 buildings (Toy Factory, Candy Lab, Ice Vault, Neon Arcade, Space Station, Haunted Mansion, Film Studio, Cricket Stadium and more) each bring new tricks, their own colours and their own music, with a finale at the top. After floor 240 the 212 game concepts keep fusing into brand-new named mixes forever. Hearts, boosters, speed rushes, Daily Heist, Speed Series and your own Room Lab — every room is checked by a solver so it can always be escaped.",
     status: "live",
-    categories: ["action", "puzzle", "speed"],
+    category: "runner",
     ages: "5+",
     accent: "#FF3D6E",
     accent2: "#2FB8FF",
     cover: "/games/momo-escape/card.webp",
-    hero: "/games/momo-escape/hero.webp",
+    hero: "/games/momo-escape/cover.webp",
     character: "/brand/momo-cheer.webp",
     shots: ["/games/momo-escape/shot-robot.webp", "/games/momo-escape/shot-neon.webp"],
     modes: [
@@ -202,12 +204,12 @@ export const GAMES: Game[] = [
     description:
       "Rollo Rush is a free 3D speed-running game made for phones, with a story. It opens with a fully voiced cinematic: Rollo and his little brother Chintu are playing catch with a glowing pearl on a moonlit beach when Mayamma the Sky Witch — a spooky floating ghost-witch in a white saree — swoops out of the moon, snatches Chintu and dares Rollo to follow her. So he runs! Every second stage she bursts back out of the sky with a laugh, the music turns dark, and she hurls her magic at him — fire bombs, ice spears, poison puddles, thunder rings, shadow curtains, halo traps and more: 220 different magics from 11 elements, all written into her spellbook as you dodge them. Every stage has its own big obstacle too: logs that pop up from below, logs and boulders that fall from above, giant hammers, swinging logs, rolling wheels, geysers, crushers, snowballs and more. Rollo, an athletic armoured pangolin in mint high-tops and a coral scarf, sprints by himself down one endless road — drag anywhere to steer, swipe up to hop, swipe down to curl into his glowing Curl Ball, and tap for a Burst of speed. There are no stage menus and no stops: each stretch of road joins straight onto the next, through 25 worlds — Moonlit Bay, Sunrise Meadows, Coral Coast, Candy Canyon, Bamboo Breeze, Crystal Caves, Neon Night City, Snow Peak, Sky Islands, Volcano Run, Jungle Ruins, Mirage Dunes, Toy Factory, Starlight Carnival, Deep Sea Tubes, Autumn Woods, Thunder Plains, Glow Shroom Forest, Clockwork Tower, Rainbow Highway, Haunted Moors, Orbit Ring, Cyber Grid, Blossom Peaks and Kranky's Sky Fortress. Grab Spark Pearls, hop pits and hurdles, curl under bars, grind rails, bounce on springs and cannons, hop across lily pads and floating islands, outrun boulders, waves and avalanches, race ghosts and rivals, ground-pound switches, Star Hop between targets and beat 25 Kranky boss machines. Every stretch brings one new idea — 500 of them — and the road keeps getting faster and busier; then the Remix Run mixes everything into new stretches forever, never the same mix twice. A cinematic camera swings round the loops, the music changes as you go, and every pearl chimes in the song's key. Pick up gold coins, power orbs and hearts — hearts are saved lives that keep you running. Beside the journey there are five modes: the Endless Moon Run, a Daily Sprint that is the same for everybody, Time Trials against your own ghost, a Boss Rush and a Trick Park. Fill the Concept Dex and Mayamma's spellbook, and dress Rollo in Rollo's Locker (armour, scarf, sneakers, trail and Curl Ball colours, just for looks). Every stretch is played by a fair-play robot runner with human reaction times before you see it, so there is always a way through.",
     status: "live",
-    categories: ["adventure", "action", "speed"],
+    category: "runner",
     ages: "5+",
     accent: "#2EC4B6",
     accent2: "#2B3C8F",
     cover: "/games/rollo-rush/card.webp",
-    hero: "/games/rollo-rush/hero.webp",
+    hero: "/games/rollo-rush/cover.webp",
     character: "/brand/momo-cheer.webp",
     shots: ["/games/rollo-rush/shot-witch.webp", "/games/rollo-rush/shot-bay.webp", "/games/rollo-rush/shot-loop.webp", "/games/rollo-rush/shot-meadow.webp"],
     modes: [
@@ -254,12 +256,12 @@ export const GAMES: Game[] = [
     description:
       "Momo Jelly Jam is a free 3D jelly block puzzle. Every stage is a toy tray full of wobbly, glossy jelly pieces with little faces. Drag a piece with your finger: it slides through the free cells and drops where you let go. Push same-colour pieces together so they make a perfect rectangle and they squish into one big block — then slide that block to the gate of its colour that is exactly the same size, and it pops out. Clear the tray and the next stage begins straight away, with no menus in between; close the game and it carries on from the exact same board next time. A new idea arrives every few stages — 400 of them across 1,200 stages in 20 themed worlds, from the Jelly Kitchen and the Candy Factory to the Robot Lab, the Haunted Pantry, the Neon Arcade and Kranky’s Jelly Fortress, each with its own 3D table, props and music: turn and flip pads, belts, ice and mud, teleports, switches and laser doors, keys and locked gates, crates, pits and bridges, floor drains and packing boxes, stone, gold, rainbow, heavy, ghost and bubble jellies, paint and colour mixing, gravity, wind and magnets, wrap-around trays, fog, move limits, clocks, exit orders and a boss from Kranky at the end of every world. Trays grow bigger and trickier world after world, and every grab, squish and pop is a soft, satisfying sound tuned to the stage’s own music, over a little ambience for each world. After that the Fusion Jam mixes all 400 ideas into brand-new named puzzles forever. There is a Daily Jam, a Kranky Weekly, a 3-minute Rush, a calm Zen mode, Puzzle Packs, a Jam Lab where you mix your own stage, a Concept Dex, a Jelly Shop and 13 helpers earned with stars. Every stage is built backwards from its solution and checked, so there is always a way out — with Undo, Restart and Hints when you get stuck.",
     status: "live",
-    categories: ["puzzle", "brain", "focus"],
+    category: "puzzle",
     ages: "5+",
     accent: "#FF4FB4",
     accent2: "#8E5BFF",
     cover: "/games/momo-jelly-jam/card.webp",
-    hero: "/games/momo-jelly-jam/hero.webp",
+    hero: "/games/momo-jelly-jam/cover.webp",
     character: "/brand/momo-cheer.webp",
     shots: [
       "/games/momo-jelly-jam/shot-kitchen.webp", "/games/momo-jelly-jam/shot-candy.webp", "/games/momo-jelly-jam/shot-space.webp",
@@ -307,12 +309,12 @@ export const GAMES: Game[] = [
     description:
       "Nitro Rush is a free 3D car racing game in your browser. Race Kranky, Turbo, Zib and the whole MOMOBLOBS gang across 29 huge themed worlds — sunny circuits, neon cities, snowy Alps, deserts, volcanoes, the Moon and more. Drift to charge your nitro, slipstream rivals, smash them with takedowns and grab coins in Coin Rush. Win career stars to unlock 34 cars and trucks — from a go-kart to a monster truck and an F1 car — upgrade them in the garage and paint them your colour.",
     status: "live",
-    categories: ["racing", "speed"],
+    category: "racing",
     ages: "6+",
     accent: "#FF5A1F",
     accent2: "#2E86FF",
     cover: "/games/nitro-rush/card.webp",
-    hero: "/games/nitro-rush/hero.webp",
+    hero: "/games/nitro-rush/cover.webp",
     character: "/brand/chars/turbo-happy.webp",
     shots: [],
     modes: [
@@ -354,12 +356,12 @@ export const GAMES: Game[] = [
     description:
       "Drift Kings is a free 3D drifting and rally game in your browser. Hold DRIFT and steer to slide through the bends: the longer and wilder the slide, the bigger the multiplier — up to ×5. Link slides into huge chains, but hit a wall and the chain breaks! Chase a rival in tandem Drift Battles, race rally stages on dirt, sand and snow while your co-driver calls every bend, and grab coins in Coin Rush. 27 venues — mountain touge passes, a harbour at night, neon highways, desert and snow rally stages, the Moon and a rainbow road final — and 33 drift and rally cars to unlock, from a kei car and a drift kart to a monster truck and the golden Drift King.",
     status: "live",
-    categories: ["racing", "speed"],
+    category: "racing",
     ages: "6+",
     accent: "#FF4FD8",
     accent2: "#6D28D9",
     cover: "/games/drift-kings/card.webp",
-    hero: "/games/drift-kings/hero.webp",
+    hero: "/games/drift-kings/cover.webp",
     character: "/brand/kranky.webp",
     shots: [],
     modes: [
@@ -401,12 +403,12 @@ export const GAMES: Game[] = [
     description:
       "Highway Heat is a free 3D highway racing game in your browser. Weave through busy traffic — cars, vans, buses and big rigs — at full speed: every near miss builds your combo. The longer you run, the hotter it gets: police cars chase you, ram you and set up roadblocks and spike strips. Escape to the finish before you're BUSTED, or switch sides in Takedown and ram the speeding suspects until they pull over. 27 highways — a sunny interstate, Coast Highway 1, a neon freeway at night, desert interstates, a harbour bridge, a snowy autobahn, the Moon and a rainbow skyway — and 32 cars to unlock, from a hot taxi and a delivery van to police interceptors, a big rig and the golden Heat King.",
     status: "live",
-    categories: ["racing", "speed"],
+    category: "racing",
     ages: "6+",
     accent: "#FF7A1A",
     accent2: "#0B6E4F",
     cover: "/games/highway-heat/card.webp",
-    hero: "/games/highway-heat/hero.webp",
+    hero: "/games/highway-heat/cover.webp",
     character: "/brand/chars/bolt-happy.webp",
     shots: [],
     modes: [
@@ -448,12 +450,12 @@ export const GAMES: Game[] = [
     description:
       "Moto Rush GP is a free 3D motorbike racing game in your browser. Lean your bike deep into the corners — your rider hangs off the side — tuck in behind rivals to slipstream, and hit the nitro out of the last bend. Hold WHEELIE on the straights to lift the front wheel, charge your nitro and score big in the Wheelie Challenge. Qualify, race full Grand Prix grids and beat each circuit's champion in a Title Duel across 27 circuits — from a sunny raceway and a neon night street circuit to snowy Alps, Mars and a rainbow Grand Prix in the sky. Unlock 32 bikes: sport bikes, naked bikes, supermotos, scooters, cruisers, café racers, choppers and electric superbikes.",
     status: "live",
-    categories: ["racing", "speed"],
+    category: "racing",
     ages: "6+",
     accent: "#E10600",
     accent2: "#FFD400",
     cover: "/games/moto-rush/card.webp",
-    hero: "/games/moto-rush/hero.webp",
+    hero: "/games/moto-rush/cover.webp",
     character: "/brand/chars/zib-happy.webp",
     shots: [],
     modes: [
@@ -495,12 +497,12 @@ export const GAMES: Game[] = [
     description:
       "Blob Brigade is a free 3D crowd game. You start with one little Momo blob. Walk onto the +1 tiles to grow your brigade, pick the best math gate (+10 or ×2?), break the bonus jar for a jackpot — and bubble Kranky's grumpy march back to happy before it reaches you. Every 10 blobs merge into a Big Blob, and Big Blobs merge into Giants. Every stage ends with a villain who throws goo, calls lightning or drops Grumpies from the sky, so keep moving! Play 100 fast stages across 10 worlds — Garden Path, Candy Kitchen, slippery Snowy Peaks, the Toy Room, Beach Day, Spooky Night, Jungle Ruins, Lava Land, the Space Station and Kranky's Castle — each with its own twist and boss, from the Snow Grump Giant and Robo Grump to the UFO Mothership and King Kranky's giant mech. Pick one of 11 leaders, each with a special POWER, spend coins on upgrades and dress your brigade in hats. After stage 100 the Remix Loop goes on forever in gold, rainbow and galaxy colours — plus a new Daily Challenge every day, Boss Rush against all 15 villains, and Endless Waves.",
     status: "live",
-    categories: ["action", "speed", "numbers"],
+    category: "adventure",
     ages: "6+",
     accent: "#FF8A3D",
     accent2: "#3D8BFF",
     cover: "/games/blob-brigade/card.webp",
-    hero: "/games/blob-brigade/hero.webp",
+    hero: "/games/blob-brigade/cover.webp",
     character: "/brand/momo-cheer.webp",
     shots: [],
     modes: [
@@ -543,12 +545,12 @@ export const GAMES: Game[] = [
     description:
       "Momo Boing! is a free 3D bouncing game. Momo bounces by himself — drag left and right to land him on the next clay platform and climb up through the sky. Tap just as Momo lands for a PERFECT BOING: he jumps higher and every bounce plays the next note of the song, so the music is made by you. Chain five Perfect Boings in a row to fire Momo up as a blazing Comet! Pop friend bubbles and the whole MOMOBLOBS gang — Pip, Zib, Bolt, Gloop, Bonbon, Prof. Hoot, Turbo, Noodle, Tiki and Kranky — stacks up on Momo's head as a wobbly tower: each friend saves Momo once and lends a power, from slowing Grumpies to cake bombs. Keep climbing, because the Grumpy Goo rises from below! Stages come one by one through 10 sky worlds and 100 stages — leaf springs in Garden Sky, bubblegum in Candy Clouds, slippery ice in Snow Peaks, trampolines and toy cannons in the Toy Tower, rolling beach balls and water spouts at the Beach, ghost platforms in Spooky Night, vines in the Jungle, lava vents and bubbles in the Lava Sky, low-gravity planets in Space and drawbridges at the Cloud Castle — with a villain at the top of every chapter. After stage 100 the climb never ends: every new stage mixes two worlds, with sunset, night and aurora skies, snow, fireflies or sprinkles, and twists like windy or low-gravity climbs — and it keeps getting a little harder. Land on Safe Clouds to pick power cards like Double Boing and Bubble Shield, race the ghost of your best try, play a new Daily Sky every day, try the Endless Climb, and dress Momo up with hats and trails in the Wardrobe.",
     status: "live",
-    categories: ["adventure", "action", "speed"],
+    category: "adventure",
     ages: "5+",
     accent: "#FF8A3D",
     accent2: "#FF5FA2",
     cover: "/games/momo-boing/card.webp",
-    hero: "/games/momo-boing/hero.webp",
+    hero: "/games/momo-boing/cover.webp",
     character: "/brand/momo-cheer.webp",
     shots: [],
     modes: [
@@ -593,12 +595,12 @@ export const GAMES: Game[] = [
     description:
       "Momo Dash! is a free 3D running game. Momo runs by itself down a three-lane track — swipe left and right to change lanes, swipe up to jump over fences, karts and gaps, and swipe down to squish under bars. Every run starts on Sunset Pier and keeps going, world after world, without stopping: Candy Town with its jelly trams, Jungle Ruins with gaps and rolling boulders, the icy Snowy Village, the Toy Factory with conveyor belts, the Spooky Fair with blinking ghost blocks and portals, Canyon Mines with rails to grind, Neon City traffic, Lava Works geysers, windy Sky Islands, floaty Space Port and the Grumpy Castle — and after that the worlds mix together forever. The speed climbs in waves, so it keeps getting harder. Grab a Booster for a burst of star power — ×3 speed for 6 seconds, or ×5 for 9 seconds with the golden one — while Momo flashes rainbow colours, step through Morph Gates to roll as a ball, split into three, grow into a giant or stretch tall, and pick the Coin Lane or the Star Lane at portals. Coins in a line play a song, tricks build a combo, friends join a conga line behind Momo and each saves one crash, and double-tap rides a Jelly Board. Finish missions to raise your score multiplier, try the Daily Dash, and spend coins in the shop on runners, hats, trails, boards and power-up upgrades.",
     status: "live",
-    categories: ["adventure", "action", "speed"],
+    category: "runner",
     ages: "5+",
     accent: "#FF8A3D",
     accent2: "#7B5CFF",
     cover: "/games/momo-dash/card.webp",
-    hero: "/games/momo-dash/hero.webp",
+    hero: "/games/momo-dash/cover.webp",
     character: "/brand/momo-cheer.webp",
     shots: [],
     modes: [
@@ -643,12 +645,12 @@ export const GAMES: Game[] = [
     description:
       "Kiko's Jungle Quest is a free 3D jungle running game. Kiko is a cheeky little monkey who sets off to win back the 15 Golden Seeds that grumpy Baron Bramble stole from the Great Fruit Tree. Kiko runs by himself down a three-lane forest path — swipe left and right to change lanes, swipe up to jump over logs, thorny bushes and poison mushrooms, swipe down to slide under low branches and spider webs, and tap to grab a vine or a zipline handle. Every run starts at Kiko's Treehouse and flows place after place through 15 regions and 300 named places: Banana Grove, Mango River, Bamboo Valley, Waterfall Cliffs, Mushroom Hollow, Monsoon Marsh, Canopy Heights, Firefly Night Woods, Blossom Hills, Crystal Caves, Autumn Maple Woods, Elephant Plains, Misty Mangroves, Snowpine Peaks and Volcano Jungle — then, after Kiko plants all 15 Golden Seeds and the Great Fruit Tree blooms in a fruit-rain finale, the Wild Forest grows brand-new places every day — two regions blended, a season, and twists like night runs, fog, turbo places, fruit rain and gold rushes. Each region has its own look, music, weather (rain, thunderstorms, snow, falling petals, wind, volcano ash) and hazards: sticky mud, slippery ice, steam geysers, gusts of wind, lava with stepping stones, collapsing bridges, waterslides, ziplines and kites. Kiko can ride animal friends for a few seconds — Shelly the Turtle, Rolo the Red Panda, the Frog Taxi, Ellie the Elephant, the Pelican Lift, a Snow Sled, a Dragonfruit Dino and more — and bees, bats, a stampede, an avalanche or a giant boulder sometimes chase him. At the end of every region a funny boss (the Croc King, the Bamboo Bandit, the Queen Bee, the Yeti Grump…) runs off with a Golden Seed and throws things back: hit three banana pads to catch them. Kiko has hearts: a bump or a fall costs one and sends him back to the last banana flag, and he can carry more hearts the further he goes. Fruits fill the smoothie cup for a Smoothie Rush, pepper rockets are boosters (×3 for 6 seconds, golden ×5 for 9 seconds) and Pico the toucan gives hints and carries Kiko on a glide. Every place and every animal becomes a sticker in the Sticker Album, Golden Seeds grow around Kiko's Treehouse, and coins decorate the treehouse. In the 3D Wardrobe you dress Kiko in fur colours, hats, tail bows and trails — or run as Momo, the MOMOBLOBS guest runner. Missions raise your score multiplier and the Daily Jungle Hunt starts somewhere new every day with a fruit to collect.",
     status: "live",
-    categories: ["adventure", "action", "speed"],
+    category: "runner",
     ages: "5+",
     accent: "#FFC23D",
     accent2: "#2FB86B",
     cover: "/games/kiko-jungle-quest/card.webp",
-    hero: "/games/kiko-jungle-quest/hero.webp",
+    hero: "/games/kiko-jungle-quest/cover.webp",
     character: "/games/kiko-jungle-quest/kiko.webp",
     shots: [],
     modes: [
@@ -698,12 +700,12 @@ export const GAMES: Game[] = [
     description:
       "Puddo's Clayland: Rain Raid is a free 3D run-and-gun platform adventure. Kranky the crab stole the 20 Rain Bells and built the Dust Engine, which drinks the rain and bakes the Dust Army — grey, cracked clay soldiers. Puddo, a little sprite of rain-soaked clay, fights back with his Rain Blaster: hold fire to soak Dusties back into mud and grab the coins they drop, throw Storm Bombs at shields, heavies and Dust Hives, and fill the Storm meter for a screen-clearing Super Rain. Every stage is its own idea — frontline pushes, ambush gates, rooftops, collapsing bridges, tower climbs, shaft dives, mine carts, raft rivers, rescues, pump raids, holding the well, key hunts, coin vaults and arenas — across 20 zones and 400 stages, with a general's war machine and a boss in every zone. Then the Endless Storm mixes it all forever.",
     status: "live",
-    categories: ["adventure", "action"],
+    category: "adventure",
     ages: "7+",
     accent: "#3DA8FF",
     accent2: "#FFC21A",
     cover: "/games/puddo-clayland/card.webp",
-    hero: "/games/puddo-clayland/hero.webp",
+    hero: "/games/puddo-clayland/cover.webp",
     character: "/games/puddo-clayland/puddo.webp",
     shots: [],
     modes: [
@@ -749,12 +751,12 @@ export const GAMES: Game[] = [
     description:
       "Slurp Lab is a free 3D brain puzzle. Gloop's little jelly cousins, the Gloopies, escaped all over Prof. Hoot's lab, and his glowing glass Slurpers must collect them. Drag a Slurper over Gloopies of its own colour and it slurps them up; its number shows how many it still drinks, and at zero it pops. Gloopies of other colours block the way, so the order you clear them in is the whole puzzle. Thirty labs bring new ideas — ice, goo, locks, bubbles, rainbows, portals, crates, bombs, mirrors, fuses and more — across 600 stages, then the Endless Lab keeps making fresh trays on your device. Every stage is built from a planned solution and checked, so every tray can be cleared — and the fewest moves earns 3 stars.",
     status: "live",
-    categories: ["puzzle", "brain"],
+    category: "puzzle",
     ages: "7+",
     accent: "#5C7CFA",
     accent2: "#FFD23F",
     cover: "/games/slurp-lab/card.webp",
-    hero: "/games/slurp-lab/hero.webp",
+    hero: "/games/slurp-lab/cover.webp",
     character: "/brand/chars/hoot-happy.webp",
     shots: [],
     modes: [
@@ -799,12 +801,12 @@ export const GAMES: Game[] = [
     description:
       "Tondu's Vine Climb is a free 3D climbing game. Tondu is a garden lizard, and Kaaki the crow has stolen the garden's glowing Sun Seeds and flown them to the top of the Great Banyan. Tondu climbs after him up winding vines: tap to flip round the vine away from the thorns, snap bugs as you pass, hold to cling and wait for thistle buds to close, and leap the gaps when the rings glow. A thorn costs Tondu his tail — just like a real lizard, it drops off and grows back after enough bugs. Thirty green worlds bring new ideas — falling mangoes, bamboo rushes, forks, lotus hops, rolling burrs, spiral trunks, waterfalls, camouflage, growing vines, crow chases and races against Zeeza — across 600 stages that flow one into the next with no stop, each world ending with a guardian to climb past. After stage 600 the Wild Canopy mixes everything, forever.",
     status: "live",
-    categories: ["action", "adventure"],
+    category: "adventure",
     ages: "7+",
     accent: "#3FAE3A",
     accent2: "#FFE36A",
     cover: "/games/tondu-vine-climb/card.webp",
-    hero: "/games/tondu-vine-climb/hero.webp",
+    hero: "/games/tondu-vine-climb/cover.webp",
     character: "/games/tondu-vine-climb/tondu.webp",
     shots: [],
     modes: [

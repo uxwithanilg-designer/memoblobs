@@ -27,20 +27,20 @@
 - [Order Up!](https://momoblobs.com/games/order-up): remember a customer's cake and build it layer by layer in Bonbon the hippo's cake shop; toppings and double orders at higher levels. Memory.
 - [Glow Grid](https://momoblobs.com/games/grid-glow): visual pattern memory — tap the squares that glowed on a 3×3 to 7×7 neon grid (In Order and Rotate twists). Memory.
 - [Shadow Snap](https://momoblobs.com/games/shadow-match): Match the clay shadow to the right character. Host: Noodle. Category: focus.
-- [Gloop Guard](https://momoblobs.com/games/gloop-guard): You're the party door guard. Green Gloops in, red Gloops out! Host: Gloop. Category: focus/speed.
+- [Gloop Guard](https://momoblobs.com/games/gloop-guard): You're the party door guard. Green Gloops in, red Gloops out! Host: Gloop. Category: reflex.
 - [Who Said It?](https://momoblobs.com/games/who-said-it): Characters make funny noises — tap them in the same order. Host: Gloop. Category: memory.
 - [What's Missing?](https://momoblobs.com/games/whats-missing): Kranky stole something from the shelf. What is it? Host: Kranky. Category: memory.
-- [Pick the Door](https://momoblobs.com/games/pick-the-door): Kranky hides Momo behind a door. Read the clues and pick the right one! Host: Kranky. Category: brain/puzzle.
+- [Pick the Door](https://momoblobs.com/games/pick-the-door): Kranky hides Momo behind a door. Read the clues and pick the right one! Host: Kranky. Category: brain.
 - [Pattern Parade](https://momoblobs.com/games/pattern-parade): Shapes march in a pattern. Pick what comes next. Host: Prof. Hoot. Category: brain.
 - [Odd Blob Out](https://momoblobs.com/games/odd-blob-out): One blob breaks the rule. Find it! Host: Zib. Category: brain.
 - [Balance Buddies](https://momoblobs.com/games/balance-buddies): See-saws show who is heavier. Who's heaviest of all? Host: Prof. Hoot. Category: brain.
-- [Whack-a-Gloop](https://momoblobs.com/games/whack-a-gloop): Bonk every Gloop — but never bonk Momo! Host: Gloop. Category: speed.
-- [Turbo Dash](https://momoblobs.com/games/turbo-dash): The slowest snail with the fastest rocket. Host: Turbo. Category: speed.
-- [Bake Drop](https://momoblobs.com/games/bake-drop): Catch the cake bits, dodge the chilli peppers! Host: Bonbon. Category: speed.
-- [Quick Draw](https://momoblobs.com/games/quick-hoot): Wait… wait… NOW! Don't fall for the fakes. Host: Prof. Hoot. Category: speed/focus.
+- [Whack-a-Gloop](https://momoblobs.com/games/whack-a-gloop): Bonk every Gloop — but never bonk Momo! Host: Gloop. Category: reflex.
+- [Turbo Dash](https://momoblobs.com/games/turbo-dash): The slowest snail with the fastest rocket. Host: Turbo. Category: reflex.
+- [Bake Drop](https://momoblobs.com/games/bake-drop): Catch the cake bits, dodge the chilli peppers! Host: Bonbon. Category: reflex.
+- [Quick Draw](https://momoblobs.com/games/quick-hoot): Wait… wait… NOW! Don't fall for the fakes. Host: Prof. Hoot. Category: reflex.
 - [Count Fast](https://momoblobs.com/games/count-fast): Momos bounce onto the stage. Count them before the curtain drops! Host: Momo. Category: numbers.
 - [Sum Slices](https://momoblobs.com/games/sum-slices): Tap cake slices that add up to Bonbon's number. Host: Bonbon. Category: numbers.
-- [Number Ninja](https://momoblobs.com/games/number-ninja): Find the numbers in order as fast as you can. Host: Noodle. Category: numbers/focus.
+- [Number Ninja](https://momoblobs.com/games/number-ninja): Find the numbers in order as fast as you can. Host: Noodle. Category: numbers.
 - [More or Less](https://momoblobs.com/games/more-or-less): Two jelly jars — pick the one with more beans before Turbo reaches the flag! Host: Turbo. Category: numbers.
 - [Slide Ship](https://momoblobs.com/games/slide-ship): Slide the tiles to fix Zib's crashed UFO. Host: Zib. Category: puzzle.
 - [Gloop Pipes](https://momoblobs.com/games/gloop-pipes): Rotate the pipes so slime reaches every cup. Host: Gloop. Category: puzzle.

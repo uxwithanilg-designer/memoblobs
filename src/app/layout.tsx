@@ -61,7 +61,7 @@ const orgLd = {
       "@id": abs("/#org"),
       name: SITE.name,
       url: SITE.url,
-      logo: { "@type": "ImageObject", url: absAsset("/brand/logo.png"), width: 1200, height: 198 },
+      logo: { "@type": "ImageObject", url: absAsset("/brand/logo.png"), width: 659, height: 260 },
       image: abs("/og.jpg"),
       slogan: SITE.tagline,
       sameAs: [SITE.social.youtube, SITE.social.instagram],

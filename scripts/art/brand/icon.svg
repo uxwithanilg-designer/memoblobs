@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC94A"/>
+      <stop offset="0.5" stop-color="#FF7A2A"/>
+      <stop offset="1" stop-color="#FF3D7F"/>
+    </linearGradient>
+    <linearGradient id="pad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4B2A9E"/>
+      <stop offset="1" stop-color="#22104F"/>
+    </linearGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF6C8"/>
+      <stop offset="1" stop-color="#FFD25A"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0.3" cy="0.12" r="0.75">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.55"/>
+      <stop offset="0.6" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- squircle tile -->
+  <rect x="2" y="2" width="96" height="96" rx="25" fill="url(#bg)"/>
+  <rect x="2" y="2" width="96" height="96" rx="25" fill="url(#shine)"/>
+  <!-- sprout -->
+  <path d="M50 43C50 35 52.5 29 57.5 25.5" fill="none" stroke="#22104F" stroke-width="6.5" stroke-linecap="round"/>
+  <path d="M50 43C50 35 52.5 29 57.5 25.5" fill="none" stroke="#5FCB4E" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="65.5" cy="22" rx="9.2" ry="5" transform="rotate(-22 65.5 22)" fill="#7BE35F" stroke="#22104F" stroke-width="3"/>
+  <ellipse cx="63.5" cy="20.6" rx="4" ry="1.5" transform="rotate(-22 63.5 20.6)" fill="#fff" opacity="0.6"/>
+  <!-- controller -->
+  <g transform="translate(50 60) scale(0.86) translate(-50 -58)">
+    <path d="M29 38H71C82.5 38 88.5 45.5 90 55L92.5 71C93.6 79 87 84.5 80.5 80.5L70.5 71.5H29.5L19.5 80.5C13 84.5 6.4 79 7.5 71L10 55C11.5 45.5 17.5 38 29 38Z"
+          fill="#22104F" transform="translate(0 3.2)" opacity="0.35"/>
+    <path d="M29 38H71C82.5 38 88.5 45.5 90 55L92.5 71C93.6 79 87 84.5 80.5 80.5L70.5 71.5H29.5L19.5 80.5C13 84.5 6.4 79 7.5 71L10 55C11.5 45.5 17.5 38 29 38Z"
+          fill="url(#pad)"/>
+    <path d="M30 41.5H70C77 41.5 82 44.5 84.5 49" fill="none" stroke="#fff" stroke-opacity="0.22" stroke-width="2.4" stroke-linecap="round"/>
+    <!-- d-pad -->
+    <rect x="22.5" y="51.5" width="17" height="6" rx="2.2" fill="#fff"/>
+    <rect x="28" y="46" width="6" height="17" rx="2.2" fill="#fff"/>
+    <!-- play button -->
+    <circle cx="68" cy="54.5" r="11" fill="#FF6A2A"/>
+    <path d="M64.6 48.6Q64.6 46.6 66.4 47.6L74.6 52.8Q76.2 54.5 74.6 56.2L66.4 61.4Q64.6 62.4 64.6 60.4Z" fill="url(#play)"/>
+  </g>
+</svg>
