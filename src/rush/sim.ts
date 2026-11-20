@@ -54,11 +54,14 @@ export class Sim {
   /** the bot runs without bosses and wants every hit reported */
   readonly bot: boolean;
   private lastZone: ZoneKind | "" = "";
+  /** the finish line (a boss moves it on, so it is read each tick) */
+  private readonly goalObj: Obj | null;
 
   constructor(st: Stage, tr: Track, know: string[], bot = false) {
     this.st = st; this.tr = tr; this.bot = bot;
     this.know = new Set(know);
     for (const o of st.objs) o.gone = false;
+    this.goalObj = st.objs.find((o) => o.k === "goal") ?? null;
     // things that run on their own move out of the sorted list
     this.dyn = st.objs.filter((o) => o.pace).map((o) => ({ ...o }));
     this.r = {
@@ -127,7 +130,13 @@ export class Sim {
     const ev: Ev[] = [];
     const n = Math.max(1, Math.ceil(dt / (1 / 120)));
     const h = dt / n;
-    for (let i = 0; i < n && !this.r.done; i++) this.tick(h, inp, ev, i === 0);
+    for (let i = 0; i < n && !this.r.done; i++) {
+      this.tick(h, inp, ev, i === 0);
+      // a Star Hop or a teleport can carry Rollo over the finish line in one go, so the "crossed it this tick" check
+      // never sees it — then he ran on past the end of the road for ever. Past the line and still running = he got there.
+      const g = this.goalObj;
+      if (g && !this.r.done && this.r.s > g.s + 0.05) this.atGoal(ev);
+    }
     return ev;
   }
 

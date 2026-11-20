@@ -364,6 +364,9 @@ export class RushSession {
         this.input.jump = this.input.curl = this.input.burst = this.input.trick = false; this.input.flick = 0;
         this.react(ev);
         if (this.pending && !this.next) this.attach();
+        // safety net: well past the join without the finish firing (it should never happen) — carry on anyway rather
+        // than run off the end of the road
+        if (!sim.r.done && this.next && sim.r.s > this.joinS + 30 && !(sim.boss && sim.boss.phase !== "down")) sim.r.done = true;
         if (sim.r.done) this.waitT = 0;
       }
       if (sim.r.done && !this.title && this.storyT < 0 && this.mode && (this.modeOver || sim.r.out || this.modeEndsHere())) { if (!this.modeOver) this.endModeRun(!sim.r.out); }
