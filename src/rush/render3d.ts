@@ -424,6 +424,9 @@ export class RushRenderer {
     const fog = this.scene.fog as THREE.Fog | null;
     if (fog) { fog.near = v.dark ? 12 : v.fog ? 30 : E.night ? 140 : 180; fog.far = v.dark ? 110 : v.fog ? 220 : E.night ? 900 : 1100; fog.color.set(v.dark ? "#05060F" : E.fog); }
     this.renderer.toneMappingExposure = v.dark ? 0.85 : 1.2;
+    // bloom is for glows in the dark: on a pale day sky almost everything is past the old threshold and the whole
+    // screen went milky white (candy, sky islands, blossom). By day only the really bright things glow.
+    if (this.bloom) { const day = !E.night && !v.dark; this.bloom.threshold = day ? 0.95 : 0.82; this.bloom.strength = day ? 0.38 : 0.55; }
     this.rolloLight.intensity = v.dark ? 7 : E.night ? 4 : 1.5; this.rolloLight.distance = v.dark ? 22 : 11;
     this.cv.style.transform = v.mirror ? "scaleX(-1)" : "";
     this.cv.style.filter = v.dream ? "saturate(1.35) brightness(1.06) hue-rotate(-12deg)" : v.underwater ? "hue-rotate(12deg) saturate(1.2)" : "";

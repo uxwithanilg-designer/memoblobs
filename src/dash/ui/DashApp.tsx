@@ -349,7 +349,7 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
     if (process.env.NODE_ENV !== "production" || isAutomation()) (window as unknown as { __dash?: DashSession }).__dash = s;
   }, []);
   const [flash, setFlash] = useState(0);
-  const onEvent = useCallback((e: SimEvent) => { if (e.t === "crash" || e.t === "stumble" || e.t === "friendSave") setFlash((f) => f + 1); }, []);
+  const onEvent = useCallback((e: SimEvent) => { if (e.t === "crash" || e.t === "stumble" || e.t === "friendSave" || e.t === "life") setFlash((f) => f + 1); }, []);
 
   const h = hud;
   return (
@@ -365,6 +365,12 @@ function GameScreen({ run, quality, vibrate, best, tutorial, onTutorialDone, onE
           <div className="flex flex-col items-start gap-1.5">
             <Pill className="!text-[22px]"><span className="text-[#FFD23F]">{(h?.score ?? 0).toLocaleString("en-US")}</span>{h && h.mult > 1 && <span className="rounded-full bg-[#FFD23F] px-1.5 text-[13px] text-[#5A3A00]">×{h.mult}</span>}</Pill>
             <Pill><CoinIcon size={18} />{h?.coins ?? 0}</Pill>
+            {h && (
+              <Pill className="!gap-0.5 !px-2 !text-[17px]">
+                <span className="sr-only">{h.lives} lives</span>
+                {Array.from({ length: h.maxLives }, (_, i) => <span key={i} className={i < h.lives ? "" : "opacity-25 grayscale"}>❤️</span>)}
+              </Pill>
+            )}
           </div>
           <div className="flex flex-col items-end gap-1.5">
             <Pill>🏁 {Math.round(h?.z ?? 0).toLocaleString("en-US")} m</Pill>

@@ -1,27 +1,18 @@
 "use client";
-// Rollo Rush's screens beside the run: the mode picker, the Time Trial stage list, the Concept Dex (ideas, Mayamma's
-// spellbook, the signature obstacles, remixes), Rollo's Locker and the card at the end of a mode run.
+// Rollo Rush's screens beside the run: the mode picker, the Time Trial stage list, Rollo's Locker and the card at the
+// end of a mode run.
 import { useMemo, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { X } from "lucide-react";
 import { useProfile } from "@/lib/store";
-import { CONCEPT } from "../data/concepts";
 import { STAGES_PER_WORLD, WORLDS } from "../data/worlds";
 import { ITEMS, SLOTS, type Slot } from "../locker";
-import { ELEMENTS, FORMS, SIGS, sigOf } from "../magicdata";
 import { bossesBeaten, dayNumber, MODE, MODES, type ModeId } from "../modes";
 import { useRush, type ModeOut } from "../save";
 import type { ModeResult } from "../session";
 
 const clock = (t: number) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, "0")}`;
 const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(2)} km`);
-const nice = (k: string) => k.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
-const SIG_EMOJI: Record<string, string> = {
-  popLogs: "🪵", risingPillars: "🧱", sideLogs: "🪵", sideRams: "🐏", fallingBoulders: "🪨", fallingLogs: "🌲", giantHammers: "🔨", rollingWheels: "🛞", fireWheels: "🔥", windmills: "🌬️",
-  crushers: "⬇️", slidingWalls: "🚪", spinningBars: "🌀", bouncingBoulders: "🪨", tumblingBarrels: "🛢️", fallingTrees: "🌳", risingSpikes: "📌", geysers: "⛲", stompingBoots: "🥾", giantFans: "🪭",
-  snowballs: "☃️", mallets: "🔨", lavaJets: "🌋", spinningTops: "🪀", bumpers: "🔴", iceSlides: "🧊", thornHedges: "🌵", sawLines: "🪚", bombCarts: "💣", flameRings: "⭕",
-};
-
 export function Sheet({ title, onClose, children, tabs }: { title: string; onClose: () => void; children: ReactNode; tabs?: ReactNode }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-30 flex flex-col justify-end bg-black/45" onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -95,62 +86,6 @@ export function TrialSheet({ onClose, onPick }: { onClose: () => void; onPick: (
           );
         })}
       </div>
-    </Sheet>
-  );
-}
-
-// ---------------------------------------------------------------- the Concept Dex
-type DexTab = "ideas" | "spells" | "sigs" | "remix";
-export function DexSheet({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState<DexTab>("ideas");
-  const dex = useRush((s) => s.dex), spells = useRush((s) => s.spells), remixes = useRush((s) => s.remixes), stage = useRush((s) => s.stage);
-  const seen = useMemo(() => new Set(dex), [dex]), cast = useMemo(() => new Set(spells), [spells]);
-  const sigsSeen = useMemo(() => { const o = new Set<string>(); for (let n = 2; n < stage; n++) if (n % STAGES_PER_WORLD !== 0) o.add(sigOf(n)); return o; }, [stage]);
-  const worldsOpen = Math.min(WORLDS.length, Math.ceil(stage / STAGES_PER_WORLD));
-  const ideas = WORLDS.reduce((a, w) => a + w.teach.filter((c) => seen.has(c)).length, 0);
-  return (
-    <Sheet title="Concept Dex" onClose={onClose} tabs={<Tabs value={tab} set={setTab} items={[
-      { id: "ideas", label: `💡 Ideas ${ideas}/500` }, { id: "spells", label: `🧙‍♀️ Spellbook ${cast.size}/220` },
-      { id: "sigs", label: `🔨 Obstacles ${sigsSeen.size}/30` }, { id: "remix", label: `🔀 Remixes ${remixes.length}` },
-    ]} />}>
-      {tab === "ideas" && WORLDS.map((w, i) => (
-        <div key={w.id} className="mb-3">
-          <div className="mb-1.5 flex items-center gap-2 text-sm font-bold"><span className="text-lg">{w.emoji}</span>{w.name}<span className="ml-auto text-xs opacity-70">{w.teach.filter((c) => seen.has(c)).length}/20</span></div>
-          {i < worldsOpen ? (
-            <div className="grid grid-cols-2 gap-1.5">
-              {w.teach.map((c) => { const k = CONCEPT[c], ok = seen.has(c); return (
-                <div key={c} className={`rounded-xl px-2.5 py-1.5 ${ok ? "bg-white/12" : "bg-black/25"}`}>
-                  <div className="text-xs font-bold leading-tight">{ok ? k?.name : "???"}</div>
-                  {ok && <div className="mt-0.5 line-clamp-2 text-[10px] leading-snug opacity-75">{k?.desc}</div>}
-                </div>
-              ); })}
-            </div>
-          ) : <div className="rounded-xl bg-black/25 px-3 py-2 text-xs opacity-70">🔒 Reach this world to fill its page.</div>}
-        </div>
-      ))}
-      {tab === "spells" && (
-        <>
-          <p className="mb-3 text-sm text-[#CFE0FF]">Mayamma knows 220 magics — 11 elements, 20 spells each. Every one she throws at you is written here.</p>
-          {ELEMENTS.map((e) => (
-            <div key={e.id} className="mb-3">
-              <div className="mb-1.5 flex items-center gap-2 text-sm font-bold"><span className="size-3 rounded-full" style={{ background: e.col, boxShadow: `0 0 8px ${e.col}` }} />{e.name}<span className="ml-auto text-xs opacity-70">{FORMS.filter((f) => cast.has(`${e.id}:${f.id}`)).length}/20</span></div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {FORMS.map((f) => { const ok = cast.has(`${e.id}:${f.id}`); return <div key={f.id} className={`rounded-lg px-2 py-1 text-[11px] font-bold leading-tight ${ok ? "" : "bg-black/25 opacity-60"}`} style={ok ? { background: `linear-gradient(135deg, ${e.col}55, ${e.col2}22)` } : undefined}>{ok ? `${e.name} ${f.name}` : "?"}</div>; })}
-              </div>
-            </div>
-          ))}
-        </>
-      )}
-      {tab === "sigs" && (
-        <div className="grid grid-cols-2 gap-1.5">
-          {SIGS.map((k) => { const ok = sigsSeen.has(k); return <div key={k} className={`flex items-center gap-2 rounded-xl px-2.5 py-2 ${ok ? "bg-white/12" : "bg-black/25 opacity-60"}`}><span className="text-xl">{ok ? SIG_EMOJI[k] ?? "❔" : "❔"}</span><span className="text-xs font-bold">{ok ? nice(k) : "???"}</span></div>; })}
-        </div>
-      )}
-      {tab === "remix" && (remixes.length ? (
-        <div className="flex flex-col gap-1.5">
-          {remixes.slice().reverse().slice(0, 300).map((r) => <div key={r.key} className="rounded-xl bg-white/10 px-3 py-2"><div className="text-sm font-bold">{r.name}</div><div className="text-[11px] opacity-75">{r.atoms.map((a) => CONCEPT[a]?.name ?? a).join(" + ")} · stage {r.n}</div></div>)}
-        </div>
-      ) : <div className="rounded-xl bg-black/25 px-3 py-3 text-sm opacity-80">Remixes start after the 500 journey stages: every new mix you run lands here.</div>)}
     </Sheet>
   );
 }

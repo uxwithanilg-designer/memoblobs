@@ -121,7 +121,12 @@ export class Vehicle {
     else if (brake > 0.05 && this.v <= 0.5 && gas < 0.1) a = -5; // reverse
     else {
       a = p.accel * gas * Math.max(0, 1 - Math.pow(Math.min(r, 1.2), 1.7));
-      if (gas < 0.05) a -= 1.6 + 0.0028 * this.v * this.v;
+      if (gas < 0.05) {
+        // rolling drag slows the car down to a stop — it used to keep pulling past zero, so a car left without gas
+        // (manual gas, now the default) crept backwards off the start line
+        const drag = 1.6 + 0.0028 * this.v * this.v;
+        a += this.v > 0 ? -Math.min(drag, this.v / dt) : this.v < 0 ? Math.min(drag, -this.v / dt) : 0;
+      }
       if (this.boosting) a += (this.shock > 0 ? 13 : 9) * np * Math.max(0.15, 1 - r * 0.75);
       if (this.turbo > 0) a += 6 + this.turboLvl * 1.5;
       a += this.draft * 2.2;

@@ -14,7 +14,7 @@ import { bossesBeaten, dayNumber, MODE, type ModeId, type ModeRun } from "../mod
 import { autoQuality, type Quality } from "../render3d";
 import { useRush, useRushHydrated, type ModeOut } from "../save";
 import { RushSession, registerDev, type ModeResult, type RushHud } from "../session";
-import { DexSheet, LockerSheet, ModeResultCard, ModesSheet, TrialSheet } from "./RushSheets";
+import { LockerSheet, ModeResultCard, ModesSheet, TrialSheet } from "./RushSheets";
 
 const gfx = (q: string | undefined): Quality => (q === "low" || q === "medium" || q === "high" ? q : autoQuality());
 const Pearl = ({ size = 18 }: { size?: number }) => <span className="inline-block shrink-0 rounded-full shadow-[0_0_10px_rgba(255,210,122,0.9)]" style={{ width: size, height: size, background: "radial-gradient(circle at 35% 30%, #FFFFFF 0%, #FFE9B0 35%, #FFC24A 75%, #E89A1A 100%)" }} />;
@@ -63,8 +63,8 @@ export default function RushApp({ title }: { slug: string; title: string }) {
   const [witch, setWitch] = useState(false);
   const [spell, setSpell] = useState<{ name: string; id: number } | null>(null);
   const lineN = useRef(0);
-  // ---- modes, the Dex and the Locker
-  const [sheet, setSheet] = useState<null | "modes" | "trial" | "dex" | "locker">(null);
+  // ---- modes and the Locker
+  const [sheet, setSheet] = useState<null | "modes" | "trial" | "locker">(null);
   const [inMode, setInMode] = useState<ModeId | null>(null);
   const [modeRes, setModeRes] = useState<{ res: ModeResult; out: ModeOut } | null>(null);
   const lastMode = useRef<{ id: ModeId; n?: number } | null>(null);
@@ -213,8 +213,8 @@ export default function RushApp({ title }: { slug: string; title: string }) {
                   <span className="block text-sm font-bold opacity-90">{busy ? "Building the track…" : `${W.emoji} ${W.name}`}</span>
                 </span>
               </button>
-              <div className="grid w-full grid-cols-3 gap-2">
-                {([["modes", "🎮", "Modes"], ["dex", "📖", "Dex"], ["locker", "🎽", "Locker"]] as const).map(([id, icon, label]) => (
+              <div className="grid w-full grid-cols-2 gap-2">
+                {([["modes", "🎮", "Modes"], ["locker", "🎽", "Locker"]] as const).map(([id, icon, label]) => (
                   <button key={id} onClick={() => { audio.ensure(); audio.play("pop", { gain: 0.25, rate: 1.2, duck: false }); setSheet(id); }} className="flex flex-col items-center rounded-2xl bg-black/35 py-2 text-white backdrop-blur active:scale-95">
                     <span className="text-xl leading-none">{icon}</span><span className="mt-0.5 text-xs font-bold">{label}</span>
                   </button>
@@ -332,11 +332,10 @@ export default function RushApp({ title }: { slug: string; title: string }) {
         )}
       </AnimatePresence>
 
-      {/* ---------------- modes, Dex, Locker, the end of a mode run */}
+      {/* ---------------- modes, Locker, the end of a mode run */}
       <AnimatePresence>
         {sheet === "modes" && <ModesSheet key="modes" onClose={() => setSheet(null)} onPick={(id) => (id === "trial" ? setSheet("trial") : runMode(id))} />}
         {sheet === "trial" && <TrialSheet key="trial" onClose={() => setSheet("modes")} onPick={(n) => runMode("trial", n)} />}
-        {sheet === "dex" && <DexSheet key="dex" onClose={() => setSheet(null)} />}
         {sheet === "locker" && <LockerSheet key="locker" onClose={() => setSheet(null)} />}
       </AnimatePresence>
       <AnimatePresence>

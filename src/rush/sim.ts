@@ -62,6 +62,8 @@ export class Sim {
     this.know = new Set(know);
     for (const o of st.objs) o.gone = false;
     this.goalObj = st.objs.find((o) => o.k === "goal") ?? null;
+    // a beaten boss pulls the finish line in; a fresh fight (a retry of the same stage) starts with it back at the end
+    if (this.goalObj && st.boss) this.goalObj.s = st.goal;
     // things that run on their own move out of the sorted list
     this.dyn = st.objs.filter((o) => o.pace).map((o) => ({ ...o }));
     this.r = {
@@ -597,7 +599,9 @@ export class Sim {
   }
   private atGoal(ev: Ev[]) {
     const r = this.r, R = this.st.rules;
-    if (this.boss && this.boss.phase !== "down") return;
+    // the arena ran out with the boss still standing: it gets away and the fight picks up again at the last lamp (its
+    // hits stay counted) — before, Rollo ran on past the end of the road with nothing to stand on
+    if (this.boss && this.boss.phase !== "down") { this.fail(`${this.st.boss?.name ?? "Kranky"} got away`, ev); return; }
     if (!this.bot && R) {
       if (R.letters && r.letters < 5) { this.fail("spell R-O-L-L-O first", ev); return; }
       if (R.medals && r.medals < 3) { this.fail("find all three Moon Medals", ev); return; }
@@ -665,7 +669,8 @@ export class Sim {
     if (b.hp <= 0) {
       b.phase = "down";
       const goal = st.objs.find((o) => o.k === "goal");
-      if (goal) { goal.s = r.s + 90; goal.gone = false; }
+      // never past the end of the arena (a late knock-out used to put the line out where the road had already ended)
+      if (goal) { goal.s = Math.min(r.s + 90, st.goal); goal.gone = false; }
       for (let i = 0; i < 12; i++) this.spawn({ k: "pearl", s: r.s + 12 + i * 3, u: Math.sin(i) * 2, h: 1 + (i % 3) });
       return;
     }

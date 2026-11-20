@@ -21,11 +21,27 @@ const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3
 const mA = new THREE.Matrix4(), qA = new THREE.Quaternion(), sA = new THREE.Vector3();
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 const UP = new THREE.Vector3(0, 1, 0);
+const Z_AXIS = new THREE.Vector3(0, 0, 1);
+const vOut = new THREE.Vector3(), vPos = new THREE.Vector3(), vTo = new THREE.Vector3();
+/** the red "!" that marks where a bird will dive (one texture for every stage) */
+let warnTex: THREE.CanvasTexture | null = null;
+function warnTexture(): THREE.CanvasTexture {
+  if (warnTex) return warnTex;
+  const cv = document.createElement("canvas"); cv.width = cv.height = 128;
+  const x = cv.getContext("2d")!;
+  x.beginPath(); x.arc(64, 64, 54, 0, Math.PI * 2); x.fillStyle = "rgba(255,59,48,0.92)"; x.fill();
+  x.lineWidth = 10; x.strokeStyle = "#FFFFFF"; x.stroke();
+  x.fillStyle = "#FFFFFF"; x.font = "bold 84px sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("!", 64, 70);
+  warnTex = new THREE.CanvasTexture(cv); warnTex.colorSpace = THREE.SRGBColorSpace;
+  return warnTex;
+}
 
 /** shared geometry + materials (built once per renderer) */
 export class Kit {
   keep: D[] = [];
   mat: THREE.MeshStandardMaterial; glossy: THREE.MeshPhysicalMaterial; glow: THREE.MeshBasicMaterial; ghost: THREE.MeshBasicMaterial; water: THREE.MeshBasicMaterial;
+  /** the bands that mark a deadly side (a sweeping shadow, the waterfall's push): drawn facing the camera */
+  sweep: THREE.MeshBasicMaterial; sweepWater: THREE.MeshBasicMaterial;
   thorn: THREE.BufferGeometry; burr: THREE.BufferGeometry; budHead: THREE.BufferGeometry; budSpikes: THREE.BufferGeometry; ant: THREE.BufferGeometry; bee: THREE.BufferGeometry; spider: THREE.BufferGeometry;
   mango: THREE.BufferGeometry; coconut: THREE.BufferGeometry; nut: THREE.BufferGeometry; pod: THREE.BufferGeometry; snail: THREE.BufferGeometry; drop: THREE.BufferGeometry;
   sun: THREE.BufferGeometry; glide: THREE.BufferGeometry; magnet: THREE.BufferGeometry; shield: THREE.BufferGeometry; moss: THREE.BufferGeometry; rope: THREE.BufferGeometry;
@@ -36,8 +52,10 @@ export class Kit {
     this.mat = k(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55 }));
     this.glossy = k(new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.32, clearcoat: 0.6, clearcoatRoughness: 0.3 }));
     this.glow = k(new THREE.MeshBasicMaterial({ color: "#E8FF8A", transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending }));
-    this.ghost = k(new THREE.MeshBasicMaterial({ color: "#000000", transparent: true, opacity: 0.32, depthWrite: false }));
+    this.ghost = k(new THREE.MeshBasicMaterial({ color: "#000000", transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }));
     this.water = k(new THREE.MeshBasicMaterial({ color: "#E6F8FF", transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide }));
+    this.sweep = k(new THREE.MeshBasicMaterial({ color: "#1B0B2A", transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide }));
+    this.sweepWater = k(new THREE.MeshBasicMaterial({ color: "#5CCBFF", transparent: true, opacity: 0.7, depthWrite: false, side: THREE.DoubleSide }));
     this.thorn = k(M.thornGeo()); this.burr = k(M.burrGeo()); this.budHead = k(M.budHeadGeo()); this.budSpikes = k(M.budSpikesGeo());
     this.ant = k(M.antGeo()); this.bee = k(M.beeGeo()); this.spider = k(M.spiderGeo());
     this.mango = k(M.mangoGeo()); this.coconut = k(M.coconutGeo()); this.nut = k(M.nutGeo()); this.pod = k(M.podGeo()); this.snail = k(M.snailGeo()); this.drop = k(M.dropGeo());
@@ -64,6 +82,7 @@ export class StageView {
   private keep: D[] = [];
   private thorns: THREE.InstancedMesh | null = null; private thornHaz: number[] = [];
   private anim: AnimHaz[] = [];
+  private diveGeo: { body: THREE.BufferGeometry; wings?: THREE.BufferGeometry } | null = null;
   private bugMeshes: { m: THREE.InstancedMesh; idx: number[] }[] = [];
   private picks: THREE.Mesh[] = [];
   private gate: THREE.Mesh; private gateBloom = 0;
@@ -307,7 +326,19 @@ export class StageView {
         if (h.kind === "spider") { const g = new THREE.Group(); const sp = mesh(kit.spider, kit.glossy); sp.scale.setScalar(1.6); g.add(sp); const th = new THREE.Mesh(kit.plane, new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.6 })); this.keep.push(th.material as THREE.Material); th.name = "thread"; g.add(th); return g; }
         if (h.kind === "bees") { const g = new THREE.Group(); for (let i = 0; i < 3; i++) { const b = mesh(kit.bee, kit.glossy); b.scale.setScalar(1.3); b.userData.k = i; g.add(b); } return g; }
         if (h.kind === "tongue") { const g = new THREE.Group(); const t = new THREE.Mesh(kit.sphere, new THREE.MeshStandardMaterial({ color: "#FF6A8A", roughness: 0.3 })); this.keep.push(t.material as THREE.Material); t.name = "tongue"; g.add(t); return g; }
-        if (h.kind === "dive") { const g = new THREE.Group(); const sh = new THREE.Mesh(kit.disc, kit.ghost); sh.name = "shadow"; g.add(sh); return g; }
+        if (h.kind === "dive") {
+          // A dive used to be only a faint shadow lying flat on the vine's side — edge-on to the camera, so the player saw
+          // nothing at all and Tondu fell "for no reason". Now the bird itself swoops onto the spot, and a red "!" marks the
+          // side it will hit from well before.
+          const g = new THREE.Group(); const sh = new THREE.Mesh(kit.disc, kit.ghost); sh.name = "shadow"; g.add(sh);
+          if (!this.diveGeo) { this.diveGeo = M.guardianGeo(gr && gr.model === "bird" ? gr : GUARDIANS.kaaki1); this.keep.push(this.diveGeo.body); if (this.diveGeo.wings) this.keep.push(this.diveGeo.wings); }
+          const bird = new THREE.Group(); bird.name = "bird"; bird.add(mesh(this.diveGeo.body, kit.glossy));
+          if (this.diveGeo.wings) { const w = mesh(this.diveGeo.wings, kit.mat); w.name = "wings"; bird.add(w); }
+          bird.scale.setScalar(0.42 * Math.min(1.3, gr?.size ?? 1)); bird.visible = false; g.add(bird);
+          const mm = new THREE.SpriteMaterial({ map: warnTexture(), transparent: true, depthTest: false, depthWrite: false, toneMapped: false });
+          this.keep.push(mm); const mk = new THREE.Sprite(mm); mk.name = "mark"; mk.renderOrder = 5; g.add(mk);
+          return g;
+        }
         // crawler: a caterpillar (or the guardian's snake / beetle colours)
         const g = new THREE.Group(); const col = gr && (gr.model === "snake" || gr.model === "beetle") ? gr.colors : ["#7ACB3A", "#FFD23F", "#2A2A2A"];
         const segG = M.segGeo(col[0]), segG2 = M.segGeo(col[1]); this.keep.push(segG, segG2);
@@ -316,14 +347,14 @@ export class StageView {
         return g;
       }
       case "fruit": case "nut": case "drip": { const g = new THREE.Group(); const f = mesh(h.kind === "fruit" ? (this.world.props.includes("palm") ? kit.coconut : kit.mango) : h.kind === "nut" ? (this.world.props.includes("palm") ? kit.coconut : kit.nut) : kit.drop, kit.glossy); f.name = "fruit"; f.scale.setScalar(h.kind === "drip" ? 1 : 1.5); g.add(f); const sh = new THREE.Mesh(kit.disc, kit.ghost); sh.name = "shadow"; g.add(sh); return g; }
-      case "lightning": { const g = new THREE.Group(); const sh = new THREE.Mesh(kit.disc, new THREE.MeshBasicMaterial({ color: "#BFE8FF", transparent: true, opacity: 0.6, depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending })); this.keep.push(sh.material as THREE.Material); sh.name = "shadow"; g.add(sh); const b = new THREE.Mesh(kit.bolt, new THREE.MeshBasicMaterial({ color: "#E8F8FF", toneMapped: false })); this.keep.push(b.material as THREE.Material); b.name = "bolt"; b.visible = false; g.add(b); return g; }
+      case "lightning": { const g = new THREE.Group(); const sh = new THREE.Mesh(kit.disc, new THREE.MeshBasicMaterial({ color: "#BFE8FF", transparent: true, opacity: 0.6, depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })); this.keep.push(sh.material as THREE.Material); sh.name = "shadow"; g.add(sh); const b = new THREE.Mesh(kit.bolt, new THREE.MeshBasicMaterial({ color: "#E8F8FF", toneMapped: false })); this.keep.push(b.material as THREE.Material); b.name = "bolt"; b.visible = false; g.add(b); return g; }
       case "snail": return mesh(kit.snail, kit.glossy);
       case "swing": { const g = new THREE.Group(); const t = mesh(kit.thorn, kit.glossy); t.scale.setScalar(1.15); t.name = "thorn"; g.add(t); return g; }
       case "shadow": case "water": {
         const g = new THREE.Group();
         const n = Math.max(2, Math.round(h.len / 0.5));
         for (let i = 0; i < n; i++) {
-          const m = new THREE.Mesh(kit.disc, h.kind === "shadow" ? kit.ghost : kit.water); m.userData.k = i / (n - 1); m.scale.set(0.9, 0.9, 1); g.add(m);
+          const m = new THREE.Mesh(kit.disc, h.kind === "shadow" ? kit.sweep : kit.sweepWater); m.userData.k = i / (n - 1); m.scale.set(0.9, 0.9, 1); g.add(m);
         }
         return g;
       }
@@ -586,7 +617,9 @@ export class StageView {
           const fr = a.o.getObjectByName("fruit"), sh = a.o.getObjectByName("shadow"), bolt = a.o.getObjectByName("bolt"), burst = a.o.getObjectByName("burst");
           const land = this.sidePoint(h.s, side, 0.15, h.br);
           const k = armT >= 0 && live ? (now - armT) / (h.delay ?? 1) : -1;
-          if (sh) { sh.position.copy(this.sidePoint(h.s, side, 0.03, h.br)); vD.copy(vB).multiplyScalar(side); sh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vD); const sc = k < 0 ? 0.2 : Math.min(1.2, 0.3 + k); sh.scale.set(sc, sc, 1); sh.visible = k < 1 + (h.dur ?? 1) / (h.delay ?? 1); }
+          // the warning circle (shadow / flash) sits just off the side that will be hit, facing the camera — it used to lie flat
+          // on the vine's side, edge-on to the camera, so a lightning strike or a dive came with no visible warning at all
+          if (sh) { sh.position.copy(this.sidePoint(h.s, side, 0.2, h.br)); sh.quaternion.setFromUnitVectors(Z_AXIS, vC); const sc = k < 0 ? 0.25 : Math.min(0.75, 0.3 + k * 0.45); sh.scale.set(sc, sc, 1); sh.visible = k < 1 + (h.dur ?? 1) / (h.delay ?? 1); }
           if (fr) {
             if (k < 0) fr.position.copy(land).addScaledVector(UP, 4).addScaledVector(vC, 0.4);
             else if (k < 1) fr.position.copy(land).addScaledVector(UP, 4 * (1 - k * k)).addScaledVector(vC, 0.4 * (1 - k));
@@ -594,6 +627,44 @@ export class StageView {
             fr.rotation.y = now;
           }
           if (bolt) { bolt.visible = k >= 1 && k < 1.25; bolt.position.copy(land); }
+          if (h.kind === "dive") {
+            const bird = a.o.getObjectByName("bird"), mark = a.o.getObjectByName("mark") as THREE.Sprite | undefined;
+            const end = 1 + (h.dur ?? 1) / (h.delay ?? 1);
+            vOut.copy(vB).multiplyScalar(side);
+            if (mark) {
+              // the "!" sits just off the side that will be hit: dim while it waits, pulsing once the bird is on its way
+              mark.visible = k < end;
+              mark.position.copy(this.sidePoint(h.s, side, 0.42, h.br));
+              const armed = k >= 0;
+              mark.scale.setScalar(0.42 * (armed ? 1.1 + Math.sin(now * 16) * 0.15 : 0.9));
+              (mark.material as THREE.SpriteMaterial).opacity = armed ? 1 : 0.75;
+            }
+            if (bird) {
+              const tail = k >= end ? (k - end) * (h.delay ?? 1) : 0;
+              bird.visible = k >= 0 && tail < 1.2;
+              if (bird.visible) {
+                if (k < 1) {
+                  // swooping in: from high up and out to the side, down onto the spot
+                  const e = 1 - k;
+                  vPos.copy(land).addScaledVector(UP, 4.5 * e * e).addScaledVector(vOut, 0.3 + 2.2 * e).addScaledVector(vC, 1.0 * e);
+                  vTo.copy(land).addScaledVector(vOut, 0.3);
+                  mA.lookAt(vTo, vPos, UP);
+                } else if (k < end) {
+                  // on the spot, pecking at the vine on that side (this is when it hits)
+                  vPos.copy(land).addScaledVector(vOut, 0.28).addScaledVector(UP, Math.abs(Math.sin(now * 14)) * 0.05);
+                  vTo.copy(vPos).sub(vOut);
+                  mA.lookAt(vTo, vPos, UP);
+                } else {
+                  // and away again
+                  vPos.copy(land).addScaledVector(vOut, 0.3 + tail * 4).addScaledVector(UP, tail * 6);
+                  vTo.copy(vPos).addScaledVector(vOut, 1).addScaledVector(UP, 1.5);
+                  mA.lookAt(vTo, vPos, UP);
+                }
+                bird.position.copy(vPos); bird.quaternion.setFromRotationMatrix(mA);
+                const w = bird.getObjectByName("wings"); if (w) w.rotation.z = Math.sin(now * (k >= 1 && k < end ? 8 : 18)) * 0.6;
+              }
+            }
+          }
           if (h.kind === "pod") {
             const pod = a.o.children[0]; pod.position.copy(this.sidePoint(h.s, side, 0, h.br)); vD.copy(vB).multiplyScalar(side); pod.quaternion.setFromUnitVectors(UP, vD);
             if (burst) { burst.position.copy(pod.position); burst.quaternion.copy(pod.quaternion); const bs = k >= 1 ? Math.min(1.1, (k - 1) * 4 + 0.2) : 0.001; burst.scale.setScalar(bs); pod.visible = k < 1; }
@@ -603,10 +674,12 @@ export class StageView {
         case "shadow": case "water": {
           a.o.children.forEach((c) => {
             const s = h.s - h.len / 2 + (c.userData.k as number) * h.len;
-            c.position.copy(this.sidePoint(s, side, 0.04, h.br));
-            pathAt(p, s, PT); vD.set(tN[0], tN[1], tN[2]).multiplyScalar(side);
-            c.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), vD);
-            const pul = h.kind === "water" ? 0.8 + Math.sin(now * 8 + s * 3) * 0.15 : 0.9;
+            // a band just off that side of the vine, facing the camera. (It used to lie flat on the vine's side — edge-on to
+            // the camera, a thin line nobody could read, so Tondu fell off "for no reason".)
+            c.position.copy(this.sidePoint(s, side, 0.24, h.br));
+            pathAt(p, s, PT); vD.set(tT[0], tT[1], tT[2]).cross(vA.set(tN[0], tN[1], tN[2])).normalize();
+            c.quaternion.setFromUnitVectors(Z_AXIS, vD);
+            const pul = h.kind === "water" ? 0.6 + Math.sin(now * 8 + s * 3) * 0.08 : 0.6;
             c.scale.set(pul, pul, 1);
           });
           break;

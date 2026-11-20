@@ -102,9 +102,11 @@ export class RaceSession {
   sound!: RaceAudio;
   /** player controls, written by keyboard + on-screen controls */
   input: InputState = { steer: 0, gas: 0, brake: 0, nitro: false, drift: false };
-  touch = { left: false, right: false, gas: false, brake: false, nitro: false, drift: false, tilt: 0, useTilt: false, autoGas: true };
-  /** steering assist 0..1 (lane keeping, softer understeer, wall avoidance). Default: 1 on touch devices, 0.5 otherwise. */
+  touch = { left: false, right: false, gas: false, brake: false, nitro: false, drift: false, tilt: 0, useTilt: false, autoGas: false };
+  /** steering assist 0..1 (lane keeping, softer understeer, wall avoidance), used only with Auto drive on. 1 on touch devices, 0.5 otherwise. */
   steerAssist = 0.5;
+  /** the player's Auto drive setting (off: no self-steering, gas is the player's) */
+  autoDrive = false;
   cameraView: CameraView;
   phase: HudFrame["phase"] = "loading";
   /** difficulty 0..1 used for AI talent, item density and star targets */
@@ -601,7 +603,8 @@ export class RaceSession {
     for (const r of this.racers) if (!r.out) alive.push(r.car);
     if (this.traffic) { for (const t of this.traffic.cars) if (t.active) alive.push(t.car); for (const b of this.traffic.blocks) if (b.active) alive.push(b.car); }
     // controls
-    pc.assist = this.t - this.lastTouchT < 4 || this.touch.useTilt ? Math.max(this.steerAssist, 0.8) : this.steerAssist;
+    // Auto drive off (the default): the car never steers itself — the player drives
+    pc.assist = !this.autoDrive ? 0 : this.t - this.lastTouchT < 4 || this.touch.useTilt ? Math.max(this.steerAssist, 0.8) : this.steerAssist;
     if (!P.finished) {
       if (this.autopilot) this.autopilot.drive(dt, tr, alive, pc, this.raceT, this.items);
       else { const ci = pc.input, i = this.input; const v01 = clamp(pc.v / 60, 0, 1); ci.steer = i.steer * (1 - v01 * 0.18 * (1 - pc.slip)); ci.gas = i.gas; ci.brake = i.brake; ci.nitro = i.nitro; ci.drift = i.drift; }

@@ -7,7 +7,8 @@ import type { AiLevel, CameraView, ControlScheme, GfxQuality, ModeId, Upgrades, 
 
 export interface RacingSettings {
   controls: ControlScheme;
-  autoGas: boolean;
+  /** Auto drive: the car speeds up by itself and steers itself back to the road. Off by default: you drive. */
+  autoDrive: boolean;
   camera: CameraView;
   quality: GfxQuality | "auto";
   units: "kmh" | "mph";
@@ -63,7 +64,7 @@ export const NO_UPGRADES: Upgrades = { speed: 0, accel: 0, handling: 0, nitro: 0
 export const upgradeCost = (level: number, tier: number) => Math.round((60 + level * 70) * (0.8 + tier * 0.3));
 
 export const DEFAULT_SETTINGS: RacingSettings = {
-  controls: "buttons", autoGas: true, camera: "chase", quality: "auto", units: "kmh", sensitivity: 1, showMap: true, vibrate: true,
+  controls: "buttons", autoDrive: false, camera: "chase", quality: "auto", units: "kmh", sensitivity: 1, showMap: true, vibrate: true,
   leftHanded: false, controlSize: 1, landscape: true, showStandings: true,
 };
 

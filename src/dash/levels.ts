@@ -235,12 +235,15 @@ export class Track {
   readonly spec: RunSpec;
   private r: Rng; private z = 24; private id = 1; private recent: string[] = []; private far: Set<string>;
   private br?: number; private nextPower: number; private nextFriend: number; private nextBoost: number; private nextPortal = 0;
+  /** hearts (+1 life) come every 420–800 m, from their own random stream */
+  private hr: Rng; private nextHeart: number;
   private done = new Set<string>();
 
   constructor(spec: RunSpec) {
     this.spec = spec; this.r = rng(spec.seed);
     this.far = new Set(spec.recent ?? []);
     this.nextPower = 140 + this.r() * 60; this.nextFriend = 500 + this.r() * 200; this.nextBoost = 700 + this.r() * 250;
+    this.hr = rng(spec.seed ^ 0x4ea27); this.nextHeart = 320 + this.hr() * 220;
     this.worlds.push({ z: 0, n: spec.start });
     this.fill(380); this.makeLines(0); this.sort();
   }
@@ -435,6 +438,11 @@ export class Track {
     const letter = ({ 3: "M", 8: "O", 13: "M", 17: "O" } as Record<number, string>)[sec.s];
     if (letter && !this.done.has(key("L"))) { this.done.add(key("L")); this.put("letter", z, { letter }); return; }
     if (sec.s === 14 && !this.done.has(key("cage"))) { this.done.add(key("cage")); this.put("cage", z, { friend: friends[Math.floor(this.r() * friends.length)] }); return; }
+    if (end > this.nextHeart && !sec.chase) {
+      this.items.push({ id: this.id++, kind: "heart", lane: Math.floor(this.hr() * 3) - 1, z, y: 1.1, br: this.br });
+      this.nextHeart = end + 420 + this.hr() * 380;
+      return;
+    }
     if (end > this.nextBoost) { const x = this.r() < 0.2 ? 5 : 3; this.put("boost", z, { boost: x }); this.nextBoost = end + 2400 + x * 300 + this.r() * 900; return; }
     if (end > this.nextPower) { this.put("power", z, { power: this.powerPick() }); this.nextPower = end + 270 + this.r() * 130; return; }
     if (end > this.nextFriend) { this.put("friend", z, { friend: friends[Math.floor(this.r() * friends.length)] }); this.nextFriend = end + (this.spec.help ? 1100 : 2000) + this.r() * 1000; }

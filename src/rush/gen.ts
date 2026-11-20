@@ -696,6 +696,10 @@ function layout(r: Recipe, rng: Rng): Stage {
     else if (j === 1) b.slope(rng.int(60, 100), rng.chance(0.5) ? 1 : -1, 0.08 + rng.next() * 0.08);
     else if (j === 2) b.straight(rng.int(16, 30));
     else b.curve(rng.int(30, 50), 0.15 + rng.next() * 0.3);
+    // keep the road near its world: drops (plunges, dives) are climbed back before they stack up, so a stage never ends
+    // up in a canyon hundreds of metres below the scenery (stage 474 used to finish 250 m under the sea)
+    for (let k = 0; k < 4 && b.elev < 6; k++) b.slope(110, 1, 0.22);
+    for (let k = 0; k < 4 && b.elev > 120; k++) b.slope(110, -1, 0.22);
   });
   // ---- nothing long and empty: quick hazards in the quiet stretches; then the treasure
   densify(b);
@@ -704,7 +708,11 @@ function layout(r: Recipe, rng: Rng): Stage {
   if (r.kind === "boss") {
     boss = bossFor(r.world);
     // a long arena; the goal appears when the boss is beaten
-    for (let i = 0; i < 12; i++) { b.straight(rng.int(120, 180), { tag: "boss" }); b.curve(rng.int(60, 90), 0.2 + rng.next() * 0.2); }
+    for (let i = 0; i < 12; i++) {
+      // a lamp every few stretches, so running out of scales mid-fight doesn't send Rollo back kilometres
+      if (i % 3 === 0) { const s = b.straight(14); b.add("lamp", s + 7, 0); b.checks.push(s + 7); }
+      b.straight(rng.int(120, 180), { tag: "boss" }); b.curve(rng.int(60, 90), 0.2 + rng.next() * 0.2);
+    }
   }
   if (b.target || r.focus.includes("Q03") || (r.remix && rng.chance(0.15))) {
     const pearls = b.objs.filter((o) => o.k === "pearl").length;

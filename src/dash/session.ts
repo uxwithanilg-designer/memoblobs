@@ -4,7 +4,7 @@
 import { audio, type Sound } from "@/lib/audio";
 import { FRIENDS, LW, MORPHS, POWERS, sectionOf } from "./levels";
 import { DashRenderer, type DashLook, type Quality } from "./render";
-import { Sim, TRICK_TEXT, boostTime, type SimOpts } from "./sim";
+import { MAX_LIVES, Sim, TRICK_TEXT, boostTime, type SimOpts } from "./sim";
 import type { FriendId, MorphId, PowerId, RunSpec, Section, SimEvent, SimResult } from "./types";
 
 export interface HudState {
@@ -13,6 +13,7 @@ export interface HudState {
   friends: FriendId[]; stumble: number; combo: number; pads: number; chase: boolean; letters: string;
   powers: { id: PowerId | "board" | MorphId | "boost"; icon: string; left: number; max: number; color: string }[];
   boost: number; boostLeft: number; boostMax: number; fever: boolean; counting: boolean; boards: number;
+  lives: number; maxLives: number;
 }
 export interface Toast { text: string; tone: "good" | "bad" | "gold" | "info"; big?: boolean }
 export interface SessionOptions extends SimOpts {
@@ -212,6 +213,8 @@ export class DashSession {
       else if (e.t === "caught") this.o.onToast?.({ text: "🎉 CAUGHT THE THIEF! +1500", tone: "gold", big: true });
       else if (e.t === "portal") this.o.onToast?.({ text: e.side ? "⭐ STAR LANE — grab the stars!" : "🪙 COIN LANE — coin feast!", tone: "gold", big: true });
       else if (e.t === "star") this.floater("+300", "STAR!", "gold");
+      else if (e.t === "life") { this.o.onToast?.({ text: e.n > 0 ? `💔 Ouch! ${e.n} ${e.n === 1 ? "life" : "lives"} left` : "💔 Last life gone — grab a ❤️!", tone: "bad", big: true }); this.vibe([60, 40, 60]); }
+      else if (e.t === "heart") { this.floater(e.full ? "+500" : "+1 ❤️", e.full ? "Lives full!" : `${e.n} lives`, "good"); this.vibe(30); }
       else if (e.t === "zoom") this.floater("ZOOM!", "", "good");
       else if (e.t === "cake") this.floater("CAKE BOMB!", "Bonbon cleared the way", "good");
       else if (e.t === "snip") this.floater("SNIP!", "", "good");
@@ -269,6 +272,8 @@ export class DashSession {
         case "caught": this.play("a:dash_catch", 0.65); break;
         case "portal": this.play("a:teleport", 0.55); break;
         case "star": this.play("a:dash_trick", 0.5, 1.3); break;
+        case "life": this.play("a:dash_crash", 0.7); this.play("a:dash_wobble", 0.45, 0.9, 0, 0.1); break;
+        case "heart": this.play("a:levelup", 0.5, 1.15); break;
         case "gust": this.play("a:whooshIn", 0.45, 0.8, 300); break;
         case "belt": this.play("clack", 0.35, 1.2, 200); break;
         case "cake": this.play("a:splat", 0.6, 0.9); this.play("confetti", 0.5); break;
@@ -318,6 +323,7 @@ export class DashSession {
       place: sec.place, emoji: sec.emoji,
       friends: [...s.friends], stumble: s.stumbleT, combo: s.combo, pads: s.pads, chase: s.chase != null, letters: s.letters,
       powers, boost: s.boostT > 0 ? s.boostX : 0, boostLeft: s.boostT, boostMax: boostTime(s.boostX), fever: s.feverT > 0, counting: this.countT > 0, boards: s.boards,
+      lives: s.lives, maxLives: MAX_LIVES,
     };
   }
   pause() { this.paused = true; }

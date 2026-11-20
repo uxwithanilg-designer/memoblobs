@@ -3,7 +3,7 @@
 // its HUD, results and settings. A soft clay-toy look — pastel boards, chunky buttons — unlike the racing games.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, Lock, Play, RotateCcw, Settings2, Star, Map as MapIcon, ChevronRight } from "lucide-react";
+import { ArrowLeft, House, Lock, Play, RotateCcw, Settings2, Star, ChevronRight } from "lucide-react";
 import { usePlayer } from "@/components/player/PlayerContext";
 import { useProfile } from "@/lib/store";
 import { audio, type MusicName, type Sound } from "@/lib/audio";
@@ -146,6 +146,8 @@ export default function BrigadeApp({ title }: { slug: string; title: string }) {
   const [result, setResult] = useState<ResultInfo | null>(null);
   const [sheet, setSheet] = useState<StageDef | null>(null);
   const [world, setWorld] = useState(0);
+  // where this visit has got to (not saved: each time the game is opened, PLAY starts again from the first stage)
+  const [cur, setCur] = useState(0);
   const quality = s.settings.quality === "auto" ? autoQuality() : s.settings.quality;
   const stars = s.totalStars();
   // a locked leader (e.g. after a reset) falls back to Momo
@@ -188,6 +190,7 @@ export default function BrigadeApp({ title }: { slug: string; title: string }) {
     const prevStars = def && run.mode === "stage" ? st.stars[def.id] ?? 0 : 0;
     let newBest = false, endlessBest = false, reward = 0, streak = 0;
     if (run.mode === "stage" && def) {
+      if (res.won) setCur(Math.min(STAGES.length - 1, def.n));
       st.setStars(def.id, res.stars);
       newBest = res.won && st.setBest(def.id, res.count);
       reward = res.coins + res.stars * 10 + (res.won ? 15 : 0);
@@ -219,13 +222,13 @@ export default function BrigadeApp({ title }: { slug: string; title: string }) {
     if (screen !== "game") return;
     setMenu([
       { id: "restart", label: "Restart", icon: "🔄", onSelect: () => { player.setPaused(false); if (run) start(run.launch); } },
-      { id: "map", label: "Stage map", icon: "🗺️", onSelect: () => { player.setPaused(false); setScreen("map"); } },
+      { id: "home", label: "Home", icon: "🏠", onSelect: () => { player.setPaused(false); setScreen("title"); } },
     ]);
   }, [screen, run, setMenu, start, player]);
 
   if (!ready) return <div className="absolute inset-0 bg-[#DDF7E4]" />;
+  // no stage map: a win always leads straight on to the next stage
   const next = result?.mode === "stage" && result.def ? STAGES[result.def.n] : undefined;
-  const nextOpen = next ? stageOpen(next, s.stars) : false;
   const progress = progressOf(s);
   const today = dailyKey();
   const yesterday = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return dailyKey(d); })();
@@ -242,7 +245,7 @@ export default function BrigadeApp({ title }: { slug: string; title: string }) {
               leader={s.leader} onLeaders={() => setScreen("leaders")} onShop={() => setScreen("shop")}
               onWardrobe={() => setScreen("wardrobe")} streak={streak} dailyDone={s.daily.doneKey === today}
               onDaily={() => { void appMode(); start({ mode: "daily" }); }}
-              onPlay={() => { void appMode(); setScreen("map"); }} onEndless={() => { void appMode(); start({ mode: "endless" }); }} onSettings={() => setScreen("settings")} />
+              onPlay={() => { void appMode(); start({ mode: "stage", def: STAGES[cur] }); }} onEndless={() => { void appMode(); start({ mode: "endless" }); }} onSettings={() => setScreen("settings")} />
           )}
           {screen === "map" && (
             <MapScreen stars={s.stars} total={stars} world={world} setWorld={setWorld} endless={endlessOpen(s.stars)} bestWave={s.endless.wave}
@@ -255,9 +258,9 @@ export default function BrigadeApp({ title }: { slug: string; title: string }) {
               tutorial={!s.tutorialDone && run.def?.n === 1 && !isAutomation()} onTutorialDone={() => useBrigade.getState().setTutorialDone(true)} onEnd={onEnd} />
           )}
           {screen === "results" && result && (
-            <ResultsScreen info={result} hasNext={(!!next && nextOpen) || (result.mode === "remix" && result.res.won)}
+            <ResultsScreen info={result} hasNext={!!next || (result.mode === "remix" && result.res.won)}
               onNext={() => { if (result.mode === "remix" && result.n) start({ mode: "remix", n: result.n + 1 }); else if (next) start({ mode: "stage", def: next }); }}
-              onRetry={() => run && start(run.launch)} onMap={() => setScreen(result.mode === "stage" || result.mode === "remix" ? "map" : "title")} />
+              onRetry={() => run && start(run.launch)} onMap={() => setScreen("title")} />
           )}
           {screen === "settings" && <SettingsScreen onBack={() => setScreen("title")} />}
           {screen === "leaders" && <LeadersScreen total={stars} onBack={() => setScreen("title")} />}
@@ -288,7 +291,7 @@ function TitleScreen({ title, spec, quality, stars, best, endless, onPlay, onEnd
           ))}
         </h1>
         <p className="mt-2 max-w-xs text-[15px] font-semibold text-[#2B1D52]/75">From one little blob to a mighty brigade!</p>
-        <div className="mt-3 flex gap-2"><Chip><Star className="size-4 fill-[#FFC93C] text-[#E0A100]" />{stars} / {STAGES.length * 3}</Chip>{best > 0 && <Chip>🌊 Best wave {best}</Chip>}</div>
+        <div className="mt-3 flex gap-2"><Chip><Star className="size-4 fill-[#FFC93C] text-[#E0A100]" />{stars}</Chip>{best > 0 && <Chip>🌊 Best wave {best}</Chip>}</div>
       </div>
       <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-md flex-col gap-3 px-5" style={{ paddingBottom: "calc(var(--safe-bottom) + 1.4rem)" }}>
         <Btn big tone="orange" onClick={onPlay} className="w-full"><Play className="size-7 fill-current" />PLAY</Btn>
@@ -504,7 +507,7 @@ function GameScreen({ run, quality, sensitivity, vibrate, tutorial, onTutorialDo
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col items-center gap-1.5 px-3" style={{ paddingTop: "calc(var(--safe-top) + 0.55rem)" }}>
         <div className="flex w-full max-w-md items-center gap-2 pr-14">
           <span className="rounded-full bg-white/90 px-3 py-1 font-display text-[15px] whitespace-nowrap shadow-[0_3px_0_rgba(43,29,82,0.18)]">
-            {run.mode === "endless" ? `🌊 WAVE ${h?.wave ?? 1}` : run.mode === "rush" ? `👑 ${h?.wave ?? 1}/${RUSH.length}` : run.mode === "remix" ? `🔁 R${(run.n ?? 101) - 100}` : run.mode === "daily" ? "📅 DAILY" : `${WORLDS[w].emoji} ${def?.world != null ? `${def.world + 1}-${def.s}` : ""}`}
+            {run.mode === "endless" ? `🌊 WAVE ${h?.wave ?? 1}` : run.mode === "rush" ? `👑 ${h?.wave ?? 1}/${RUSH.length}` : run.mode === "remix" ? `🔁 R${(run.n ?? 101) - 100}` : run.mode === "daily" ? "📅 DAILY" : `${WORLDS[w].emoji} ${WORLDS[w].name}`}
           </span>
           <div className="relative h-7 flex-1 overflow-hidden rounded-full bg-white/80 shadow-[0_3px_0_rgba(43,29,82,0.18)] ring-2 ring-white">
             {pinata ? (
@@ -605,12 +608,11 @@ function ResultsScreen({ info, hasNext, onNext, onRetry, onMap }: { info: Result
     return () => t.forEach(clearTimeout);
   }, [res.stars]);
   const pinata = def?.type === "pinata";
-  const sub = mode === "stage" && def ? `${WORLDS[def.world].emoji} ${def.world + 1}-${def.s} · ${def.name}`
+  const sub = mode === "stage" && def ? `${WORLDS[def.world].emoji} ${def.name}`
     : remix && info.n ? `🔁 Remix ${info.n - 100} · ${TIER_NAMES[remixTier(info.n)]} · ${def ? WORLDS[def.world].name : ""}`
     : daily && info.dkey ? `📅 ${DAILY_MODS[dailyInfo(info.dkey).mod].icon} ${DAILY_MODS[dailyInfo(info.dkey).mod].name} · ${WORLDS[dailyInfo(info.dkey).world].name}`
     : rush ? `👑 Boss Rush · ${res.time.toFixed(1)} s` : "";
   const nextLabel = remix ? "NEXT REMIX" : "NEXT STAGE";
-  const home = endless || rush || daily;
   // phones in landscape: headline + stars on the left, numbers + buttons on the right
   return (
     <div className="absolute inset-0 flex flex-col">
@@ -662,7 +664,7 @@ function ResultsScreen({ info, hasNext, onNext, onRetry, onMap }: { info: Result
               {hasNext && res.won && <Btn big tone="orange" onClick={onNext} className="w-full">{nextLabel}<ChevronRight className="size-7" /></Btn>}
               <div className="grid grid-cols-2 gap-3">
                 <Btn tone={hasNext && res.won ? "white" : "orange"} onClick={onRetry}><RotateCcw className="size-5" />{endless || rush ? "AGAIN" : "RETRY"}</Btn>
-                <Btn tone="white" onClick={onMap}><MapIcon className="size-5" />{home ? "HOME" : "MAP"}</Btn>
+                <Btn tone="white" onClick={onMap}><House className="size-5" />HOME</Btn>
               </div>
             </div>
           </div>

@@ -295,12 +295,14 @@ export function earlyEase(world: number, s: number) {
   const t = Math.min(1, (world * 10 + s - 1) / 30);
   return 0.5 + 0.5 * t * t;
 }
-/** per-stage HP trim (index = world * 10 + stage - 1), measured by scripts/brigade_tune.mjs; 1 = as generated */
+/** per-stage HP trim (index = world * 10 + stage - 1), measured by scripts/brigade_tune.mjs; 1 = as generated.
+ *  Hand trims (2026-11-20): Garden, Candy and Snow walkovers raised a little (a player with no upgrades still wins
+ *  ~90%+), Toy Room 2 lowered (it was a wall without upgrades). */
 export const STAGE_TUNE: number[] = [
-  4.14, 1.48, 3.20, 1.00, 0.95, 1.50, 0.86, 1.60, 1.01, 1.16,
-  3.21, 0.88, 2.50, 1.00, 0.90, 1.16, 1.15, 1.52, 1.53, 0.80,
-  2.85, 1.98, 6.00, 1.00, 1.03, 1.30, 0.83, 1.06, 1.47, 0.73,
-  1.59, 1.04, 1.63, 1.00, 0.31, 1.07, 1.15, 1.48, 2.01, 1.01,
+  1.60, 2.00, 2.00, 1.00, 1.80, 2.20, 1.20, 2.40, 1.01, 2.40,
+  1.60, 1.35, 2.40, 1.00, 1.04, 1.60, 1.58, 2.40, 2.40, 0.80,
+  1.60, 1.70, 2.40, 1.00, 1.03, 1.30, 0.83, 1.06, 1.47, 0.73,
+  1.59, 0.50, 1.63, 1.00, 0.31, 1.07, 1.15, 1.48, 2.01, 1.01,
   4.03, 1.76, 3.92, 1.00, 0.78, 0.79, 2.42, 2.10, 4.41, 2.42,
   1.16, 1.98, 1.86, 1.00, 0.91, 1.52, 1.24, 1.75, 3.33, 1.52,
   1.86, 2.73, 3.50, 1.00, 1.34, 2.48, 1.49, 1.08, 3.57, 1.34,
@@ -308,6 +310,8 @@ export const STAGE_TUNE: number[] = [
   3.46, 1.50, 1.91, 1.00, 2.37, 1.24, 1.35, 1.43, 1.89, 2.74,
   5.61, 2.70, 1.89, 1.00, 2.50, 1.94, 1.21, 2.24, 1.07, 1.70,
 ];
+/** the first three worlds never go past this trim (they also get earlyEase) */
+const EARLY_CAP = 2.4;
 export const setPressure = (v: number) => { PRESSURE_BASE = v; };
 const POWER_POOL: PowerUp[] = ["beam", "freeze", "magnet", "bomb", "wall", "double"];
 /** bubble powers join from World 3 (Snow): three bubbles per shot, faster bubbles, bigger bubbles */
@@ -549,7 +553,7 @@ export function buildStage(def: StageDef, math: MathMode, o: BuildOpts = {}): St
   // the per-stage trim measured by scripts/brigade_tune.mjs (every stage a real fight, none a wall)
   // ...eased in the first worlds so a new player can find their feet (the stage-1 trims were tuned for strong players)
   const trim = STAGE_TUNE[world * 10 + def.s - 1] ?? 1;
-  const tn = o.tune ?? (def.id.startsWith("daily") ? 1 : (world <= 2 ? Math.min(1.6, trim) : trim) * earlyEase(world, def.s));
+  const tn = o.tune ?? (def.id.startsWith("daily") ? 1 : (world <= 2 ? Math.min(EARLY_CAP, trim) : trim) * earlyEase(world, def.s));
   if (tn !== 1) {
     seg.horde = seg.horde.map((g) => ({ ...g, hp: hpR((g.hp ?? GRUMP_HP[g.kind]) * tn) }));
     seg.boss.hp = Math.max(10, Math.round(seg.boss.hp * tn));

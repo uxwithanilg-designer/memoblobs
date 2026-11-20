@@ -158,6 +158,20 @@ export function starGeo(): G {
   const g = new THREE.ExtrudeGeometry(s, { depth: 0.16, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2 }); g.translate(0, 0, -0.08);
   return merge([tint(g, "#FFE14D")]);
 }
+/** a heart (+1 life): a puffy red heart with a little shine */
+export function heartGeo(): G {
+  const s = new THREE.Shape();
+  s.moveTo(0, -0.42);
+  s.bezierCurveTo(-0.08, -0.32, -0.5, -0.05, -0.5, 0.18);
+  s.bezierCurveTo(-0.5, 0.42, -0.24, 0.5, -0.12, 0.45);
+  s.bezierCurveTo(-0.05, 0.42, 0, 0.36, 0, 0.3);
+  s.bezierCurveTo(0, 0.36, 0.05, 0.42, 0.12, 0.45);
+  s.bezierCurveTo(0.24, 0.5, 0.5, 0.42, 0.5, 0.18);
+  s.bezierCurveTo(0.5, -0.05, 0.08, -0.32, 0, -0.42);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.09, bevelSize: 0.07, bevelSegments: 4, curveSegments: 14 }); g.translate(0, 0, -0.1);
+  const shine = new THREE.SphereGeometry(0.08, 10, 8); shine.scale(1.3, 0.8, 0.4); shine.translate(-0.24, 0.24, 0.2);
+  return merge([tint(g, "#FF2E63"), tint(shine, "#FFFFFF")]);
+}
 /** a booster rocket (red ×3, gold ×5) */
 export function boostGeo(gold: boolean): G {
   const p: G[] = [];

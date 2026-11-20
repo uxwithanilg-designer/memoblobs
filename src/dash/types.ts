@@ -29,7 +29,7 @@ export interface Ob {
   br?: number;
   hit?: boolean; smashed?: boolean; passed?: boolean; over?: boolean; honked?: boolean; used?: boolean;
 }
-export type ItemKind = "coin" | "power" | "friend" | "letter" | "cage" | "pad" | "morph" | "portal" | "star" | "boost";
+export type ItemKind = "coin" | "power" | "friend" | "letter" | "cage" | "pad" | "morph" | "portal" | "star" | "boost" | "heart";
 export interface Item {
   id: number; kind: ItemKind; lane: number; z: number; y: number;
   /** coin melody: the coin line and its place in the line */
@@ -84,6 +84,8 @@ export type SimEvent =
   | { t: "world"; n: number }
   | { t: "boost"; x: number; on: boolean }
   | { t: "chase"; on: boolean } | { t: "momo" }
+  /** a life used up on a crash (n = lives left), or a heart picked up (n = lives now; full = already at the most) */
+  | { t: "life"; n: number } | { t: "heart"; n: number; full?: boolean }
   | { t: "end"; won: boolean };
 
 export interface RunStats {

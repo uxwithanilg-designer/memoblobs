@@ -22,6 +22,9 @@ const SKY_Y = 6.4;
 export const BOOST_Y = 1.6;
 /** booster time, short and sweet like a star power: ×3 lasts 6 s, the golden ×5 9 s */
 export const boostTime = (x: number) => (x >= 5 ? 9 : 6);
+/** lives: a run starts with 3; hearts on the track add one, up to 5 */
+export const START_LIVES = 3;
+export const MAX_LIVES = 5;
 export const TOP: Record<ObKind, number> = {
   fence: 0.95, bar: 3.0, block: 2.3, cart: 1.35, tram: TRAM_H, ramp: 0, grumpy: 1.0,
   gap: 0, roller: 1.1, ice: 0, belt: 0, ghost: 2.3, rail: RAIL_H, geyser: 3.4, gust: 0, zoom: 0,
@@ -48,6 +51,8 @@ export interface SimOpts {
   up?: Partial<Record<PowerId, number>>;
   /** Jelly Boards the player owns (double-tap to ride one) */
   boards?: number;
+  /** lives at the start (default 3 for a player, 0 for the bot so balance sweeps measure single runs) */
+  lives?: number;
 }
 interface Plan { lane: number; act: 0 | 1 | 2 }
 
@@ -58,6 +63,8 @@ export class Sim {
   lane = 0; x = 0; y = 0; vy = 0; air = false; squishT = 0;
   stumbleT = 0; invT = 0; shieldT = 0; magnetT = 0; doubleT = 0; skyT = 0; feverT = 0;
   boostT = 0; boostX = 1; zoomT = 0; boardT = 0; boards: number; boosts = 0;
+  /** a crash nothing else saves costs a life; the run ends when a crash comes with none left */
+  lives: number;
   morph: { id: MorphId; t: number } | null = null; minis = new Set<number>();
   friends: FriendId[] = []; letters = ""; pads = 0; chase: number | null = null; caught = 0;
   combo = 0; comboT = 0; score = 0; worlds = 0;
@@ -76,6 +83,7 @@ export class Sim {
     this.sec = this.track.section(0);
     this.speed = this.base = this.track.speedAt(0);
     this.bot = !!o.bot; this.skill = o.skill ?? 1; this.mult = o.mult ?? 1; this.up = o.up ?? {}; this.boards = o.boards ?? 0;
+    this.lives = Math.min(MAX_LIVES, o.lives ?? (o.bot ? 0 : START_LIVES));
     this.botR = (spec.seed % 1000) / 1000;
   }
 
@@ -390,6 +398,15 @@ export class Sim {
       this.events.push({ t: "friendSave", id: f });
       return true;
     }
+    // nothing else saved Momo: a life does (the thing hit is knocked away and Momo blinks safe for a moment)
+    if (this.lives > 0) {
+      this.lives--;
+      if (o) o.smashed = true;
+      this.invT = 2.4; this.stumbleT = 0;
+      if (this.feverT > 0) { this.feverT = 0; this.events.push({ t: "fever", on: false }); }
+      this.events.push({ t: "life", n: this.lives });
+      return true;
+    }
     return false;
   }
   private crash(o: Ob | null) {
@@ -491,6 +508,10 @@ export class Sim {
         if (this.letters.length >= 4) { this.letters = ""; this.score += 1000 * this.mul(); this.events.push({ t: "momo" }); }
         break;
       case "star": this.stats.starPieces++; this.score += 300 * this.mul(); this.events.push({ t: "star", n: this.stats.starPieces }); break;
+      case "heart":
+        if (this.lives < MAX_LIVES) { this.lives++; this.events.push({ t: "heart", n: this.lives }); }
+        else { this.score += 500 * this.mul(); this.events.push({ t: "heart", n: this.lives, full: true }); }
+        break;
       case "pad":
         this.pads++;
         this.events.push({ t: "pad", n: this.pads });

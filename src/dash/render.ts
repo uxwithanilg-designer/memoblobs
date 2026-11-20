@@ -198,6 +198,7 @@ export class DashRenderer {
       [{ g: X.morphGate(), m: this.gloss }],
       ...(["ball", "split", "giant", "stretch"] as MorphId[]).map((id) => [{ g: X.morphIcon(id), m: this.gloss }]),
       [{ g: X.portalGeo(), m: this.gloss }, { g: X.portalFill(), m: portalFill }],
+      [{ g: X.heartGeo(), m: this.gloss }],
     ], 40, "first");
     this.friendsL = this.layer(sc, FRIEND_IDS.map((id) => [{ g: friendGeo(id), m: this.gloss }]), 8);
     this.conga = this.layer(sc, FRIEND_IDS.map((id) => [{ g: friendGeo(id), m: this.gloss }]), 6);
@@ -597,6 +598,7 @@ export class DashRenderer {
         case "pad": this.items.put(8, x, 0, rz); break;
         case "boost": this.items.put(0, x, y + 0.2 + bob, rz, 0, 1.25); this.items.put(it.boost === 5 ? 10 : 9, x, y + 0.2 + bob, rz, this.t * 1.5, 1.05, undefined, 0.3); break;
         case "star": this.items.put(11, x, y + 0.3 + bob, rz, spin, 1.2); break;
+        case "heart": this.items.put(18, x, y + 0.15 + bob, rz, Math.sin(this.t * 2.4) * 0.7, 1.4 + Math.sin(this.t * 7) * 0.08); break;
         case "morph":
           this.items.put(12, x, 0, rz);
           this.items.put(13 + (["ball", "split", "giant", "stretch"] as MorphId[]).indexOf(it.morph ?? "ball"), x, 1.25 + bob, rz, spin, 1);
@@ -723,6 +725,8 @@ export class DashRenderer {
         case "trick": this.burst(s.x, s.y + 1.2, s.z, 14, e.kind === "bonk" ? "#C8A6FF" : "#FFE08A", 4.5, 0.5, 0.9); break;
         case "pad": case "zoom": this.burst(s.x, 0.3, s.z, 22, e.t === "zoom" ? "#3DE0FF" : "#7CFFB2", 5, 0.5, 1); this.shakeT = 0.2; break;
         case "star": this.burst(s.x, s.y + 1.2, s.z, 24, "#FFE14D", 6, 0.7, 1.2); break;
+        case "heart": this.burst(s.x, s.y + 1.2, s.z, 26, "#FF4F7A", 5, 0.7, 1.2); break;
+        case "life": this.shakeT = 0.5; this.burst(s.x, s.y + 0.8, s.z + 0.8, 26, "#FF6B8A", 6, 0.7, 1.3); break;
         case "cake": case "snip": this.burst(s.x, 1.2, s.z + 6, 30, e.t === "cake" ? "#FF8FC7" : "#E8504F", 6, 0.7, 1.2); break;
         case "gust": for (let i = 0; i < 12; i++) this.burst(s.x - e.dir * 2, 1 + Math.random(), s.z + 1, 1, "#FFFFFF", 3, 0.4, 0.6); break;
         case "caught": for (let i = 0; i < 4; i++) this.burst(s.x, 2, s.z + 6, 20, ["#FF5F7E", "#FFD23F", "#2FCB8B", "#3D8BFF"][i], 7, 0.9, 1.6); break;

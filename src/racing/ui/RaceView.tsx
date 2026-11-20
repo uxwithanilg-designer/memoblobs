@@ -311,7 +311,8 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
         } else if (e.type === "finish") onFinish(e.result);
       },
     });
-    s.touch.autoGas = S.autoGas;
+    s.touch.autoGas = S.autoDrive;
+    s.autoDrive = S.autoDrive;
     s.touch.useTilt = S.controls === "tilt" || S.controls === "wheel";
     sess.current = s;
     s.init().catch((x) => setErr(String(x?.message ?? x)));
@@ -414,12 +415,12 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
   const sizes: Sizes = useMemo(() => {
     const m = Math.min(vp.w, vp.h), k = S.controlSize ?? 1;
     let steer = Math.max(60, Math.min(100, m * 0.205)) * k;
-    const fit = (st: number) => { const small = st * 0.74, nitro = st * 1.16, gap = Math.max(8, st * 0.1); return 2 * st + gap + (S.autoGas ? small + gap + nitro : small + gap + small * 1.15) + gap * 2 + 24; };
+    const fit = (st: number) => { const small = st * 0.74, nitro = st * 1.16, gap = Math.max(8, st * 0.1); return 2 * st + gap + (S.autoDrive ? small + gap + nitro : small + gap + small * 1.15) + gap * 2 + 24; };
     if (portrait) while (fit(steer) > vp.w && steer > 54) steer -= 2;
     const small = Math.round(steer * 0.74), gap = Math.round(Math.max(8, steer * 0.1));
     return { steer: Math.round(steer), small, nitro: Math.round(steer * 1.16), gap, pedalW: Math.round(small * 1.15), pedalH: Math.round(small * 1.3) };
-  }, [vp.w, vp.h, portrait, S.controlSize, S.autoGas]);
-  const pedalsH = S.autoGas ? Math.max(sizes.nitro, sizes.small * 2 + sizes.gap) : Math.max(sizes.small * 2 + sizes.gap, Math.round(sizes.small * 1.12) + sizes.gap + sizes.pedalH);
+  }, [vp.w, vp.h, portrait, S.controlSize, S.autoDrive]);
+  const pedalsH = S.autoDrive ? Math.max(sizes.nitro, sizes.small * 2 + sizes.gap) : Math.max(sizes.small * 2 + sizes.gap, Math.round(sizes.small * 1.12) + sizes.gap + sizes.pedalH);
   const speedoW = touch ? (portrait ? Math.round(Math.min(150, vp.w * 0.4)) : Math.round(Math.min(200, Math.max(140, vp.h * 0.42)))) : 230;
   const mapSize = Math.round(touch ? (portrait ? Math.min(118, vp.w * 0.3) : Math.min(116, vp.h * 0.27)) : 150);
   const lh = S.leftHanded;
@@ -680,7 +681,7 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
                       <span className="relative h-2 w-full overflow-hidden rounded-full bg-white/15"><span ref={(el) => reg("tilt", el)} className="absolute top-0 left-[45%] h-full w-[10%] rounded-full bg-[#FFD25A]" /></span>
                     </div>
                   )}
-              <Pedals S={sizes} press={press} autoGas={S.autoGas} onNitroDown={onNitroDown} />
+              <Pedals S={sizes} press={press} autoGas={S.autoDrive} onNitroDown={onNitroDown} />
             </div>
           )}
         </>
@@ -697,7 +698,7 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
                 {[
                   touch ? (S.controls === "tilt" ? ["📱", "Steer", "Tilt your phone left and right like a steering wheel."] : S.controls === "wheel" ? ["🛞", "Steer", "Drag the wheel round to turn."] : ["◀ ▶", "Steer", "Hold the big arrows. Slide your thumb across to switch sides."])
                     : ["⬅️➡️", "Steer", "Arrow keys or A / D to steer."],
-                  S.autoGas ? ["🚗", "Go!", "Your car speeds up by itself. Hold BRAKE before tight corners."] : ["🟢", "Gas & brake", "Hold GAS to go, BRAKE to slow down."],
+                  S.autoDrive ? ["🚗", "Auto drive", "Your car speeds up and keeps to the road by itself. Hold BRAKE before tight corners."] : ["🟢", "Gas & brake", "Hold GAS to go, BRAKE to slow down."],
                   cfg.game === "drift-kings"
                     ? ["〰", "Drift chains", "Hold DRIFT and steer into a bend. Keep sliding for ×2…×5 — but a wall hit breaks the chain!"]
                     : ["〰", "Drift", "Hold DRIFT while turning to slide — it fills your nitro!"],

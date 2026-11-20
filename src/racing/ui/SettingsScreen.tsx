@@ -1,10 +1,11 @@
 "use client";
-// Racing settings: controls (buttons / steering wheel / tilt with the iOS motion permission), auto-gas,
+// Racing settings: controls (buttons / steering wheel / tilt with the iOS motion permission), Auto drive (off by default),
 // control side & size, sensitivity, vibration, fullscreen-landscape; view (camera, minimap, standings,
 // units); graphics; and progress stats with a guarded reset.
 import { useState } from "react";
 import { Gamepad2, Eye, Cpu, BarChart3, Keyboard, RotateCcw, Smartphone } from "lucide-react";
 import { AppBar, Btn, Seg, Sheet, Toggle, useIsTouch, useViewport, sfx } from "./kit";
+import { gameOf } from "../games";
 import type { RacingSettings, RacingSave } from "../save";
 
 type DOE = { requestPermission?: () => Promise<string> };
@@ -53,8 +54,8 @@ export function SettingsScreen({ settings: st, set, save, onReset, onBack }: { s
         <Seg value={st.controls} onChange={(v) => void pickControls(v)} options={[{ v: "buttons", label: "◀ ▶ Buttons" }, { v: "wheel", label: "🛞 Wheel" }, { v: "tilt", label: "📱 Tilt" }]} />
         {motionMsg && <p className="mt-1.5 text-[12px] text-[#FF8A9A]">{motionMsg}</p>}
       </Row>
-      <Row title="Accelerate" sub={st.autoGas ? "The car drives itself — you steer, brake and boost" : "Hold GAS (or ▲ / W) to go"} stack>
-        <Seg value={st.autoGas ? 1 : 0} onChange={(v) => set({ autoGas: v === 1 })} options={[{ v: 1, label: "Automatic" }, { v: 0, label: "Manual gas" }]} />
+      <Row title="Auto drive" sub={st.autoDrive ? "On: the car speeds up and keeps to the road by itself — you steer, brake and boost" : "Off: you drive — hold GAS (or ▲ / W) to go and steer yourself"}>
+        <Toggle on={st.autoDrive} onChange={(v) => set({ autoDrive: v })} label="Auto drive" />
       </Row>
       {st.controls !== "buttons" && (
         <Row title="Sensitivity" sub={`${Math.round(st.sensitivity * 100)}%`} stack>
@@ -109,7 +110,7 @@ export function SettingsScreen({ settings: st, set, save, onReset, onBack }: { s
 
   return (
     <div className="absolute inset-0 flex flex-col">
-      <AppBar title="Settings" sub="Nitro Rush" onBack={onBack} />
+      <AppBar title="Settings" sub={gameOf().slug.split("-").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ")} onBack={onBack} />
       <div className="nr-scroll min-h-0 flex-1 overflow-y-auto pt-3" style={{ paddingLeft: "calc(var(--safe-left, 0px) + 0.75rem)", paddingRight: "calc(var(--safe-right, 0px) + 0.75rem)", paddingBottom: "calc(var(--safe-bottom) + 1rem)" }}>
         <div className={`mx-auto grid max-w-5xl gap-4 ${!vp.portrait || vp.w >= 700 ? "grid-cols-2" : ""}`}>
           <div className="flex flex-col gap-4">{controls}</div>
