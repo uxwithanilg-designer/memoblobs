@@ -2,6 +2,13 @@
 {
   "name": "momoblobs",
   "compatibility_date": "2026-11-01",
+  // the site's own domain (Cloudflare makes the DNS records and the SSL certificate); the old workers.dev address keeps
+  // working too (it has to be switched on by name once routes are set)
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "momoblobs.com", "custom_domain": true },
+    { "pattern": "www.momoblobs.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./out",
     "html_handling": "auto-trailing-slash",
