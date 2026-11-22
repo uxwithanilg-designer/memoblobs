@@ -11,7 +11,7 @@ export default function PrivacyPage() {
   return (
     <>
       <PageHero kicker="Plain and simple" title="Privacy" crumbs={[{ name: "Privacy", href: "/privacy" }]} intro="Last updated 17 November 2026." />
-      <article className="prose-kid mx-auto max-w-3xl px-5 lg:px-6">
+      <article className="prose-page mx-auto max-w-3xl px-5 lg:px-6">
         <h2>The short version</h2>
         <ul>
           <li>No accounts, no sign-up, no email addresses.</li>
@@ -21,10 +21,10 @@ export default function PrivacyPage() {
         <p>Two small entries in local storage: <code>momoblobs:profile</code> (player name, avatar, coins, levels, trophies, cup skins, days played) and <code>momoblobs:settings</code> (sound, graphics and gameplay options). You can erase them any time from <strong>Profile → Reset progress</strong> or by clearing your browser&apos;s site data.</p>
         <h2>What our servers see</h2>
         <p>Like every website, the server that delivers the pages receives standard technical request information (such as IP address and browser type) to send you the files. We do not use it to identify or profile anyone.</p>
-        <h2>Children</h2>
-        <p>MOMOBLOBS is designed for children and families. We do not knowingly collect personal information from children. The player name is optional, stays on the device and is never shared.</p>
+        <h2>Age</h2>
+        <p>MOMOBLOBS is a general-audience games website. We do not knowingly collect personal information from anyone under 13 — or from anyone else. The player name is optional, stays on the device and is never shared.</p>
         <h2>Links to other sites</h2>
-        <p>Links to YouTube and Instagram open those services, which have their own privacy policies. We recommend a grown-up opens them.</p>
+        <p>Links to YouTube and Instagram open those services, which have their own privacy policies. Their own rules apply there.</p>
         <h2>Changes</h2>
         <p>If this notice changes, the date at the top of the page will change too.</p>
       </article>

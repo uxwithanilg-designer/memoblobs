@@ -12,6 +12,7 @@ import { CATEGORY_ICON } from "@/components/layout/nav";
 import { CATEGORIES, CHARACTERS, GAMES, getGame } from "@/lib/games";
 import { categoryHref, inCategory, is3D, playHref, posterOf, similarTo } from "@/lib/catalog";
 import { abs, absAsset } from "@/lib/site";
+import { seoOf } from "@/lib/seo";
 
 export function generateStaticParams() {
   return GAMES.map((g) => ({ slug: g.slug }));
@@ -22,16 +23,21 @@ export async function generateMetadata({ params }: PageProps<"/games/[slug]">): 
   const g = getGame(slug);
   if (!g) return {};
   const live = g.status === "live";
-  const cat = CATEGORIES.find((c) => c.id === g.category)?.label ?? "Online";
-  const title = !live ? `${g.title} — Coming Soon` : `${g.title} — Play Free Online ${cat} Game`;
+  const seo = seoOf(g);
+  const title = !live ? `${g.title} — Coming Soon` : seo.title;
   const og = live ? absAsset(`/games/${g.slug}/og.jpg`) : "/og.jpg";
+  const social = `${title} | MOMOBLOBS`;
   return {
     title,
-    description: g.description.slice(0, 158),
+    description: seo.description,
+    keywords: [g.title, ...seo.keywords, "free online game", "MOMOBLOBS"],
     alternates: { canonical: `/games/${g.slug}` },
-    robots: live ? undefined : { index: false, follow: true },
-    openGraph: { type: "website", title, description: g.tagline, url: `/games/${g.slug}`, images: [{ url: og, width: 1200, height: 630, alt: g.title }] },
-    twitter: { card: "summary_large_image", title, description: g.tagline, images: [og] },
+    robots: live ? { index: true, follow: true, "max-image-preview": "large" } : { index: false, follow: true },
+    openGraph: {
+      type: "website", siteName: "MOMOBLOBS", title: social, description: seo.description, url: `/games/${g.slug}`,
+      images: [{ url: og, width: 1200, height: 630, alt: `${g.title} — ${g.tagline}` }],
+    },
+    twitter: { card: "summary_large_image", title: social, description: seo.description, images: [{ url: og, alt: g.title }] },
   };
 }
 
@@ -47,6 +53,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
   const next = similarTo(g, 14);
   const main = CATEGORIES.find((c) => c.id === g.category)!;
   const released = g.released ? new Date(`${g.released}T12:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "2026";
+  const seo = seoOf(g);
 
   const ld = live && {
     "@context": "https://schema.org",
@@ -56,9 +63,17 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
         "@id": abs(`/games/${g.slug}#game`),
         name: g.title,
         url: abs(`/games/${g.slug}`),
+        alternateName: seo.title,
         description: g.description,
+        abstract: seo.description,
+        keywords: seo.keywords.join(", "),
         image: [absAsset(g.hero), absAsset(posterOf(g)), absAsset(`/games/${g.slug}/og.jpg`)],
-        genre: [main.label],
+        thumbnailUrl: absAsset(g.hero),
+        ...(g.shots.length ? { screenshot: g.shots.map(absAsset) } : {}),
+        genre: [main.label, ...(is3D(g) ? ["3D"] : [])],
+        author: { "@id": abs("/#org") },
+        dateModified: seo.updated,
+        mainEntityOfPage: abs(`/games/${g.slug}`),
         gamePlatform: ["Web browser", "iOS", "Android", "Windows", "macOS"],
         applicationCategory: "GameApplication",
         operatingSystem: "Any (web browser)",
@@ -150,6 +165,11 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
               <div className="min-w-0">
                 <H2 icon={<Gamepad2 className="size-5 text-sun" />}>About {g.title}</H2>
                 <p className="max-w-4xl text-[15.5px] leading-relaxed text-muted">{g.description}</p>
+                <ul aria-label={`${g.title} tags`} className="mt-4 flex flex-wrap gap-1.5">
+                  {seo.keywords.map((k) => (
+                    <li key={k} className="rounded-full bg-white/[0.05] px-2.5 py-1 text-xs font-semibold text-faint ring-1 ring-white/[0.06]">{k}</li>
+                  ))}
+                </ul>
               </div>
               {live && (
                 <figure className="mx-auto mt-6 w-full max-w-[300px] md:mt-8">

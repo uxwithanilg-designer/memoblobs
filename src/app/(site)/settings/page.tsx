@@ -4,7 +4,7 @@ import { SettingsForm } from "@/components/settings/SettingsForm";
 
 export const metadata: Metadata = {
   title: "Settings — Sound, Graphics & Gameplay",
-  description: "Adjust MOMOBLOBS game settings: music and sound volume, graphics quality, frame rate, Kid Mode slower shuffles, big buttons, vibration and controls.",
+  description: "Adjust MOMOBLOBS game settings: music and sound volume, graphics quality, frame rate, Relaxed Mode (slower games), big buttons, vibration and controls.",
   alternates: { canonical: "/settings" },
   robots: { index: false, follow: true },
 };

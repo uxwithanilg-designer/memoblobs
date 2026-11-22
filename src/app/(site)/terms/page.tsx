@@ -11,7 +11,7 @@ export default function TermsPage() {
   return (
     <>
       <PageHero kicker="The simple rules" title="Terms of use" crumbs={[{ name: "Terms", href: "/terms" }]} intro="Last updated 16 November 2026." />
-      <article className="prose-kid mx-auto max-w-3xl px-5 lg:px-6">
+      <article className="prose-page mx-auto max-w-3xl px-5 lg:px-6">
         <h2>Playing</h2>
         <p>MOMOBLOBS games are free for personal, family and classroom use in a web browser. Please don&apos;t copy, resell or re-host the games.</p>
         <h2>Coins and items</h2>
@@ -20,8 +20,8 @@ export default function TermsPage() {
         <p>Momo, Kranky, Tiki, the MOMOBLOBS name and logo, the clay artwork, music and sound effects belong to MOMOBLOBS.</p>
         <h2>Availability</h2>
         <p>We work hard to keep the site running smoothly but games are provided “as is” and may change, improve or occasionally be unavailable.</p>
-        <h2>Grown-ups</h2>
-        <p>If a child is using the site, a parent, guardian or teacher is responsible for supervising their use and any links they follow to other websites.</p>
+        <h2>Younger players</h2>
+        <p>If you are under the age of majority where you live, a parent, guardian or teacher should review these terms with you and is responsible for your use of the site and any links you follow to other websites.</p>
       </article>
     </>
   );

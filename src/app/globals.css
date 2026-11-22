@@ -233,13 +233,13 @@ body {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
   .pb-tabbar { padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 1rem); }
-  .prose-kid { color: var(--color-muted); line-height: 1.75; font-size: 1.05rem; }
-  .prose-kid h2 { color: var(--color-text); font-family: var(--font-display); font-size: 1.6rem; margin: 2rem 0 0.6rem; letter-spacing: 0.01em; }
-  .prose-kid h3 { color: var(--color-text); font-weight: 700; font-size: 1.15rem; margin: 1.4rem 0 0.4rem; }
-  .prose-kid p { margin: 0.7rem 0; }
-  .prose-kid ul { list-style: none; padding: 0; margin: 0.8rem 0; display: grid; gap: 0.5rem; }
-  .prose-kid li { padding-left: 1.6rem; position: relative; }
-  .prose-kid li::before { content: "●"; position: absolute; left: 0.2rem; color: var(--color-momo); font-size: 0.8rem; top: 0.15rem; }
-  .prose-kid a { color: var(--color-sun); text-decoration: underline; text-underline-offset: 3px; }
-  .prose-kid strong { color: var(--color-text); }
+  .prose-page { color: var(--color-muted); line-height: 1.75; font-size: 1.05rem; }
+  .prose-page h2 { color: var(--color-text); font-family: var(--font-display); font-size: 1.6rem; margin: 2rem 0 0.6rem; letter-spacing: 0.01em; }
+  .prose-page h3 { color: var(--color-text); font-weight: 700; font-size: 1.15rem; margin: 1.4rem 0 0.4rem; }
+  .prose-page p { margin: 0.7rem 0; }
+  .prose-page ul { list-style: none; padding: 0; margin: 0.8rem 0; display: grid; gap: 0.5rem; }
+  .prose-page li { padding-left: 1.6rem; position: relative; }
+  .prose-page li::before { content: "●"; position: absolute; left: 0.2rem; color: var(--color-momo); font-size: 0.8rem; top: 0.15rem; }
+  .prose-page a { color: var(--color-sun); text-decoration: underline; text-underline-offset: 3px; }
+  .prose-page strong { color: var(--color-text); }
 }

@@ -16,7 +16,7 @@ const GROUPS = [
       { q: "How do I play Momo Shuffle?", a: "Watch which cup Momo hops under, follow that cup while Kranky shuffles, then tap it (or press its number). Finding Momo wins coins and takes you to the next level." },
       { q: "What do Easy, Medium and Hard mean?", a: "Easy has 3 cups, Medium has 4 cups and Hard has 6 cups. Each level adds more swaps and more speed, and twists like Fake-Out and Lights Off appear as you go." },
       { q: "Is there an end?", a: "No — every mode has unlimited levels. If you miss, you replay the same level with a new shuffle." },
-      { q: "It's too fast for my child.", a: "Open Settings → Gameplay and turn on Kid Mode. Shuffles get slower with fewer swaps. You can also turn on Big buttons." },
+      { q: "It's too fast for me.", a: "Open Settings → Gameplay and turn on Relaxed Mode. Shuffles get slower with fewer swaps. You can also turn on Big buttons." },
     ],
   },
   {

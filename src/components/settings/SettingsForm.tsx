@@ -150,7 +150,7 @@ export function SettingsForm({ compact = false, fullscreenNote = false }: { comp
         )}
         {tab === "gameplay" && (
           <>
-            <Row label="Kid Mode" hint="Slower shuffles with fewer swaps"><Toggle label="Kid mode" on={s.speedAssist} onChange={(v) => set({ speedAssist: v })} /></Row>
+            <Row label="Relaxed Mode" hint="Slower, calmer games with more help"><Toggle label="Relaxed Mode" on={s.speedAssist} onChange={(v) => set({ speedAssist: v })} /></Row>
             <Row label="Auto next round" hint="Keep playing without tapping"><Toggle label="Auto next round" on={s.autoContinue} onChange={(v) => set({ autoContinue: v })} /></Row>
             {s.autoContinue && (
               <Row label="Wait before next round">

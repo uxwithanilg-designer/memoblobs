@@ -20,7 +20,7 @@ import { preloader, whenIdle } from "@/lib/preload";
 const TIPS_COMMON = [
   "Tip: correct answers in a row build a combo — up to ×5 points!",
   "Tip: every level is brand new, so no two games are the same.",
-  "Tip: turn on Kid Mode in Settings for slower, calmer games.",
+  "Tip: turn on Relaxed Mode in Settings for slower, calmer games.",
   "Tip: coins buy new cup colours in the Rewards shop.",
 ];
 
