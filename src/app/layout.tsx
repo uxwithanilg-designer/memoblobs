@@ -8,6 +8,7 @@ import { Providers } from "@/components/Providers";
 import { JsonLd } from "@/components/JsonLd";
 import { preconnect } from "react-dom";
 import { ASSET_ORIGIN, IMG_RETRY_JS } from "@/lib/cdn";
+import { ANALYTICS_HEAD_JS, ANALYTICS_ON } from "@/lib/analytics";
 
 const lilita = localFont({ src: "../fonts/LilitaOne.ttf", variable: "--font-lilita", display: "swap", weight: "400", preload: true });
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-fredoka", display: "swap" });
@@ -95,6 +96,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" data-scroll-behavior="smooth" className={`${lilita.variable} ${fredoka.variable} antialiased`} suppressHydrationWarning>
       <body className="min-h-dvh">
+        {ANALYTICS_ON && <script dangerouslySetInnerHTML={{ __html: ANALYTICS_HEAD_JS }} />}
         {IMG_RETRY_JS && <script dangerouslySetInnerHTML={{ __html: IMG_RETRY_JS }} />}
         <JsonLd data={orgLd} />
         <Providers>{children}</Providers>

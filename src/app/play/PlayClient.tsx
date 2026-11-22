@@ -9,6 +9,7 @@ import { GameView } from "@/components/player/GameView";
 import { SLUG_ALIASES, getGame } from "@/lib/games";
 import type { Difficulty } from "@/lib/store";
 import { useLibrary } from "@/lib/library";
+import { track } from "@/lib/analytics";
 
 export function PlayClient() {
   const sp = useSearchParams();
@@ -29,13 +30,14 @@ export function PlayClient() {
   useEffect(() => {
     if (!live || !g) return;
     useLibrary.getState().touch(slug);
+    track("play_game", { game_slug: slug, game_title: g.title, game_category: g.category, embedded: embed });
     // the shared page's own title is generic; name the game (again a moment later: Next can set the page's
     // metadata title after this runs on a fresh load)
     const title = `Play ${g.title} — free online | MOMOBLOBS`;
     document.title = title;
     const t = setTimeout(() => { document.title = title; }, 600);
     return () => clearTimeout(t);
-  }, [live, g, slug]);
+  }, [live, g, slug, embed]);
 
   if (alias) return <div className="fixed inset-0 bg-night" />;
   if (!g || !live) {

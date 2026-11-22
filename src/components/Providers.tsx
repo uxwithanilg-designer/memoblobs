@@ -5,6 +5,7 @@ import { useHydrated, useProfile, useSettings } from "@/lib/store";
 import { useLibrary } from "@/lib/library";
 import { audio } from "@/lib/audio";
 import { Toaster } from "@/components/ui/Toaster";
+import { ConsentBanner } from "@/components/ConsentBanner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useHydrated();
@@ -28,6 +29,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <MotionConfig reducedMotion={reduced ? "always" : "user"}>
       {children}
       <Toaster />
+      <ConsentBanner />
     </MotionConfig>
   );
 }
