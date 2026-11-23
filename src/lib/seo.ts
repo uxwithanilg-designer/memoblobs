@@ -62,6 +62,12 @@ export const GAME_SEO: Record<string, GameSeo> = {
     description: "Lean into corners, pop wheelies, slipstream rivals and win the Grand Prix. A free 3D motorbike racing game you can play in your browser.",
     keywords: ["motorbike racing game", "bike racing game online", "motorbike grand prix", "3d bike game", "motorcycle game", "wheelie game"],
   },
+  "orbi-gp": {
+    title: "Orbi GP — 3D Marble Racing Game in the Sky",
+    description: "Race a glass marble at up to 350 km/h across 500 floating sky stages: balance, dodge and boost to win. A free 3D marble racing game in your browser.",
+    keywords: ["marble racing game", "marble run game", "3d ball rolling game", "balance ball game", "sky racing game", "ball race online"],
+    updated: "2026-11-23",
+  },
   "blob-brigade": {
     title: "Blob Brigade — 3D Crowd Runner Battle",
     description: "Grow one blob into a giant brigade: pick the best math gates, march through 100+ stages and beat the boss. A free 3D crowd runner game.",
