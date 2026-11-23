@@ -6,6 +6,9 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { CONTENT_TYPES, R2_BUCKET } from "./config.mjs";
+// uploads go to the MOMOBLOBS Cloudflare account only (the account_id in wrangler.jsonc), whatever else is logged in
+const ACCOUNT = /"account_id":\s*"([0-9a-f]{32})"/.exec(readFileSync("wrangler.jsonc", "utf8"))?.[1];
+const WENV = { ...process.env, ...(ACCOUNT ? { CLOUDFLARE_ACCOUNT_ID: ACCOUNT } : {}) };
 import { writeIndex } from "./asset-index.mjs";
 
 const STATE = ".r2-uploaded.json";
@@ -44,7 +47,7 @@ for (const [k, list] of groups) {
     let ok = false;
     for (let t = 1; t <= TRIES && !ok; t++) {
       const r = spawnSync(`npx --yes wrangler@4 r2 bulk put ${R2_BUCKET} --remote --force --concurrency 6 --filename "${file}" --content-type "${ct}" --cache-control "${cc}"`,
-        { stdio: "inherit", shell: true });
+        { stdio: "inherit", shell: true, env: WENV });
       ok = r.status === 0;
       if (!ok && t < TRIES) console.error(`  batch ${i / BATCH + 1} failed, retrying (${t + 1}/${TRIES})`);
     }

@@ -1,6 +1,9 @@
 // Cloudflare Workers: the site is a static export (npm run build:static -> out/) served as static assets.
 {
   "name": "momoblobs",
+  // the MOMOBLOBS Cloudflare account: deploys and R2 uploads only ever go here (logged in elsewhere, they stop with an
+  // authentication error instead of landing in another account)
+  "account_id": "6976a1ec5baced3c56380c66503a5efa",
   "compatibility_date": "2026-11-01",
   // the site's own domain (Cloudflare makes the DNS records and the SSL certificate); the old workers.dev address keeps
   // working too (it has to be switched on by name once routes are set)
