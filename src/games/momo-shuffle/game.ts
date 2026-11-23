@@ -190,6 +190,7 @@ export class MomoShuffleGame {
     progress(0.05, "Warming up the clay…");
     this.quality = this.resolveQuality();
     setClayQuality(this.quality);
+    // perf-ok: its own resolution governor, and it honours the frame-rate setting
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: "high-performance", stencil: false });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;

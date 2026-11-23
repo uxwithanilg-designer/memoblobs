@@ -83,16 +83,28 @@ The loading layer is `src/lib/preload.ts` (download queue with NOW / NEXT / LATE
   fallback. Examples: `src/roll/runWorker.ts`, `src/escape/worker.ts`.
 - **Memory:** `audio` keeps only a few music tracks decoded at once. Don't hold your own copies of `AudioBuffer`s.
 
-## 5. Smooth on slow phones and laptops (3D games)
+## 5. Smooth on phones — Android above all (every game; enforced)
 
-- **Quality:** "auto" graphics use the engine's `autoQuality()`. Cap the pixel ratio (high 2, medium 1.5, low 1); no
-  antialiasing on low.
-- **FrameGovernor:** every 3D renderer gets a `FrameGovernor` from `src/lib/perf.ts`. It lowers the resolution when
-  fps drops and keeps the step only if it helps. Copy the pattern in `src/dash/render.ts` (constructor, `resize()`,
-  `dispose()`).
-- **Reuse:** build materials and geometry once and reuse them (instancing). Allocate nothing in the per-frame loop.
-  Dispose everything when the game exits.
-- **Sound:** play all sound through `audio`. The player stops the music when the game is left or the tab is hidden.
+Android phones hung and broke up the sound in every game until the shared kit in `src/lib/perf.ts` (2026-11-23). Every
+game uses it, and `npm run check:perf` (part of `npm run build:static`) fails the build when one doesn't.
+- **Quality:** "auto" graphics come from `autoQuality()` in `src/lib/perf.ts` (a device tier worked out once). Set the
+  renderer with `pixelRatioFor(q)` (phones 1 / 1.25 / 1.5, computers 1 / 1.5 / 2), `antialiasFor(q)` (phones: high
+  only) and `shadowsFor(q)` (phones: high only). Never set a pixel ratio from `window.devicePixelRatio`.
+- **FrameGovernor:** every 3D renderer gets one (constructor, `resize()`, `dispose()` — see `src/dash/render.ts`). It
+  lowers the resolution when fps drops and keeps the step only if it helps.
+- **Frame cap and lite UI (automatic):** the game player caps every animation loop at the frame-rate setting (60 by
+  default; a 120 Hz phone screen would otherwise double the work) and, on phones, turns off CSS backdrop blur while a
+  game runs (`html.perf-lite`). So: drive the game with `requestAnimationFrame` (never `setInterval`), and don't rely on
+  blur for readability — give HUD panels a solid translucent background.
+- **No garbage per frame:** build materials and geometry once (instancing), and in the per-frame loop reuse scratch
+  vectors and matrices — no `new THREE.Vector3()`, `clone()` or array literals per object per frame (they cause
+  garbage-collection pauses: the "hangs"). Dispose everything when the game exits.
+- **Sound:** only through `audio` (one engine: a voice budget of 10 sounds on phones and 24 on computers, the same
+  sound at most every 35 ms, no reverb on phones, a bigger buffer on Android). A procedural music engine schedules at
+  least 0.5 s ahead on phones (see `src/roll/music.ts`), so a busy frame never drops notes.
+- **Measure:** open a game with `?perf=1` for the overlay (fps, slowest frame, long pauses, memory, tier, resolution,
+  cap). Test with Chrome DevTools at 4× CPU slowdown, and on a budget Android phone through `chrome://inspect`. Aim for
+  a steady ~60 fps with no long pauses during play.
 
 ## 6. Adding a new game
 
@@ -121,7 +133,8 @@ The loading layer is `src/lib/preload.ts` (download queue with NOW / NEXT / LATE
 ## 7. Before you say you're done
 
 - `npx tsc --noEmit -p .` and `npx eslint <changed files>`: no errors.
-- `npm run build:static` passes, including its `game budget:` line.
+- `npm run build:static` passes, including its `game budget:` and `mobile performance:` lines.
+- `?perf=1` on a phone-size, 4× CPU-slowed browser: steady fps, no long pauses while playing.
 - `npm run upload:r2` if you added or changed game files.
 - Test the static build with `npx --yes wrangler@4 dev --port 8787`. It serves `out/` like Cloudflare, including
   redirects and headers. Open `/games/<slug>` and `/play?g=<slug>` at 390×844 and on desktop. Run headless browsers

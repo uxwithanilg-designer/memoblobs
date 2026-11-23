@@ -33,3 +33,11 @@ uses 7: its page `/games/<slug>` (`.html` + `.txt`) and the 5 data files Next wr
   the owner's decision).
 - **Deploy** with `npm run deploy` (build → upload to R2 → `wrangler deploy`). Never deploy without the R2 upload:
   the site has no copy of the game files.
+
+## Mobile performance — every game, every agent (MOMOBLOBS rule)
+
+Phones (Android above all) must stay smooth and cool in every game. Use the shared kit in `src/lib/perf.ts`:
+`autoQuality()`, `pixelRatioFor(q)`, `antialiasFor(q)`, `shadowsFor(q)` and a `FrameGovernor` in every 3D renderer; play
+sound only through `@/lib/audio`; allocate nothing per frame; drive games with `requestAnimationFrame`. The player
+already caps the frame rate and turns off CSS blur on phones. `npm run build:static` runs `scripts/check-perf.mjs`, which
+fails the build when a game breaks these rules. Full brief: `docs/AGENT_PROMPT.md` §5.

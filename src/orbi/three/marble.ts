@@ -29,6 +29,7 @@ export class MarbleView {
   private mats: THREE.Material[] = [];
   private q = new THREE.Quaternion();
   private last = new THREE.Vector3();
+  private d = new THREE.Vector3(); private axis = new THREE.Vector3();
   private first = true;
 
   constructor(skin: number, name: string, isPlayer: boolean, quality: "low" | "medium" | "high", env: THREE.Texture | null) {
@@ -68,10 +69,10 @@ export class MarbleView {
     this.ball.scale.setScalar(r);
     if (this.tag) this.tag.position.y = r + 1.25;
     if (this.first) { this.last.copy(p); this.first = false; }
-    const d = p.clone().sub(this.last);
+    const d = this.d.copy(p).sub(this.last);
     const dist = d.length();
     if (dist > 1e-4 && dist < 30) {
-      const axis = new THREE.Vector3().crossVectors(up, d).normalize();
+      const axis = this.axis.crossVectors(up, d).normalize();
       if (axis.lengthSq() > 0.5) { this.q.setFromAxisAngle(axis, dist / r); this.ball.quaternion.premultiply(this.q); }
     }
     if (this.core) this.core.rotation.y += dt * (2 + spinBoost * 6);

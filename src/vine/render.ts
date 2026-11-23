@@ -4,7 +4,7 @@
 // cinematic camera rig: a follow cam with look-ahead that leans into turns, orbits the spiral trunks, pushes in at
 // flower gates, cranes round at a new world, reveals the guardian, holds on a fall and slowly orbits on the title.
 import * as THREE from "three";
-import { FrameGovernor } from "@/lib/perf";
+import { antialiasFor, FrameGovernor, pixelRatioFor, shadowsFor } from "@/lib/perf";
 import { Lizard, LIZ_LEN } from "./lizard";
 import * as M from "./models";
 import { pathAt, trunkAt } from "./path";
@@ -102,14 +102,14 @@ export class VineRenderer {
 
   constructor(host: HTMLElement, quality: Quality, look: VineLook) {
     this.q = quality; this.look = look;
-    this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", stencil: false, alpha: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.5 : 1));
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), powerPreference: "high-performance", stencil: false, alpha: false });
+    this.renderer.setPixelRatio(pixelRatioFor(quality));
     const fullPr = this.renderer.getPixelRatio();
     this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(fullPr * k); this.resize(this.w, this.h); });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.02;
-    if (quality !== "low") { this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+    if (shadowsFor(quality)) { this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
     host.appendChild(this.renderer.domElement);
     Object.assign(this.renderer.domElement.style, { position: "absolute", inset: "0", width: "100%", height: "100%", touchAction: "none", display: "block" });
     const k = <X extends { dispose: () => void }>(x: X) => { this.keep.push(x); return x; };

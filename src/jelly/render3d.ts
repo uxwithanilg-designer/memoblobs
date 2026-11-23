@@ -11,6 +11,7 @@ import { cond, gateAt, gateOpen, gateW, shapeKey } from "./rules";
 import { BoardExtras } from "./three/extras";
 import * as M from "./three/models";
 import { CELL, COLORS, CRATE, DX, DY, GOLD, RAINBOW, STONE, CLEAR, TILE, type Cond, type JamEvent, type Level, type Move, type Piece, type State } from "./types";
+import { antialiasFor, autoQuality as sharedAutoQuality, pixelRatioFor } from "@/lib/perf";
 
 export type Quality = "low" | "medium" | "high";
 /** Jelly Shop looks: jelly finish, tray skin, confetti */
@@ -133,7 +134,7 @@ export class JellyRenderer {
 
   constructor(host: HTMLElement, quality: Quality) {
     this.q = quality;
-    const R = this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", alpha: false, powerPreference: "high-performance", stencil: false });
+    const R = this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), alpha: false, powerPreference: "high-performance", stencil: false });
     this.cv = R.domElement;
     Object.assign(this.cv.style, { display: "block", position: "absolute", inset: "0", width: "100%", height: "100%", touchAction: "none" });
     this.cv.setAttribute("aria-label", "Momo Jelly Jam board");
@@ -182,7 +183,7 @@ export class JellyRenderer {
   setInsets(top: number, bottom: number) { this.insetTop = top; this.insetBottom = bottom; this.fit(); }
   resize(w: number, h: number) {
     this.w = Math.max(1, w); this.h = Math.max(1, h);
-    const dpr = Math.min(window.devicePixelRatio || 1, this.q === "high" ? 2 : this.q === "medium" ? 1.7 : 1.3);
+    const dpr = pixelRatioFor(this.q);
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(this.w, this.h, false);
     this.camera.aspect = this.w / this.h;
@@ -841,10 +842,4 @@ export class JellyRenderer {
 }
 
 /** a sensible default for "auto" graphics */
-export function autoQuality(): Quality {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): Quality { return sharedAutoQuality(); }

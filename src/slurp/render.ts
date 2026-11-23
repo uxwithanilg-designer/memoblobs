@@ -5,7 +5,7 @@
 // an environment map; everything is instanced or built once per stage; a FrameGovernor keeps slow phones smooth.
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { FrameGovernor } from "@/lib/perf";
+import { antialiasFor, FrameGovernor, pixelRatioFor } from "@/lib/perf";
 import { hoot } from "../boing/models";
 import { hatGeo } from "../crowd/models";
 import * as M from "./models";
@@ -66,8 +66,8 @@ export class SlurpRenderer {
 
   constructor(host: HTMLElement, quality: Quality) {
     this.q = quality;
-    this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", stencil: false, alpha: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.5 : 1));
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), powerPreference: "high-performance", stencil: false, alpha: false });
+    this.renderer.setPixelRatio(pixelRatioFor(quality));
     const fullPr = this.renderer.getPixelRatio();
     this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(fullPr * k); this.resize(this.w, this.h); });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;

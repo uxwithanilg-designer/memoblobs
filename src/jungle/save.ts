@@ -11,6 +11,7 @@ import { applyRun, newMissions, type Mission } from "./missions";
 import type { KikoLook } from "./render";
 import type { PowerId, SimResult } from "./types";
 import { FINALE, dailyGoal, sectionOf, wildDay } from "./levels";
+import { autoQuality as sharedAutoQuality } from "@/lib/perf";
 
 export interface KikoSettings { quality: "auto" | "low" | "medium" | "high"; vibrate: boolean }
 export interface KikoSave {
@@ -133,10 +134,4 @@ export function useKikoHydrated() {
 }
 
 /** "auto" graphics: small CPUs get the lighter look (no bloom) */
-export function autoQuality(): "low" | "medium" | "high" {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): "low" | "medium" | "high" { return sharedAutoQuality(); }

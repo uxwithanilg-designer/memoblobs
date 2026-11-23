@@ -18,6 +18,7 @@ import { Particles, SkidMarks } from "./fx";
 import { CameraRig, type CamTarget } from "./camera";
 import { DriftScore, driftPotential, driftWord, nextCall, type PaceNote } from "./drift";
 import { TrafficField, type TrafficCar } from "./traffic";
+import { antialiasFor, pixelRatioFor, shadowsFor } from "@/lib/perf";
 
 export interface SessionOptions {
   quality: GfxQuality;
@@ -173,12 +174,12 @@ export class RaceSession {
   async init() {
     const q = this.o.quality;
     await this.progress(0.05, "Starting engines");
-    this.renderer = new THREE.WebGLRenderer({ antialias: q !== "low", powerPreference: "high-performance", stencil: false });
-    this.basePixelRatio = this.pixelRatio = Math.min(window.devicePixelRatio || 1, q === "high" ? 2 : q === "medium" ? 1.5 : 1) * this.o.renderScale;
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(q), powerPreference: "high-performance", stencil: false });
+    this.basePixelRatio = this.pixelRatio = pixelRatioFor(q) * this.o.renderScale;
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.shadowMap.enabled = q !== "low";
+    this.renderer.shadowMap.enabled = shadowsFor(q);
     this.renderer.shadowMap.type = q === "high" ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
     this.renderer.shadowMap.autoUpdate = false;
     const cv = this.renderer.domElement;

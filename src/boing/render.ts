@@ -5,7 +5,7 @@
 // deepens as Momo climbs. Each of the 10 worlds has its own palette, light, scenery, platforms, Grumpies and villain;
 // Spooky Night is dark (Momo carries a lantern), Space has stars, the Lava Sky's goo is real lava.
 import * as THREE from "three";
-import { FrameGovernor } from "@/lib/perf";
+import { antialiasFor, FrameGovernor, pixelRatioFor } from "@/lib/perf";
 import { balloonBaron, boatGeo, chefGrumble, ghostGeo, golemGeo, hatGeo, krankyKrab, magmaGeo, mechGeo, palmTree, pumpkin, roboGeo, stormCloud, tint, toyBall, toyBlocks, ufoGeo } from "../crowd/models";
 import * as M from "./models";
 import { FRIEND_ORDER, HALF, WORLDS } from "./levels";
@@ -185,8 +185,8 @@ export class BoingRenderer {
     this.theme = sim.spec.theme;
     this.th = withTod(THEMES[this.theme] ?? THEMES.garden, sim.spec.tod);
     const th = this.th, theme = this.theme;
-    this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", alpha: true, powerPreference: "high-performance", stencil: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.5 : 1));
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), alpha: true, powerPreference: "high-performance", stencil: false });
+    this.renderer.setPixelRatio(pixelRatioFor(quality));
     // lower the resolution a step if this device can't hold the frame rate (and back up when it can)
     const fullPr = this.renderer.getPixelRatio();
     this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(fullPr * k); this.resize(this.w, this.h); });

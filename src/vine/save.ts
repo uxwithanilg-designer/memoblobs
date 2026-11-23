@@ -8,6 +8,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { useProfile } from "@/lib/store";
 import { CAMPAIGN } from "./worlds";
 import { WILD_FROM, wildDef, wildPrint } from "./stages";
+import { autoQuality as sharedAutoQuality } from "@/lib/perf";
 
 export type Upgrade = "regrow" | "rush" | "snap" | "grip" | "shield";
 export const UPGRADES: { id: Upgrade; name: string; text: string; max: number }[] = [
@@ -150,13 +151,7 @@ export const useVine = create<VineStore>()(
 export function useVineHydrated() {
   return useSyncExternalStore((cb) => useVine.persist.onFinishHydration(cb), () => useVine.persist.hasHydrated(), () => false);
 }
-export function autoQuality(): "low" | "medium" | "high" {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): "low" | "medium" | "high" { return sharedAutoQuality(); }
 /** the stage after n: the campaign, then the Wild Canopy */
 export function nextStage(n: number): number {
   if (n < CAMPAIGN) return n + 1;

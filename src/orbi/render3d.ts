@@ -14,15 +14,11 @@ import { CHUNK, TrackMeshes, type Chunk } from "./three/trackMesh";
 import { WorldScene } from "./three/world";
 import type { Track } from "./track";
 import type { Stage } from "./types";
+import { antialiasFor, autoQuality as sharedAutoQuality, FrameGovernor, pixelRatioFor, shadowsFor } from "@/lib/perf";
 
 export type Quality = "low" | "medium" | "high";
 export type Shot = "showroom" | "intro" | "chase" | "finish";
-export function autoQuality(): Quality {
-  if (typeof window === "undefined") return "medium";
-  const coarse = window.matchMedia?.("(pointer: coarse)").matches;
-  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
-  return coarse ? (mem >= 6 ? "medium" : "low") : "high";
-}
+export function autoQuality(): Quality { return sharedAutoQuality(); }
 
 interface Spark { p: THREE.Vector3; v: THREE.Vector3; life: number; max: number; c: THREE.Color }
 
@@ -60,13 +56,16 @@ export class OrbiRenderer {
   private ghost: { view: MarbleView; g: number[] } | null = null;
   private chasers: Stage["objs"] = [];
 
+  private gov: FrameGovernor;
   constructor(host: HTMLElement, readonly quality: Quality) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", preserveDrawingBuffer: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.6 : 1.25));
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), powerPreference: "high-performance", preserveDrawingBuffer: false });
+    this.renderer.setPixelRatio(pixelRatioFor(quality));
+    // a phone that can't keep up gets a lower resolution, step by step (and back up when there is room)
+    this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(pixelRatioFor(quality) * k); this.renderer.setSize(this.w, this.h, false); });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.shadowMap.enabled = quality !== "low";
+    this.renderer.shadowMap.enabled = shadowsFor(quality);
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.cv = this.renderer.domElement;
     this.cv.style.display = "block"; this.cv.style.width = "100%"; this.cv.style.height = "100%"; this.cv.style.touchAction = "none";
@@ -171,7 +170,10 @@ export class OrbiRenderer {
   }
   confetti(p: THREE.Vector3) { const cols = ["#FF5A7A", "#FFD23A", "#5CF2C9", "#5AA8FF", "#B88CFF"]; for (let k = 0; k < 5; k++) this.burst(p.clone().add(new THREE.Vector3(0, 6, 0)), cols[k], 30, 14, 10); }
   /** the world point at track coordinates */
-  wp(s: number, u: number, h: number) { const P = [0, 0, 0]; this.tr!.point(s, u, h, P); return new THREE.Vector3(P[0], P[1], P[2]); }
+  wp(s: number, u: number, h: number) { return this.wpInto(new THREE.Vector3(), s, u, h); }
+  /** the same, into a vector you already have (every frame: no garbage) */
+  private wpInto(out: THREE.Vector3, s: number, u: number, h: number) { this.tr!.point(s, u, h, this.P3); return out.set(this.P3[0], this.P3[1], this.P3[2]); }
+  private P3 = [0, 0, 0]; private tUp = new THREE.Vector3(); private tP = new THREE.Vector3();
 
   // ---------------------------------------------------------------- one frame
   frame(dt: number) {
@@ -213,8 +215,8 @@ export class OrbiRenderer {
     sim.marbles.forEach((m, i) => {
       const view = this.marbles[i]; if (!view) return;
       const fr = tr.frame(m.s, this.F);
-      const up = new THREE.Vector3(fr[6], fr[7], fr[8]);
-      const p = this.wp(m.s, m.u, m.h + m.r);
+      const up = this.tUp.set(fr[6], fr[7], fr[8]);
+      const p = this.wpInto(this.tP, m.s, m.u, m.h + m.r);
       view.root.visible = !(m.ghost > 0 && Math.floor(this.time * 12) % 2 === 0 && m.fallT <= 0);
       view.place(p, m.r, up, dt, m.boostT > 0 ? 1 : 0);
       if (view.tag) view.tag.visible = this.shot !== "showroom" && !m.out;
@@ -236,8 +238,9 @@ export class OrbiRenderer {
       }
     }
     // ---- Orbi's trail
-    const P0 = this.wp(me.s, me.u, me.h + me.r * 0.3);
-    if (me.fallT <= 0) { this.trailPts.unshift(P0); if (this.trailPts.length > 40) this.trailPts.pop(); }
+    const P0 = this.wpInto(this.tP, me.s, me.u, me.h + me.r * 0.3);
+    // the trail reuses its oldest point (no new vector every frame)
+    if (me.fallT <= 0) { const q = this.trailPts.length >= 40 ? this.trailPts.pop()! : new THREE.Vector3(); this.trailPts.unshift(q.copy(P0)); }
     const pos = this.trailGeo.attributes.position as THREE.BufferAttribute;
     const fr0 = tr.frame(me.s, this.F), side = new THREE.Vector3(fr0[9], fr0[10], fr0[11]);
     // the glow trail only streams out behind a boost
@@ -385,6 +388,7 @@ export class OrbiRenderer {
 
   capture(q = 0.9) { this.renderer.render(this.scene, this.camera); return this.cv.toDataURL("image/jpeg", q); }
   dispose() {
+    this.gov.dispose();
     this.clearStage(); this.env?.dispose();
     this.trailGeo.dispose(); (this.trail.material as THREE.Material).dispose(); this.sparkGeo.dispose(); (this.sparkPts.material as THREE.Material).dispose();
     this.wxGeo.dispose(); (this.wx.material as THREE.Material).dispose();

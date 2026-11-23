@@ -8,6 +8,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { buildCarModel } from "../cars/build";
 import type { CarSpec } from "../types";
 import { isHighway, isMoto, isStreet } from "./kit";
+import { pixelRatioFor } from "@/lib/perf";
 
 function blobTexture() {
   const c = document.createElement("canvas"); c.width = c.height = 128;
@@ -80,7 +81,7 @@ export function Showroom({ spec, color, locked = false, className = "", view = "
     let renderer: THREE.WebGLRenderer;
     try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" }); }
     catch { return; }
-    renderer.setPixelRatio(Math.min(coarse ? 1.75 : 2, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(pixelRatioFor("high"));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.08;

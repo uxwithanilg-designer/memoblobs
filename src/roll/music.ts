@@ -6,6 +6,7 @@
 import { audio } from "@/lib/audio";
 import { Rng } from "./rng";
 import type { SongPlan, SongZone } from "./types";
+import { isPhone } from "@/lib/perf";
 
 const MAJOR = [0, 2, 4, 5, 7, 9, 11];
 const mtof = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
@@ -534,7 +535,8 @@ export class RollMusic {
     this.pump.gain.setValueAtTime(1, now);
     this.running = true;
     this.schedule();
-    this.timer = window.setInterval(() => this.schedule(), 25);
+    // phones schedule further ahead (a busy frame there can last longer than the old 0.14 s window: notes got dropped)
+    this.timer = window.setInterval(() => this.schedule(), isPhone() ? 50 : 25);
   }
 
   /** change the tempo on the fly (speed rushes, boosters) without losing the song position */
@@ -612,7 +614,7 @@ export class RollMusic {
   private schedule() {
     const c = this.ctx;
     if (!c || !this.running) return;
-    const horizon = c.currentTime + 0.14;
+    const horizon = c.currentTime + (isPhone() ? 0.6 : 0.2);
     let guard = 0;
     while (this.t0 + (this.step / 4) * this.spb < horizon && guard++ < 64) {
       const t = this.t0 + (this.step / 4) * this.spb;

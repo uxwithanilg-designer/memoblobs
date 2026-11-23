@@ -10,6 +10,7 @@ import { DESIGNED, STAGES_PER_ISLAND } from "./islands";
 import { DAILY_BASE } from "./stages";
 import type { FriendId, SimResult } from "./types";
 import { NO_UPGRADES, UPGRADES, type UpgradeId, type Upgrades } from "./weapons";
+import { autoQuality as sharedAutoQuality } from "@/lib/perf";
 
 /** who you play as and what they wear (bought with the site's coins) */
 export type CharId = "puddo" | "momo" | "pip" | "gloop" | "zib";
@@ -154,10 +155,4 @@ export const heartsFor = (u: Upgrades) => 3 + (u.hearts ?? 0);
 export const bellsRung = (medals: Record<number, Medal>) => Object.entries(medals).filter(([n, m]) => m.c && Number(n) <= DESIGNED && Number(n) % STAGES_PER_ISLAND === 0).length;
 
 /** "auto" graphics: small CPUs get the lighter look */
-export function autoQuality(): "low" | "medium" | "high" {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): "low" | "medium" | "high" { return sharedAutoQuality(); }

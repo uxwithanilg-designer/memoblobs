@@ -4,6 +4,7 @@
 import * as THREE from "three";
 import * as M from "./models";
 import * as M2 from "./models2";
+import { pixelRatioFor } from "@/lib/perf";
 
 export class TreehouseView {
   private renderer: THREE.WebGLRenderer;
@@ -21,7 +22,7 @@ export class TreehouseView {
   constructor(host: HTMLElement) {
     this.host = host;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(pixelRatioFor("high"));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     host.appendChild(this.renderer.domElement);

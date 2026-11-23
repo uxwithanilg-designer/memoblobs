@@ -13,6 +13,8 @@ import { CoinPill } from "@/components/brand/CoinPill";
 import { Logo } from "@/components/brand/Logo";
 import { useHydrated, useSettings } from "@/lib/store";
 import { audio } from "@/lib/audio";
+import { installFrameCap, setLiteUi } from "@/lib/perf";
+import { PerfOverlay } from "./PerfOverlay";
 import { soundFamily } from "@/lib/catalog";
 import type { Game } from "@/lib/games";
 import { preloader, whenIdle } from "@/lib/preload";
@@ -29,6 +31,7 @@ type FsDoc = Document & { webkitFullscreenElement?: Element; webkitExitFullscree
 type FsEl = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
 
 /** embedded = runs in the frame on a game page (the page owns the title, sound and fullscreen buttons); onExit ends it */
+const noSub = () => () => {};
 export function GamePlayer({ game, children, embedded = false, onExit }: { game: Game; children: React.ReactNode; embedded?: boolean; onExit?: () => void }) {
   const router = useRouter();
   const hydrated = useHydrated();
@@ -41,6 +44,12 @@ export function GamePlayer({ game, children, embedded = false, onExit }: { game:
   const [base] = useState(() => ({ asked: preloader.now.asked, loaded: preloader.now.loaded }));
   // the game's menu music and sounds start downloading right away, alongside the game's code
   useEffect(() => { audio.warmFamily(soundFamily(game), "calm"); }, [game]);
+  // smooth on phones: every animation loop capped at the frame-rate setting (60 by default — a 120 Hz screen would
+  // otherwise double the work), and no backdrop blur over the game while it runs
+  useEffect(() => { installFrameCap(settings.fpsCap); }, [settings.fpsCap]);
+  // ?perf=1: the performance overlay (frames a second, the slowest frame, long pauses, memory, the kit's choices)
+  const perfOn = useSyncExternalStore(noSub, () => new URLSearchParams(window.location.search).get("perf") === "1", () => false);
+  useEffect(() => { setLiteUi(true); return () => setLiteUi(false); }, []);
   const [panel, setPanel] = useState<null | "settings" | "help">(null);
   const [menu, setMenuState] = useState<MenuAction[]>([]);
   const [fps, setFps] = useState(0);
@@ -257,6 +266,7 @@ export function GamePlayer({ game, children, embedded = false, onExit }: { game:
           </div>
         </div>
 
+        {perfOn && <PerfOverlay cap={settings.fpsCap} />}
         {settings.showFps && !loading && (
           <div className="pointer-events-none absolute bottom-3 left-3 z-30 rounded-lg bg-ink/70 px-2 py-1 font-mono text-xs text-lime" style={{ marginBottom: "var(--safe-bottom)" }}>{Math.round(fps)} FPS</div>
         )}

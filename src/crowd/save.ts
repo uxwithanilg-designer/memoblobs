@@ -6,6 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { LeaderId, MathMode } from "./types";
 import { DEFAULT_LOOK, NO_UPGRADES, UPGRADES, upgradeCost, type Look, type UpgradeId, type Upgrades } from "./leaders";
 import { useProfile } from "@/lib/store";
+import { autoQuality as sharedAutoQuality } from "@/lib/perf";
 
 export interface BrigadeSettings {
   math: MathMode;
@@ -123,10 +124,4 @@ export function useBrigadeHydrated() {
 }
 
 /** pick a graphics level for "auto": phones and small CPUs get the lighter look */
-export function autoQuality(): "low" | "medium" | "high" {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): "low" | "medium" | "high" { return sharedAutoQuality(); }

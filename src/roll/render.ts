@@ -12,6 +12,7 @@ import { Rng } from "./rng";
 import { moodOf, type Mood, type Particles as PKind } from "./themes";
 import { TK, type CamMode, type Hazard, type Level, type Pickup } from "./types";
 import type { Sim } from "./sim";
+import { antialiasFor, pixelRatioFor } from "@/lib/perf";
 
 export type Quality = "low" | "medium" | "high";
 
@@ -371,11 +372,11 @@ export class RollRenderer {
   constructor(host: HTMLElement, L: Level, q: Quality, ch = "momo", run = false) {
     this.L = L; this.q = q; this.run = run;
     this.view = q === "low" ? 46 : q === "medium" ? 58 : 66;
-    this.renderer = new THREE.WebGLRenderer({ antialias: q !== "low", powerPreference: "high-performance", stencil: false, alpha: false });
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(q), powerPreference: "high-performance", stencil: false, alpha: false });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.08;
-    this.dpr = Math.min(window.devicePixelRatio || 1, q === "high" ? 2 : q === "medium" ? 1.6 : 1.1);
+    this.dpr = pixelRatioFor(q);
     const cv = this.renderer.domElement;
     Object.assign(cv.style, { display: "block", width: "100%", height: "100%", touchAction: "none", outline: "none", transition: "transform 0.35s" });
     cv.setAttribute("aria-label", "Momo Sky Roll game");

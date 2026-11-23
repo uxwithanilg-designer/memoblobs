@@ -9,6 +9,7 @@
     "lint": "eslint",
     "build:static": "node scripts/build-static.mjs",
     "upload:r2": "node scripts/r2/upload.mjs",
+    "check:perf": "node scripts/check-perf.mjs",
     "deploy": "npm run build:static && npm run upload:r2 && npx --yes wrangler@4 deploy"
   },
   "dependencies": {

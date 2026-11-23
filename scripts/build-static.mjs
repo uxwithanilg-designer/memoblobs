@@ -51,3 +51,6 @@ console.log(`build-static: ${stripped} game files left out of the site (they're 
 // the hosting rule every game must follow (AGENTS.md): 6–9 site files per game, game files only in R2
 const check = spawnSync("node scripts/check-game-budget.mjs", { stdio: "inherit", shell: true });
 if (check.status !== 0) process.exit(check.status ?? 1);
+// the mobile performance rule (AGENTS.md): every game on the shared kit in src/lib/perf.ts
+const perf = spawnSync("node scripts/check-perf.mjs", { stdio: "inherit", shell: true });
+if (perf.status !== 0) process.exit(perf.status ?? 1);

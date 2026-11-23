@@ -4,7 +4,7 @@
 // maths as the game. Screen-wide effects (lights out, fog, alarm, strobe, speed streaks, flashes, the building stamp) are
 // drawn on a thin 2D overlay. Mirror / upside-down / tilted floors transform the 3D canvas itself.
 import * as THREE from "three";
-import { FrameGovernor } from "@/lib/perf";
+import { antialiasFor, autoQuality as sharedAutoQuality, FrameGovernor, pixelRatioFor } from "@/lib/perf";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { tint } from "../crowd/models";
@@ -101,7 +101,7 @@ export class EscapeRenderer3D implements EscapeView {
 
   constructor(host: HTMLElement, quality: Quality) {
     this.q = quality;
-    this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", alpha: false, powerPreference: "high-performance", stencil: false });
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), alpha: false, powerPreference: "high-performance", stencil: false });
     this.cv = this.renderer.domElement;
     Object.assign(this.cv.style, { display: "block", position: "absolute", inset: "0", width: "100%", height: "100%", touchAction: "none", transformOrigin: "50% 50%" });
     this.cv.setAttribute("aria-label", "Momo Escape game");
@@ -208,7 +208,7 @@ export class EscapeRenderer3D implements EscapeView {
   private gov: FrameGovernor | null = typeof window !== "undefined" ? new FrameGovernor(() => this.resize(this.w, this.h)) : null;
   resize(w: number, h: number) {
     this.w = Math.max(1, w); this.h = Math.max(1, h);
-    this.dpr = Math.min(window.devicePixelRatio || 1, this.q === "high" ? 2 : this.q === "medium" ? 1.6 : 1.2) * (this.gov?.scale ?? 1);
+    this.dpr = pixelRatioFor(this.q) * (this.gov?.scale ?? 1);
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.setSize(this.w, this.h, false);
     this.ov.width = Math.round(this.w * this.dpr); this.ov.height = Math.round(this.h * this.dpr);
@@ -968,10 +968,4 @@ export class EscapeRenderer3D implements EscapeView {
 }
 
 /** a sensible default for "auto" graphics */
-export function autoQuality(): Quality {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): Quality { return sharedAutoQuality(); }

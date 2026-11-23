@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { hatGeo } from "../crowd/models";
 import * as M from "./models";
 import type { KikoLook } from "./render";
+import { pixelRatioFor } from "@/lib/perf";
 
 export class WardrobeView {
   private renderer: THREE.WebGLRenderer;
@@ -19,7 +20,7 @@ export class WardrobeView {
   constructor(host: HTMLElement) {
     this.host = host;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(pixelRatioFor("high"));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     host.appendChild(this.renderer.domElement);

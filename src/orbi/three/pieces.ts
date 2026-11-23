@@ -39,6 +39,8 @@ const STAR = starGeo();
 const HEART = heartGeo();
 const CAPS = new THREE.CapsuleGeometry(0.34, 0.4, 6, 14);
 const LETTERS = ["O", "R", "B", "I"];
+// scratch objects reused every frame (nothing new is made per piece or per coin, so no garbage-collection pauses)
+const _r = new THREE.Vector3(), _u = new THREE.Vector3(), _f = new THREE.Vector3(), _rot = new THREE.Matrix4(), _P = [0, 0, 0];
 const BEAT = new Set(["beat", "colour", "light", "flip", "offbeat", "royale"]);
 
 export class Pieces {
@@ -384,10 +386,9 @@ export class Pieces {
     let h = sim.oh(o);
     if (o.k === "tile") { h -= sim.dropOf(o) * (o.look === "pontoon" ? 0.25 : 1); const sh = sim.shake(o); p.body.position.x = sh > 0 && sh < 1 ? Math.sin(t * 60) * 0.06 * sh : 0; v.root.visible = h > -30; }
     if (["coin", "gem", "orb", "capsule", "star", "heart", "letter", "gold"].includes(o.k)) h += Math.sin(t * 3 + o.s) * 0.12;
-    const P = this.tr.point(s, u, h, [0, 0, 0]);
+    const P = this.tr.point(s, u, h, _P);
     const F = this.tr.frame(s, this.F);
-    const right = new THREE.Vector3(F[9], F[10], F[11]), up = new THREE.Vector3(F[6], F[7], F[8]), fwd = new THREE.Vector3(F[3], F[4], F[5]);
-    this.m4.makeBasis(right, up, fwd); this.m4.setPosition(P[0], P[1], P[2]);
+    this.m4.makeBasis(_r.set(F[9], F[10], F[11]), _u.set(F[6], F[7], F[8]), _f.set(F[3], F[4], F[5])); this.m4.setPosition(P[0], P[1], P[2]);
     v.root.matrixAutoUpdate = false; v.root.matrix.copy(this.m4); v.root.matrixWorldNeedsUpdate = true;
     switch (o.k) {
       case "plat": {
@@ -454,10 +455,10 @@ export class Pieces {
       if (o.s > s1) break;
       if (o.k !== "coin" || sim.taken.has(o.id)) continue;
       if (n >= 700) break;
-      const P = this.tr.point(o.s, o.u, (o.h ?? 0.6) + Math.sin(t * 3 + o.s) * 0.1, [0, 0, 0]);
+      const P = this.tr.point(o.s, o.u, (o.h ?? 0.6) + Math.sin(t * 3 + o.s) * 0.1, _P);
       const F = this.tr.frame(o.s, this.F);
-      this.m4.makeBasis(new THREE.Vector3(F[9], F[10], F[11]), new THREE.Vector3(F[6], F[7], F[8]), new THREE.Vector3(F[3], F[4], F[5]));
-      this.tmp.matrix.copy(this.m4).multiply(new THREE.Matrix4().makeRotationY(t * 3 + o.s * 0.3));
+      this.m4.makeBasis(_r.set(F[9], F[10], F[11]), _u.set(F[6], F[7], F[8]), _f.set(F[3], F[4], F[5]));
+      this.tmp.matrix.copy(this.m4).multiply(_rot.makeRotationY(t * 3 + o.s * 0.3));
       this.tmp.matrix.setPosition(P[0], P[1], P[2]);
       this.coins.setMatrixAt(n++, this.tmp.matrix);
     }

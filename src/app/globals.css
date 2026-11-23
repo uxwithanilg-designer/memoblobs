@@ -243,3 +243,12 @@ body {
   .prose-page a { color: var(--color-sun); text-decoration: underline; text-underline-offset: 3px; }
   .prose-page strong { color: var(--color-text); }
 }
+
+/* Phones while a game runs (html.perf-lite, set by the game player): no backdrop blur anywhere. Blurring the moving
+   3D picture behind every translucent button costs Android phones a large part of each frame. */
+html.perf-lite *,
+html.perf-lite *::before,
+html.perf-lite *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}

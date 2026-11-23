@@ -3,6 +3,7 @@
 // music ducking under SFX (like the video mix), stereo panning + a small room reverb for a
 // wide "surround" feel, seamless loop scheduling, iOS unlock, and optional spoken voice-over.
 
+import { deviceTier, isAndroid, isPhone } from "./perf";
 import { fetchAsset, LATER, lowMemory, NEXT, NOW, preloader, type Priority } from "./preload";
 
 export type SfxName =
@@ -357,6 +358,10 @@ class AudioEngine {
   private master!: GainNode;
   private musicBus!: GainNode;
   private duckGain!: GainNode;
+  /** phones: no reverb, a smaller voice budget */
+  private lite = false;
+  private voices = 0;
+  private lastPlay = new Map<string, number>();
   private sfxBus!: GainNode;
   private reverbIn!: GainNode;
   private buffers = new Map<string, AudioBuffer>();
@@ -377,7 +382,9 @@ class AudioEngine {
     if (!this.ctx) {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AC) return null;
-      this.ctx = new AC({ latencyHint: "interactive" });
+      // phones (Android above all) need a bigger audio buffer, or every busy frame becomes a crackle
+      this.lite = isPhone() && deviceTier() !== "high";
+      this.ctx = new AC({ latencyHint: isAndroid() ? 0.06 : "interactive" });
       const c = this.ctx;
       const comp = c.createDynamicsCompressor();
       comp.threshold.value = -10; comp.knee.value = 8; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
@@ -387,9 +394,10 @@ class AudioEngine {
       this.sfxBus = c.createGain();
       this.musicBus.connect(this.duckGain).connect(this.master);
       this.sfxBus.connect(this.master);
-      // small stereo room: decorrelated L/R noise tails give width on headphones
+      // small stereo room: decorrelated L/R noise tails give width on headphones (computers only: a convolution
+      // reverb is heavy work for a phone's audio thread)
       const conv = c.createConvolver();
-      const len = Math.floor(c.sampleRate * 1.3);
+      const len = Math.floor(c.sampleRate * (this.lite ? 0.05 : 1.3));
       const ir = c.createBuffer(2, len, c.sampleRate);
       for (let ch = 0; ch < 2; ch++) {
         const d = ir.getChannelData(ch);
@@ -399,7 +407,7 @@ class AudioEngine {
       this.reverbIn = c.createGain();
       this.reverbIn.gain.value = 1;
       const wet = c.createGain(); wet.gain.value = 0.35;
-      this.reverbIn.connect(conv).connect(wet).connect(this.master);
+      if (!this.lite) this.reverbIn.connect(conv).connect(wet).connect(this.master);
       this.master.connect(comp).connect(c.destination);
       this.applyVolumes(true);
     }
@@ -468,7 +476,7 @@ class AudioEngine {
     const i = this.musicLru.indexOf(key);
     if (i >= 0) this.musicLru.splice(i, 1);
     this.musicLru.push(key);
-    const max = lowMemory() ? 3 : 6;
+    const max = lowMemory() || isPhone() ? 2 : 6;
     for (let j = 0; this.musicLru.length > max && j < this.musicLru.length;) {
       const k = this.musicLru[j];
       if (k === key || k === "music:" + this.want || k === "music:" + this.music?.name || k === this.nextKey) { j++; continue; }
@@ -543,10 +551,16 @@ class AudioEngine {
     if (name.startsWith("v:") && !this.vol.charVoices) return;
     const buf = this.buffers.get("sfx:" + name);
     if (!buf) { void this.load("sfx:" + name, sfxFile(name)); return; }
+    // a voice budget: the same sound at most every 35 ms (a coin streak), and only so many sounds at once
+    const nowMs = performance.now();
+    if (nowMs - (this.lastPlay.get(name) ?? -1e9) < 35 && !o.delay) return;
+    if (this.voices >= (this.lite ? 10 : 24)) return;
+    this.lastPlay.set(name, nowMs);
     const when = ctx.currentTime + Math.max(0, o.delay ?? 0);
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.playbackRate.value = o.rate ?? 1;
+    this.voices++; src.onended = () => { this.voices--; };
     const g = ctx.createGain();
     g.gain.value = o.gain ?? 1;
     let node: AudioNode = src.connect(g);
@@ -557,7 +571,7 @@ class AudioEngine {
     }
     node.connect(this.sfxBus);
     const send = o.reverb ?? 0.18;
-    if (send > 0) {
+    if (send > 0 && !this.lite) {
       const sg = ctx.createGain(); sg.gain.value = send * this.vol.sfx;
       node.connect(sg).connect(this.reverbIn);
     }
@@ -585,7 +599,7 @@ class AudioEngine {
     let out: AudioNode = g;
     if (o.pan && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, o.pan)); g.connect(p); out = p; }
     out.connect(this.sfxBus);
-    const send = ctx.createGain(); send.gain.value = 0.25 * this.vol.sfx; out.connect(send).connect(this.reverbIn);
+    if (!this.lite) { const send = ctx.createGain(); send.gain.value = 0.25 * this.vol.sfx; out.connect(send).connect(this.reverbIn); }
     const a = ctx.createOscillator(); a.type = o.wave ?? "triangle"; a.frequency.value = freq;
     const b = ctx.createOscillator(); b.type = "sine"; b.frequency.value = freq * 2;
     const bg = ctx.createGain(); bg.gain.value = 0.25;

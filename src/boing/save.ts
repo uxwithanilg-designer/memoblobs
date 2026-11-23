@@ -6,6 +6,7 @@ import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { useProfile } from "@/lib/store";
+import { autoQuality as sharedAutoQuality } from "@/lib/perf";
 
 export interface BoingSettings {
   /** drag sensitivity 0.6 … 1.6 */
@@ -118,10 +119,4 @@ export function useBoingHydrated() {
 }
 
 /** "auto" graphics: phones and small CPUs get the lighter look */
-export function autoQuality(): "low" | "medium" | "high" {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): "low" | "medium" | "high" { return sharedAutoQuality(); }

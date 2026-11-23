@@ -5,7 +5,7 @@
 // through the leaves), banana plants and palms behind, misty hills and waterfalls far away. The path is drawn in short
 // strips so chasms and rivers can cut through it. At each region gate the forest is rebuilt behind a white flash.
 import * as THREE from "three";
-import { FrameGovernor } from "@/lib/perf";
+import { antialiasFor, FrameGovernor, pixelRatioFor } from "@/lib/perf";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
@@ -144,8 +144,8 @@ export class JungleRenderer {
 
   constructor(host: HTMLElement, sim: Sim, quality: Quality, attract = false, look: KikoLook = { fur: "kiko", hat: "none", trail: "none" }) {
     this.sim = sim; this.q = quality; this.attract = attract; this.look = look;
-    this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", stencil: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.5 : 1));
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), powerPreference: "high-performance", stencil: false });
+    this.renderer.setPixelRatio(pixelRatioFor(quality));
     // lower the resolution a step if this device can't hold the frame rate (and back up when it can)
     const fullPr = this.renderer.getPixelRatio();
     this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(fullPr * k); this.resize(this.w, this.h); });

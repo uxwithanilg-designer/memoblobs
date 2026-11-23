@@ -1,7 +1,7 @@
 // Blob Brigade renderer (three.js). Reads the Sim every frame and draws it with instanced meshes: one draw call for
 // all brigade blobs, two for all near Grumpies, one for far ones, one for every bubble, tile, label and confetti.
 import * as THREE from "three";
-import { FrameGovernor } from "@/lib/perf";
+import { antialiasFor, FrameGovernor, pixelRatioFor } from "@/lib/perf";
 import type { Sim, Block, Boss } from "./sim";
 import { BUBBLE_R, POWER_LIST, TIER_R, WALL_END } from "./sim";
 import { HALF } from "./levels";
@@ -311,8 +311,8 @@ export class BrigadeRenderer {
     this.sim = sim; this.look = LOOKS[theme]; this.q = quality;
     this.tier = sim.spec.tier ?? 0;
     this.bubbleKind = style?.bubble ?? "blue";
-    this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", stencil: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.5 : 1));
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), powerPreference: "high-performance", stencil: false });
+    this.renderer.setPixelRatio(pixelRatioFor(quality));
     // lower the resolution a step if this device can't hold the frame rate (and back up when it can)
     const fullPr = this.renderer.getPixelRatio();
     this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(fullPr * k); this.resize(this.w, this.h); });

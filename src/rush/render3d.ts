@@ -21,15 +21,10 @@ import { glow } from "./three/tex";
 import { CHUNK, TrackMeshes, type Chunk } from "./three/trackMesh";
 import type { Track } from "./track";
 import type { Obj, Stage } from "./types";
+import { antialiasFor, autoQuality as sharedAutoQuality, FrameGovernor, pixelRatioFor } from "@/lib/perf";
 
 export type Quality = "low" | "medium" | "high";
-export function autoQuality(): Quality {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): Quality { return sharedAutoQuality(); }
 
 /** all pearls in view: one instanced mesh + one glow point cloud */
 class PearlField {
@@ -162,9 +157,12 @@ export class RushRenderer {
   private rival: { kind: string; root: THREE.Group } | null = null;
   private w = 1; private h = 1;
 
+  private gov: FrameGovernor;
   constructor(host: HTMLElement, readonly quality: Quality) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: quality !== "low", powerPreference: "high-performance", preserveDrawingBuffer: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "high" ? 2 : quality === "medium" ? 1.6 : 1.25));
+    this.renderer = new THREE.WebGLRenderer({ antialias: antialiasFor(quality), powerPreference: "high-performance", preserveDrawingBuffer: false });
+    this.renderer.setPixelRatio(pixelRatioFor(quality));
+    // a phone that can't keep up gets a lower resolution, step by step (and back up when there is room)
+    this.gov = new FrameGovernor((k) => { this.renderer.setPixelRatio(pixelRatioFor(quality) * k); this.renderer.setSize(this.w, this.h, false); });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.2;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -605,6 +603,7 @@ export class RushRenderer {
   capture(q = 0.92) { if (this.composer) this.composer.render(); else this.renderer.render(this.scene, this.camera); return this.cv.toDataURL("image/jpeg", q); }
 
   dispose() {
+    this.gov.dispose();
     if (this.weather) { this.weather.geometry.dispose(); (this.weather.material as THREE.Material).dispose(); }
     for (const L of [...this.old, this.cur, this.next]) if (L) this.dropLayer(L);
     this.old = []; this.cur = this.next = null;

@@ -8,6 +8,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { useProfile } from "@/lib/store";
 import { CAMPAIGN } from "./campaign";
 import { ENDLESS_FROM } from "./endless";
+import { autoQuality as sharedAutoQuality } from "@/lib/perf";
 
 export interface SlurpSettings { quality: "auto" | "low" | "medium" | "high"; vibrate: boolean; symbols: boolean }
 export interface StageBest { stars: number; moves: number }
@@ -113,13 +114,7 @@ export function useSlurpHydrated() {
     () => false,
   );
 }
-export function autoQuality(): "low" | "medium" | "high" {
-  if (typeof navigator === "undefined") return "medium";
-  const cores = navigator.hardwareConcurrency ?? 4;
-  const touch = typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches || (navigator.maxTouchPoints ?? 0) > 0);
-  if (cores <= 4) return "low";
-  return touch ? "medium" : "high";
-}
+export function autoQuality(): "low" | "medium" | "high" { return sharedAutoQuality(); }
 export const totalStars = (best: Record<number, StageBest>) => Object.values(best).reduce((a, b) => a + b.stars, 0);
 
 /** the Lab Wardrobe */

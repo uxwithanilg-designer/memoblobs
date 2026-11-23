@@ -7,6 +7,7 @@ import { hatGeo, tint } from "../crowd/models";
 import { momoRig } from "../dash/models";
 import { puddoRig } from "./models";
 import { HAT_BASE, TRAIL_COLORS, type ClayLookR } from "./render";
+import { pixelRatioFor } from "@/lib/perf";
 
 const HAT_Y: Record<string, number> = { puddo: 1.08, momo: 1.02, pip: 1.12, gloop: 0.98, zib: 1.04 };
 
@@ -24,7 +25,7 @@ export class ClayWardrobe {
   constructor(host: HTMLElement) {
     this.host = host;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(pixelRatioFor("high"));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     host.appendChild(this.renderer.domElement);

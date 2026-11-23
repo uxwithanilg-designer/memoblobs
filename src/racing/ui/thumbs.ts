@@ -16,6 +16,7 @@ let idleTimer = 0;
 
 function setup() {
   if (ctx) return ctx;
+  // perf-ok: an offscreen thumbnail renderer at pixel ratio 1
   const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   r.setPixelRatio(1);
   r.setSize(W, H, false);
