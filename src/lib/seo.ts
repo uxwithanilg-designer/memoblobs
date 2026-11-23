@@ -98,6 +98,12 @@ export const GAME_SEO: Record<string, GameSeo> = {
     keywords: ["climbing game", "vine climb game", "lizard game", "tap to switch game", "3d climber online", "one tap game"],
   },
 
+  "sudoku-ninefold": {
+    title: "Sudoku Ninefold — Free Online Sudoku, 9 Boards",
+    description: "Play free sudoku online: Classic 9×9, Killer, Samurai, X, Thermo, 16×16 and 25×25 boards, plus a Daily Sudoku and Weekly Epic for the whole world.",
+    keywords: ["sudoku online free", "daily sudoku", "killer sudoku", "samurai sudoku", "16x16 sudoku", "sudoku x", "thermo sudoku", "sudoku puzzle game"],
+  },
+
   // ------------------------------------------------------------ focus
   "fish-watch": {
     title: "Fish Watch — Track the Golden Fish Game",

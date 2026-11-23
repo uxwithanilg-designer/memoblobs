@@ -14,7 +14,7 @@ export const NEW_GAMES = [...LIVE_GAMES].sort((a, b) => (b.released ?? "").local
 const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape", "clayland", "slurp", "vine", "jelly", "rush"]);
 export const is3D = (g: Game) => g.engine !== undefined && ENGINES_3D.has(g.engine);
 /** the sound files a game's engine uses (audio/arcade/{sfx,music,voice}_<family>_*.mp3), for background loading */
-const SOUND_FAMILY: Partial<Record<NonNullable<Game["engine"]>, string>> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine" };
+const SOUND_FAMILY: Partial<Record<NonNullable<Game["engine"]>, string>> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine", sudoku: "sudoku" };
 export const soundFamily = (g: Game) => (g.engine ? SOUND_FAMILY[g.engine] ?? "" : "");
 export const GAMES_3D = ALL_PLAYABLE.filter(is3D);
 /** NEW = everything from the latest release day */

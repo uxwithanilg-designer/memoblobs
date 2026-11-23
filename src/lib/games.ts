@@ -43,7 +43,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku";
   host?: string;
 }
 
@@ -840,6 +840,54 @@ export const GAMES: Game[] = [
     host: "tondu",
   },
   ...ARCADE_GAMES,
+  {
+    slug: "sudoku-ninefold",
+    title: "Sudoku Ninefold",
+    short: "Nine sudoku boards in soft clay, with daily puzzles for the whole world",
+    tagline: "Nine boards. One world. The same puzzles for everyone, every day.",
+    description:
+      "Sudoku Ninefold is a free online sudoku game with nine boards in one place, built from soft clay tiles. Play the classic sizes — a Mini 4×4 warm-up, a quick Classic 6×6, the original Classic 9×9, the long Giant 16×16 and the 625-cell Giant 25×25 grandmaster grid — or four boards that add a rule: Killer Sudoku with sum cages and few or no givens, Sudoku X where both diagonals hold 1–9, Thermo Sudoku where numbers climb along clay thermometers, and Samurai Sudoku with five 9×9 grids overlapping in a cross. Every puzzle is made fresh on your device from a seed and checked to have exactly one answer, and the easier levels are also checked to be solvable by logic alone, so there is never any guessing. Finish a puzzle and the next one is already waiting — the boards never run out. Every day at midnight UTC brings the same Daily Classic, Mini Express and Speed Blitz for every player on Earth, and every Monday a new Weekly Epic: one giant 16×16 for the whole week. Pencil notes, auto notes, undo, hints, a lives wallet you fill by winning big puzzles, a speed bonus, a clean-solve bonus, a daily streak and coins for the MOMOBLOBS shop. Each board has its own music, numbers sing their own note as you place them, and completed rows, columns and boxes ripple with a chime that moves across the speakers.",
+    status: "live",
+    category: "puzzle",
+    ages: "",
+    accent: "#FFB23D",
+    accent2: "#7B5CFF",
+    cover: "/games/sudoku-ninefold/card.webp",
+    hero: "/games/sudoku-ninefold/cover.webp",
+    character: "/games/sudoku-ninefold/cover.webp",
+    shots: [],
+    modes: [
+      { id: "boards", label: "Nine boards", color: "#FFB23D", desc: "Mini 4×4, Classic 6×6, Classic 9×9, Giant 16×16, Giant 25×25, Killer, Sudoku X, Thermo and Samurai — Easy to Expert, never-ending", coins: 0 },
+      { id: "daily", label: "Daily Classic", color: "#FF6A3D", desc: "Today's 9×9 for every player in the world, with a day streak", coins: 0 },
+      { id: "blitz", label: "Speed Blitz", color: "#4FA3FF", desc: "A daily 6×6 against a 3-minute clock — plus the Mini Express 4×4 warm-up", coins: 0 },
+      { id: "epic", label: "Weekly Epic", color: "#B57BFF", desc: "One giant 16×16 for the whole week, new every Monday", coins: 0 },
+    ],
+    howTo: [
+      { title: "Fill the grid", text: "Put one number in every empty tile so that each row, each column and each box holds every number exactly once. Tap a tile, then tap a number." },
+      { title: "Use notes", text: "Turn on Notes to pencil small candidates into a tile, or tap Auto notes to fill them all in. Placing a number clears it from the notes around it." },
+      { title: "Learn the twists", text: "Killer cages must add up to their sum, Sudoku X diagonals hold every number, thermometers climb from the bulb, and Samurai's five grids share their corner boxes." },
+      { title: "Score and streak", text: "Every solve adds to your total score — fast for a speed bonus, without mistakes for +25 %. A wrong number costs a life from your wallet; win two big puzzles for a new one, and big or Hard puzzles drop a bonus life half way." },
+    ],
+    controls: [
+      { keys: "Tap a tile / arrows", action: "Choose a tile" },
+      { keys: "Number pad / 1–9, A–P", action: "Place a number" },
+      { keys: "Notes / Shift + number", action: "Pencil a note" },
+      { keys: "Erase / Backspace", action: "Clear a tile" },
+      { keys: "Undo / Ctrl + Z", action: "Undo" },
+    ],
+    faq: [
+      { q: "Is Sudoku Ninefold free?", a: "Yes. Sudoku Ninefold is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Which sudoku boards are there?", a: "Nine: Mini 4×4, Classic 6×6, Classic 9×9, Giant 16×16, Giant 25×25, Killer Sudoku, Sudoku X, Thermo Sudoku and Samurai Sudoku, each with its own levels from Easy up to Hard or Expert." },
+      { q: "Do the puzzles run out?", a: "Never. Each puzzle is generated on your device and checked to have exactly one solution. When you finish one, the next is already made." },
+      { q: "What are the daily and weekly puzzles?", a: "Every day at midnight UTC everyone gets the same Daily Classic 9×9, Mini Express 4×4 and Speed Blitz 6×6. Every Monday a new Weekly Epic 16×16 arrives for the whole week." },
+      { q: "Is there a world ranking?", a: "Your scores are saved on your device now and will join the world ranking when MOMOBLOBS sign-in arrives." },
+      { q: "Does it work on phones?", a: "Yes. It's built like a phone app: big clay tiles, a thumb-friendly number pad, and zoom for the giant and Samurai boards." },
+    ],
+    skills: ["Logic", "Concentration", "Patience", "Pattern spotting"],
+    released: "2026-11-23",
+    art: "cover",
+    engine: "sudoku",
+  },
 ];
 
 export const getGame = (slug: string) => GAMES.find((g) => g.slug === slug);

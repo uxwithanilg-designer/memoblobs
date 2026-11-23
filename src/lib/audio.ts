@@ -40,7 +40,10 @@ export type ArcadeSfx =
   | "kiko_hurt" | "kiko_splash" | "kiko_flag" | "kiko_trick" | "kiko_melody" | "kiko_power" | "kiko_rush" | "kiko_salad" | "kiko_yuck"
   | "kiko_slip" | "kiko_monkey" | "kiko_bird1" | "kiko_bird2" | "kiko_bird3" | "kiko_croc" | "kiko_count" | "kiko_go" | "kiko_gold"
   | "kiko_faint" | "kiko_caught" | "kiko_raft" | "kiko_coco" | "kiko_maxup"
-  | "kiko_ride" | "kiko_web" | "kiko_mud" | "kiko_wind" | "kiko_thunder" | "kiko_geyser" | "kiko_zip" | "kiko_roar" | "kiko_throw" | "kiko_stomp" | "kiko_ice" | "kiko_lava";
+  | "kiko_ride" | "kiko_web" | "kiko_mud" | "kiko_wind" | "kiko_thunder" | "kiko_geyser" | "kiko_zip" | "kiko_roar" | "kiko_throw" | "kiko_stomp" | "kiko_ice" | "kiko_lava"
+  // Sudoku Ninefold pack (scripts/gen_sudoku_audio.py)
+  | "sudoku_select" | "sudoku_place" | "sudoku_note" | "sudoku_erase" | "sudoku_wrong" | "sudoku_unit" | "sudoku_solve"
+  | "sudoku_hint" | "sudoku_undo" | "sudoku_heart" | "sudoku_star" | "sudoku_open" | "sudoku_tick" | "sudoku_streak";
 
 /** "a:<arcade sfx>" or "v:<character>_<mood>" (file: /audio/arcade/voice_<x>.mp3) */
 export type Sound = SfxName | `a:${ArcadeSfx}` | `v:${string}`;
@@ -262,6 +265,20 @@ const MUSIC_META: Record<string, { loop: number; gain?: number }> = {
   "a:clay_bonus_action": { loop: 27.4286 },
   "a:clay_star_action": { loop: 23.4146 },
   "a:clay_map_calm": { loop: 19.2 },
+  // Sudoku Ninefold (scripts/gen_sudoku_audio.py)
+  "a:sudoku_title_calm": { loop: 20.869565 },
+  "a:sudoku_pebble_action": { loop: 33.684211 },
+  "a:sudoku_garden_action": { loop: 36.226415 },
+  "a:sudoku_studio_action": { loop: 41.73913 },
+  "a:sudoku_cosmos_action": { loop: 38.4 },
+  "a:sudoku_summit_action": { loop: 40 },
+  "a:sudoku_noir_action": { loop: 36.923077 },
+  "a:sudoku_neon_action": { loop: 30.967742 },
+  "a:sudoku_ember_action": { loop: 33.103448 },
+  "a:sudoku_dojo_action": { loop: 39.183673 },
+  "a:sudoku_daily_action": { loop: 34.909091 },
+  "a:sudoku_blitz_action": { loop: 27.428571 },
+  "a:sudoku_epic_action": { loop: 31.47541 },
   // Slurp Lab (scripts/gen_slurp_audio.py)
   "a:slurp_title_calm": { loop: 20 },
   "a:slurp_bubble_action": { loop: 34.285714 },
