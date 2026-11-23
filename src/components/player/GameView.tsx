@@ -25,6 +25,7 @@ const VineApp = dynamic(() => import("@/vine/ui/VineApp"), { ssr: false });
 const JellyApp = dynamic(() => import("@/jelly/ui/JellyApp"), { ssr: false });
 const RushApp = dynamic(() => import("@/rush/ui/RushApp"), { ssr: false });
 const SudokuApp = dynamic(() => import("@/sudoku/ui/SudokuApp"), { ssr: false });
+const OrbiApp = dynamic(() => import("@/orbi/ui/OrbiApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 /** each engine's code (the same chunks the players below load) */
@@ -43,6 +44,7 @@ const ENGINE_CODE: Record<string, () => Promise<unknown>> = {
   jelly: () => import("@/jelly/ui/JellyApp"),
   rush: () => import("@/rush/ui/RushApp"),
   sudoku: () => import("@/sudoku/ui/SudokuApp"),
+  orbi: () => import("@/orbi/ui/OrbiApp"),
   arcade: () => import("@/arcade/ArcadeHost"),
 };
 
@@ -89,6 +91,7 @@ export function GameView({ slug, mode }: { slug: string; mode?: Difficulty }) {
     case "jelly": return <JellyApp slug={slug} title={g.title} />;
     case "rush": return <RushApp slug={slug} title={g.title} />;
     case "sudoku": return <SudokuApp slug={slug} title={g.title} />;
+    case "orbi": return <OrbiApp slug={slug} title={g.title} />;
     default: return <Arcade slug={slug} />;
   }
 }

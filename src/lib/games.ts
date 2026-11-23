@@ -43,7 +43,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "orbi";
   host?: string;
 }
 
@@ -249,6 +249,65 @@ export const GAMES: Game[] = [
     host: "momo",
   },
   {
+    slug: "orbi-gp",
+    title: "Orbi GP",
+    short: "3D marble racing in the sky",
+    tagline: "Roll, balance and race a pack of marbles across floating sky worlds — 500 stages, then new mixes forever!",
+    description:
+      "Orbi GP is a free 3D marble racing game made for phones. You are Orbi, a shiny glass marble with a glowing swirl inside, racing a pack of rival marbles — Turbo, Zib, Gloop, Pip, Tiki, Klonk and more, each with a name tag over it — down long floating roads in the sky. Hold anywhere on the screen to roll, slide your thumb left and right to steer, swipe up to jump and pull back to brake; real marble physics does the rest. Roll down slopes to pick up speed, lean into banked turns, keep your balance on narrow beams, seesaws, rocking plates and rolling logs, fly off jump pads and trampolines across the gaps between islands, hop stepping stones and moving platforms, race over tiles that fall away behind you, and dodge swinging hammers, sweeping arms, sliding blocks, bumpers, lasers, pop-up spikes and lava. Ice, honey, sand, conveyors, wind, updrafts and low-gravity zones change how the marble rolls. Grab coins, gem lines on the risky edges, speed orbs that fill your boost (double-tap to boost) and power capsules: Turbo, Magnet, Shield, Super Jump, Giant Marble, Feather, Star and the Rainbow Bridge, which builds a road over a gap. There are 25 worlds — Cloud Meadows, Candy Canyon, Coral Lagoon, Toybox Town, Bamboo Temple, Crystal Caves, Neon Arcade, Frost Peak, Desert Mirage, Volcano Forge and 15 more up to Kranky's Sky Fortress — each with its own sky, floating islands and music, 20 stages each with a boss race at the end: 500 stages that teach 500 ideas and get harder as you go. After stage 500 the Remix Grand Prix mixes everything you learned into new courses forever, never the same mix twice. The road map shows the whole journey with your stars; finish in the top 3 to open the next stage, win for two stars and beat the gold time for three. Every course is driven by a fair-play robot marble before you see it, so there is always a way through.",
+    status: "live",
+    category: "racing",
+    ages: "5+",
+    accent: "#1E9CD8",
+    accent2: "#FFD23A",
+    cover: "/games/orbi-gp/card.webp",
+    hero: "/games/orbi-gp/cover.webp",
+    character: "/brand/momo-cheer.webp",
+    shots: ["/games/orbi-gp/shot-race.webp", "/games/orbi-gp/shot-jump.webp", "/games/orbi-gp/shot-candy.webp"],
+    modes: [
+      { id: "journey", label: "Grand Prix", color: "#1E9CD8", desc: "500 stages across 25 sky worlds, then the endless Remix Grand Prix", coins: 0 },
+      { id: "endless", label: "Endless Sky Run", color: "#7A4AE8", desc: "Course after course on 3 lives — how far can you roll?", coins: 0 },
+      { id: "daily", label: "Daily Cup", color: "#FF9A2E", desc: "Three races, the same for everybody today, with a streak", coins: 0 },
+      { id: "trial", label: "Time Trial", color: "#1E9CD8", desc: "Race your own ghost on any stage you've cleared", coins: 0 },
+      { id: "royale", label: "Knockout Royale", color: "#E8344A", desc: "16 marbles, 3 rounds, the floor falls away", coins: 0 },
+      { id: "bossrush", label: "Boss Rush", color: "#30343E", desc: "Every Kranky machine you've beaten, back to back", coins: 0 },
+    ],
+    howTo: [
+      { title: "Roll with the stick", text: "On a phone, put your thumb on the left side: a joystick appears under it. Push the dot forward to roll, left or right to steer, and pull it back to brake. Tap the right side of the screen to jump. (The controls button on the home screen also offers drag, tilt and buttons.)" },
+      { title: "Keyboard", text: "↑ / W rolls, ← → / A D steer, ↓ / S brakes, Space jumps, Shift boosts and E uses a power." },
+      { title: "Steer and balance", text: "Slide your thumb left and right to steer. Keep to the middle on beams, seesaws and logs — and watch the edges where there are no rails!" },
+      { title: "Jump and boost", text: "Swipe up to jump. Speed orbs fill the boost meter — double-tap (or tap the meter) to boost. Tap the power button to use a power." },
+      { title: "Win to go on", text: "Only 1st place opens the next stage — lose and you race the same stage again until you win. Win with no falls for two stars, and beat the gold time too for three. Checkpoints catch you when you fall." },
+      { title: "Speed up to 350 km/h", text: "Hit boost pads and grab the flaming rocket boosters to blast up to 350 km/h on the speed runs — then brake before the road narrows. Never touch the red spiky orbs: one touch zaps you back to the last checkpoint." },
+      { title: "Loops, tubes and machines", text: "Keep your speed up through loops and corkscrews (the magnet road holds you while you roll), fly through rings, ride cannons, discs and swings, find the switch for the bridge, and outrun what chases you." },
+      { title: "Beat Kranky", text: "Every 20th stage is a boss race: win it and roll over Kranky's three glowing cores to bring his machine down." },
+      { title: "Modes and marbles", text: "Try the Endless Sky Run, the Daily Cup, Time Trials against your ghost, Knockout Royale and Boss Rush. Spend coins on 39 marbles — they look different but all roll the same." },
+    ],
+    controls: [
+      { keys: "Joystick (left side)", action: "Forward rolls, left / right steers, back brakes" },
+      { keys: "Tap the right side", action: "Jump (in the air: a trick)" },
+      { keys: "Double-tap", action: "Boost (when the meter is full)" },
+      { keys: "↑ W / ← → A D / ↓ S", action: "Roll / steer / brake (keyboard)" },
+      { keys: "Space / Shift / E", action: "Jump / boost / power (keyboard)" },
+      { keys: "P / Esc", action: "Pause" },
+    ],
+    faq: [
+      { q: "Is Orbi GP free?", a: "Yes. It is free to play in your browser with no sign-up and nothing to download." },
+      { q: "How many stages are there?", a: "500 stages across 25 worlds, each teaching a new idea, then the Remix Grand Prix mixes them into new courses forever. Every stage is a long course — about 20 to 30 km, around 15 minutes." },
+      { q: "How do I get to the next stage?", a: "Win it. Only 1st place unlocks the next stage; otherwise you race the same stage again (it starts at once on a retry)." },
+      { q: "Does it get harder?", a: "Yes — roads get narrower, rails disappear, gaps grow and the rival marbles get faster world after world. Checkpoints are never far." },
+      { q: "Is my progress saved?", a: "Yes. Every stage you clear, your stars, best times and coins are saved in your browser on this device." },
+      { q: "Does it work on phones?", a: "Yes — it is made for phones: the whole screen is the controller, with tilt and on-screen buttons as options." },
+      { q: "What are the modes?", a: "Besides the Grand Prix there is an Endless Sky Run, a Daily Cup with a streak, Time Trials against your own ghost, Knockout Royale (16 marbles, 3 rounds) and Boss Rush." },
+      { q: "Is every stage fair?", a: "Yes. A robot marble with human reaction time drives every stage before you do; if it can't finish cleanly, the stage is rebuilt." },
+    ],
+    skills: ["Balance", "Timing", "Planning", "Focus"],
+    released: "2026-11-22",
+    art: "cover",
+    engine: "orbi",
+    host: "momo",
+  },
+  {
     slug: "momo-jelly-jam",
     title: "Momo Jelly Jam",
     short: "Squish jelly blocks, fit the gates",
@@ -323,7 +382,7 @@ export const GAMES: Game[] = [
       { id: "elimination", label: "Elimination", color: "#2FA866", desc: "Last place is knocked out", coins: 0 },
     ],
     howTo: [
-      { title: "Steer and race", text: "Use the arrow buttons (or tilt your phone) to steer. The car accelerates by itself — brake for tight corners." },
+      { title: "Steer and race", text: "Steer with the big arrows on the left (or a wheel, or tilt your phone). Hold the GAS pedal on the right to go and BRAKE for tight corners — or switch on Auto drive in Settings." },
       { title: "Hit the nitro", text: "Fill the blue bar by drifting, slipstreaming and grabbing nitro bottles, then hold NITRO for a huge boost." },
       { title: "Take them down", text: "Boost into rivals to wreck them, dodge oil and fire, and finish in the top 3 to win stars." },
       { title: "Unlock cars", text: "Career stars unlock more than 30 cars and trucks. Upgrade speed, acceleration, handling and nitro in the garage." },
@@ -370,7 +429,7 @@ export const GAMES: Game[] = [
       { id: "rally", label: "Rally Stage", color: "#9BE34A", desc: "Dirt & snow · co-driver pace notes", coins: 0 },
     ],
     howTo: [
-      { title: "Slide!", text: "Hold DRIFT (or BRAKE) and steer into a bend to start a slide. Steer more for a bigger angle, less to tighten it." },
+      { title: "Slide!", text: "Hold GAS, then hold HANDBRAKE (or BRAKE) and steer into a bend to start a slide. Steer more for a bigger angle, less to tighten it." },
       { title: "Build the chain", text: "Points pour in while you slide. Keep sliding for ×2…×5, and start the next slide quickly to LINK it onto the same chain." },
       { title: "Don't crash", text: "When you straighten up the chain is banked. Hit a wall, spin out or run off the road and the chain breaks — you only keep 30% of it!" },
       { title: "Battles and rallies", text: "In Drift Battles slide close behind the rival for a ×1.5 TANDEM bonus. In Rally Stages your co-driver shows the next bend: LEFT 3, HAIRPIN RIGHT…" },
@@ -417,7 +476,7 @@ export const GAMES: Game[] = [
       { id: "takedown", label: "Takedown", color: "#FFC600", desc: "You're the cop — bust the suspects", coins: 0 },
     ],
     howTo: [
-      { title: "Weave the traffic", text: "Steer between cars, vans and buses. Passing close at speed is a NEAR MISS — chain them for a combo." },
+      { title: "Weave the traffic", text: "Hold GAS, steer between cars, vans and buses and tap HORN to honk. Passing close at speed is a NEAR MISS — chain them for a combo." },
       { title: "Watch the heat", text: "The longer you run, the more police join in: they ram you and build roadblocks. Don't slow down next to a cop or you're BUSTED!" },
       { title: "Use your nitro", text: "Nitro through traffic to SMASH cars out of the way, and ram police cars to take them down." },
       { title: "Be the cop", text: "In Takedown you drive the interceptor: chase the suspects and ram them until their bar hits zero." },
@@ -464,7 +523,7 @@ export const GAMES: Game[] = [
       { id: "timetrial", label: "Qualifying", color: "#2A6BFF", desc: "Solo · beat the lap time", coins: 0 },
     ],
     howTo: [
-      { title: "Lean into corners", text: "Steer with the arrows (or tilt your phone). Your bike leans into the bend by itself — brake a little before the tight ones." },
+      { title: "Lean into corners", text: "Hold THROTTLE to ride and steer with the arrows (or tilt your phone). Your bike leans into the bend by itself — brake a little before the tight ones." },
       { title: "Pop a wheelie", text: "On a straight, hold WHEELIE to lift the front wheel. It charges your nitro and gives a little push. The longer it lasts, the bigger the points." },
       { title: "Draft and boost", text: "Tuck in behind a rival to slipstream, then hit NITRO to blast past." },
       { title: "Unlock bikes", text: "Earn stars in Qualifying, Wheelie Challenges, Grands Prix and Title Duels to unlock 32 bikes." },
