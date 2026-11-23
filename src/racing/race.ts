@@ -444,7 +444,7 @@ export class RaceSession {
     else if (this.cfg.mode === "coinrush") { E("💰 COIN RUSH", "gold", true, 150); E(`Grab ${this.targets[2]} coins for ★★★ · gates +${this.gateBonus}s`, "gold", false, 1100); }
     else if (this.cfg.mode === "timetrial") { E("⏱️ TIME TRIAL", "blue", true, 150); E(`★★★ ${fmt(this.targets[0])}${this.ghostBest ? " · ghost ready" : ""}`, "blue", false, 1100); }
     else if (this.cfg.mode === "elimination") { E("💥 ELIMINATION", "red", true, 150); E("Last place is knocked out!", "red", false, 1100); }
-    else if (this.cfg.mode === "drift") { E("🌀 DRIFT ATTACK", "pink", true, 150); E(`★★★ ${this.targets[2].toLocaleString("en-US")} pts · hold DRIFT + steer`, "pink", false, 1100); }
+    else if (this.cfg.mode === "drift") { E("🌀 DRIFT ATTACK", "pink", true, 150); E(`★★★ ${this.targets[2].toLocaleString("en-US")} pts · hold HANDBRAKE + steer`, "pink", false, 1100); }
     else if (this.cfg.mode === "battle" && this.boss) { E("⚔️ DRIFT BATTLE", "gold", true, 150); E(`Out-drift ${this.boss.name.toUpperCase()} · slide close for TANDEM ×1.5`, "pink", false, 1100); }
     else if (this.cfg.mode === "rally") { E("🚩 RALLY STAGE", "green", true, 150); E(`★★★ ${fmt(this.targets[0])} · listen to the co-driver`, "green", false, 1100); }
   }
@@ -573,6 +573,14 @@ export class RaceSession {
     this.sound.music(true);
     for (const r of this.racers) { r.lapStart = 0; if (!r.isPlayer) r.car.v = 1.5; }
     if (this.perfectDone) this.perfectStart();
+  }
+  private hornT = -9;
+  /** Highway Heat's HORN button (a beep with a short cooldown — on the grid too) */
+  honk() {
+    if (this.phase === "loading") return;
+    if (this.t - this.hornT < 0.45) return;
+    this.hornT = this.t;
+    this.sound.sfx("horn", { rate: 0.95 + Math.random() * 0.1 });
   }
   private perfectStart() {
     this.perfectDone = true;
@@ -847,7 +855,9 @@ export class RaceSession {
       this.items.each(c.s - 3, c.s + 30, (it) => { if (!it.taken && HAZARDS.has(it.kind) && Math.abs(it.d - lane) < 2.6) score += 6; });
       if (score < bestScore) { bestScore = score; best = lane; }
     }
-    c.respawn(best, Math.max(10, c.params.vmax * 0.35), 1.8);
+    // rivals (and Auto drive) roll away at speed; the player's own car only moves when they hold gas
+    const roll = !r.isPlayer || this.autoDrive || c.input.gas > 0.1;
+    c.respawn(best, roll ? Math.max(10, c.params.vmax * 0.35) : 0, 1.8);
     r.tumble = 1;
     this.fx.ring(this.worldAt(c.s, best, 0.1, this.tmp.w), 0x7cf2ff, 6, 0.5);
     if (r.isPlayer) { this.o.onEvent({ type: "toast", text: "BACK ON TRACK", tone: "blue" }); this.sound.sfx("whoosh", { rate: 0.8 }); }

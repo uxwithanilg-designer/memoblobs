@@ -176,7 +176,8 @@ export default function RacingApp({ slug, title }: { slug: string; title: string
           {screen === "race" && cfg && (
             <RaceView cfg={cfg} settings={s.settings} tutorial={tutorial} onFinish={onFinish}
               onQuit={() => go(cfg.levelId ? "career" : "quick")} onRestart={() => { setResult(null); setRaceKey((k) => k + 1); }}
-              onCamera={onCamera} onTutorialDone={() => { store.getState().setTutorialDone(true); setTutorial(false); }} />
+              onCamera={onCamera} onTutorialDone={() => { store.getState().setTutorialDone(true); setTutorial(false); }}
+              onAutoDrive={(on) => store.getState().setSettings({ autoDrive: on })} />
           )}
           {screen === "results" && result && cfg && (
             <Results res={result} cfg={cfg} hasNext={!!result.level && !!career[result.level.index + 1]} vibrateOn={s.settings.vibrate} units={s.settings.units}

@@ -214,7 +214,10 @@ export class Vehicle {
     this.progress = this.lap * track.length + this.s;
     // ---------------------------------------------------------- respawn bookkeeping
     const busy = this.spin > 0 || this.wreck > 0;
-    this.stuckT = !busy && Math.abs(this.v) < 3 ? this.stuckT + dt : 0;
+    // stuck = trying to go (gas or reverse held) but not moving. A car the driver simply leaves standing is not
+    // stuck — it used to be "rescued" after 2 s and relaunched at speed, so cars with no gas drove themselves
+    const trying = this.input.gas > 0.1 || this.input.brake > 0.1;
+    this.stuckT = !busy && trying && Math.abs(this.v) < 3 ? this.stuckT + dt : 0;
     this.offT = !busy && this.offroad && this.v < 25 ? this.offT + dt : this.offroad ? this.offT : 0;
     this.backT = !busy && this.v < -2 ? this.backT + dt : 0;
     // ---------------------------------------------------------- visuals: yaw, rpm/gears

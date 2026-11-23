@@ -7,7 +7,7 @@
 // React only re-renders the light 12 Hz parts (position, laps, standings, toasts).
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Camera, ChevronLeft, ChevronRight, Flame, Heart, Smartphone, Zap, Shield, Magnet, Wind } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, ChevronsDown, ChevronsUp, Flame, Heart, Smartphone, Zap, Shield, Magnet, Wind } from "lucide-react";
 import { usePlayer } from "@/components/player/PlayerContext";
 import { RaceSession } from "../race";
 import type { CameraView, HudFrame, RaceConfig, RaceEvent, RaceResult, RacerView } from "../types";
@@ -107,7 +107,9 @@ function useHold(k: TouchKey, press: (k: TouchKey, v: boolean) => void, onDown?:
 }
 const PRESS = "data-[on=1]:scale-[0.93] data-[on=1]:brightness-125 transition-transform duration-75 touch-none select-none";
 
-interface Sizes { steer: number; small: number; nitro: number; gap: number; pedalW: number; pedalH: number }
+/** steer: each arrow pad · pedalW: GAS width (BRAKE is a little narrower) · gasH / brakeH: pedal heights · nitro: its
+ *  round button · actW / actH: the game's own move (DRIFT / HANDBRAKE / WHEELIE) */
+interface Sizes { steer: number; gap: number; pedalW: number; gasH: number; brakeH: number; nitro: number; actW: number; actH: number }
 
 const SteerPad = memo(function SteerPad({ S, press }: { S: Sizes; press: (k: TouchKey, v: boolean) => void }) {
   const box = useRef<HTMLDivElement>(null);
@@ -165,35 +167,95 @@ const Wheel = memo(function Wheel({ size, onSteer }: { size: number; onSteer: (r
   );
 });
 
-const Pedals = memo(function Pedals({ S, press, autoGas, onNitroDown }: { S: Sizes; press: (k: TouchKey, v: boolean) => void; autoGas: boolean; onNitroDown: () => void }) {
-  const drift = useHold("drift", press), brake = useHold("brake", press), gas = useHold("gas", press), nitro = useHold("nitro", press, onNitroDown);
-  // bikes: the drift button pops a wheelie
-  const bikeGame = activeGame().style === "bike";
-  const street = isStreet(), hwy = isHighway();
-  const sm = hwy
-    ? `grid place-items-center rounded-xl font-display text-white data-[on=1]:scale-95 data-[on=1]:brightness-125 ${PRESS}`
-    : street
-    ? `grid place-items-center rounded-lg font-display text-white backdrop-blur-md data-[on=1]:scale-95 data-[on=1]:brightness-150 ${PRESS}`
-    : `grid place-items-center rounded-2xl font-display text-white ring-2 ring-white/35 shadow-[0_5px_0_rgba(0,0,0,0.35)] data-[on=1]:translate-y-[3px] data-[on=1]:shadow-none ${PRESS}`;
-  const nitroBtn = (d: number) => (
-    <div {...nitro} role="button" aria-label="Nitro" className={`relative grid shrink-0 place-items-center rounded-full ${PRESS} data-[on=1]:scale-[0.92]`} style={{ width: d, height: d }}>
-      <NitroRing d={d} />
-    </div>
-  );
+/** each game's right-hand buttons, after the popular phone racers: kart racers and Asphalt (Nitro Rush: DRIFT +
+ *  NITRO), CarX Drift (Drift Kings: a big HANDBRAKE), Traffic Racer (Highway Heat: a HORN) and Traffic Rider (Moto
+ *  Rush: THROTTLE + WHEELIE). Every game keeps the same thumb map: GAS is the tallest pedal in the bottom corner, BRAKE
+ *  right beside it, the game's own move above BRAKE and NITRO above GAS. */
+interface PadKit { gas: string; action: string; icon: "drift" | "handbrake" | "wheelie"; big: boolean; horn: boolean }
+function padKit(): PadKit {
+  const g = activeGame();
+  if (g.style === "bike") return { gas: "THROTTLE", action: "WHEELIE", icon: "wheelie", big: true, horn: false };
+  if (g.style === "drift") return { gas: "GAS", action: "HANDBRAKE", icon: "handbrake", big: true, horn: false };
+  return { gas: "GAS", action: "DRIFT", icon: "drift", big: false, horn: g.skin === "highway" };
+}
+/** the handbrake warning lamp: a P in a circle between two brackets */
+const HandbrakeIcon = ({ s }: { s: number }) => (
+  <svg viewBox="0 0 40 28" width={s * 1.4} height={s} aria-hidden fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+    <circle cx="20" cy="14" r="9.5" /><path d="M17 19V9h3.6a3 3 0 0 1 0 6H17" /><path d="M6 5a14 14 0 0 0 0 18M34 5a14 14 0 0 1 0 18" />
+  </svg>
+);
+
+const Pedals = memo(function Pedals({ S, press, autoGas, lh, onNitroDown, onHorn }: { S: Sizes; press: (k: TouchKey, v: boolean) => void; autoGas: boolean; lh: boolean; onNitroDown: () => void; onHorn: () => void }) {
+  const kit = padKit();
+  const action = useHold("drift", press), nitro = useHold("nitro", press, onNitroDown);
+  const street = isStreet(), hwy = isHighway(), moto = isMoto();
+  // BRAKE and GAS share one touch area: the thumb rocks from one pedal to the other without lifting
+  const B = useRef<HTMLDivElement>(null), G = useRef<HTMLDivElement>(null);
+  const ptr = useRef(new Map<number, "brake" | "gas">());
+  const sync = useCallback(() => {
+    const v = [...ptr.current.values()], b = v.includes("brake"), g = v.includes("gas");
+    press("brake", b); press("gas", g);
+    if (B.current) B.current.dataset.on = b ? "1" : "0";
+    if (G.current) G.current.dataset.on = g ? "1" : "0";
+  }, [press]);
+  // a finger goes to the nearer pedal as it slides
+  const which = useCallback((x: number, y: number): "brake" | "gas" => {
+    if (!G.current || !B.current) return "brake";
+    const d = (el: HTMLElement) => { const r = el.getBoundingClientRect(); return Math.hypot(x - (r.left + r.width / 2), Math.max(0, r.top - y, y - r.bottom) * 0.5); };
+    return d(B.current) <= d(G.current) ? "brake" : "gas";
+  }, []);
+  const down = useCallback((e: React.PointerEvent<HTMLElement>, k: "brake" | "gas") => { e.preventDefault(); try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch { /* no capture: the press still counts */ } ptr.current.set(e.pointerId, k); sync(); }, [sync]);
+  const move = useCallback((e: React.PointerEvent<HTMLElement>) => { if (!ptr.current.has(e.pointerId) || autoGas) return; const w = which(e.clientX, e.clientY); if (ptr.current.get(e.pointerId) !== w) { ptr.current.set(e.pointerId, w); sync(); } }, [sync, which, autoGas]);
+  const up = useCallback((e: React.PointerEvent<HTMLElement>) => { ptr.current.delete(e.pointerId); sync(); }, [sync]);
+  const pedal = (face: string) => `relative grid shrink-0 place-items-center overflow-hidden font-display touch-none select-none ${face}`;
+  const ribs = "repeating-linear-gradient(180deg, rgba(255,255,255,0.16) 0 3px, transparent 3px 11px)";
+  const gasFace = moto ? "rounded-[8px] bg-[#FFD400] text-[#121316] shadow-[inset_0_0_0_3px_#121316,0_5px_0_#8a7200]"
+    : hwy ? "rounded-2xl bg-[#0B6E4F] text-white shadow-[inset_0_0_0_2px_#0B6E4F,inset_0_0_0_5px_#fff,0_5px_0_#063d2c]"
+    : street ? "rounded-xl bg-[linear-gradient(180deg,#1d3a1a,#07140a)] text-[#7CFF6B] shadow-[inset_0_0_0_2px_#7CFF6B,0_0_22px_rgba(124,255,107,0.45)]"
+    : "rounded-[1.3rem] bg-[linear-gradient(180deg,#A8FFCB,#16A35A)] text-[#03230f] ring-2 ring-white/40 shadow-[0_6px_0_rgba(0,0,0,0.35)]";
+  const brakeFace = moto ? "rounded-[8px] bg-[#E10600] text-white shadow-[inset_0_0_0_3px_#121316,0_5px_0_#6e0300]"
+    : hwy ? "rounded-2xl bg-[#C8102E] text-white shadow-[inset_0_0_0_2px_#C8102E,inset_0_0_0_5px_#fff,0_5px_0_#5e0614]"
+    : street ? "rounded-xl bg-[#19070b]/85 text-[#FF4D5E] shadow-[inset_0_0_0_2px_#FF4D5E,0_0_18px_rgba(255,77,94,0.35)]"
+    : "rounded-[1.3rem] bg-[linear-gradient(180deg,#FF8A9A,#D61F3A)] text-white ring-2 ring-white/35 shadow-[0_6px_0_rgba(0,0,0,0.35)]";
+  const actFace = moto ? "rounded-[8px] bg-[#121316]/85 text-[#FFD400] shadow-[inset_0_0_0_2px_#FFD400]"
+    : hwy ? "rounded-xl bg-[#1E4FD8] text-white shadow-[inset_0_0_0_2px_#1E4FD8,inset_0_0_0_4px_#fff,0_4px_0_#0b2470]"
+    : street ? "rounded-lg bg-[linear-gradient(160deg,#FF1F7A,#9C0048)] text-white shadow-[inset_0_0_0_2px_#FF8CC0,0_0_22px_rgba(255,31,122,0.6)]"
+    : "rounded-2xl bg-[linear-gradient(180deg,#FFB3EC,#E04FC0)] text-white ring-2 ring-white/35 shadow-[0_5px_0_rgba(0,0,0,0.35)]";
+  const press3d = "data-[on=1]:translate-y-[3px] data-[on=1]:brightness-125 data-[on=1]:shadow-none transition-transform duration-75";
+  const label = (t: string, k = 0.2) => <span className="leading-none tracking-wide" style={{ fontSize: Math.max(10, S.pedalW * k) }}>{t}</span>;
+  const icon = kit.icon === "handbrake" ? <HandbrakeIcon s={S.actH * 0.3} /> : <span style={{ fontSize: S.actH * 0.34 }} className="leading-none">{kit.icon === "wheelie" ? "🏍️" : "〰"}</span>;
+  const nitroD = autoGas ? Math.round(S.nitro * 1.22) : S.nitro;
   return (
-    <div data-hud="pedals" className="flex items-end" style={{ gap: S.gap }}>
-      <div className="flex flex-col" style={{ gap: S.gap }}>
-        <div {...drift} role="button" aria-label="Drift" className={`${sm} ${isMoto() ? "rounded-[6px] bg-[#FFD400] text-[#121316] shadow-[inset_0_0_0_2px_#121316,0_4px_0_#8a7200]" : hwy ? "bg-[#1E4FD8] shadow-[inset_0_0_0_2px_#1E4FD8,inset_0_0_0_4px_#fff,0_4px_0_#0b2470]" : street ? "bg-[linear-gradient(160deg,#FF1F7A,#9C0048)] shadow-[inset_0_0_0_2px_#FF8CC0,0_0_22px_rgba(255,31,122,0.6)]" : "bg-[linear-gradient(180deg,#FFB3EC,#E04FC0)]"}`} style={{ width: S.small, height: S.small, fontSize: S.small * 0.2 }}>
-          <span className="flex flex-col items-center leading-none"><span style={{ fontSize: S.small * 0.36 }}>{bikeGame ? "🏍️" : "〰"}</span>{bikeGame ? "WHEELIE" : "DRIFT"}</span>
+    <div data-hud="pedals" className={`flex items-end ${lh ? "flex-row-reverse" : ""}`} style={{ gap: S.gap }}>
+      {/* the game's own move (and Highway Heat's horn) above BRAKE */}
+      <div className="flex flex-col items-center" style={{ gap: S.gap }}>
+        {kit.horn && (
+          <button type="button" aria-label="Horn" data-hud="horn" onPointerDown={(e) => { e.preventDefault(); onHorn(); }} onContextMenu={(e) => e.preventDefault()}
+            className={`grid place-items-center rounded-full bg-[#1b1e23]/80 font-display text-white shadow-[inset_0_0_0_2px_#FFC600] backdrop-blur-md active:scale-90 ${PRESS}`} style={{ width: S.actW * 0.72, height: S.actW * 0.72, fontSize: Math.max(9, S.actW * 0.16) }}>
+            <span className="flex flex-col items-center leading-none"><span style={{ fontSize: S.actW * 0.26 }}>📯</span>HORN</span>
+          </button>
+        )}
+        <div {...action} role="button" aria-label={kit.action} data-hud="action" className={`grid place-items-center font-display ${actFace} ${press3d} ${PRESS}`} style={{ width: S.actW, height: S.actH }}>
+          <span className="flex flex-col items-center gap-0.5">{icon}{label(kit.action, kit.action.length > 7 ? 0.15 : 0.19)}</span>
         </div>
-        <div {...brake} role="button" aria-label="Brake" className={`${sm} ${hwy ? "bg-[#C8102E] shadow-[inset_0_0_0_2px_#C8102E,inset_0_0_0_4px_#fff,0_4px_0_#5e0614]" : street ? "bg-[#19070b]/80 text-[#FF4D5E] shadow-[inset_0_0_0_2px_#FF4D5E]" : "bg-[linear-gradient(180deg,#FF8A9A,#D61F3A)]"}`} style={{ width: S.small, height: S.small, fontSize: S.small * 0.2 }}>BRAKE</div>
+        <div ref={B} role="button" aria-label="Brake" data-hud="brake" className={`${pedal(brakeFace)} ${press3d}`} style={{ width: Math.round(S.pedalW * 0.94), height: S.brakeH }} onPointerDown={(e) => down(e, "brake")} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onLostPointerCapture={up} onContextMenu={(e) => e.preventDefault()}>
+          <span className="pointer-events-none absolute inset-0" style={{ backgroundImage: ribs }} />
+          <span className="relative flex flex-col items-center gap-1"><ChevronsDown style={{ width: S.pedalW * 0.36, height: S.pedalW * 0.36 }} strokeWidth={3} />{label("BRAKE")}</span>
+        </div>
       </div>
-      {autoGas ? nitroBtn(S.nitro) : (
-        <div className="flex flex-col items-center" style={{ gap: S.gap }}>
-          {nitroBtn(Math.round(S.small * 1.12))}
-          <div {...gas} role="button" aria-label="Gas" className={`${sm} rounded-[1.1rem] bg-[linear-gradient(180deg,#A8FFCB,#16A35A)] text-[#03230f]`} style={{ width: S.pedalW, height: S.pedalH, fontSize: S.small * 0.22 }}>GAS</div>
+      {/* NITRO above the tallest pedal: GAS (with Auto drive on, the car speeds up by itself and NITRO takes its place) */}
+      <div className="flex flex-col items-center" style={{ gap: S.gap }}>
+        {autoGas && <span className="rounded-full bg-[#0b0718]/75 px-2 py-0.5 font-display text-[10px] tracking-widest text-[#7CF2C9] ring-1 ring-[#7CF2C9]/50">AUTO DRIVE</span>}
+        <div {...nitro} role="button" aria-label="Nitro" className={`relative grid shrink-0 place-items-center rounded-full ${PRESS} data-[on=1]:scale-[0.92]`} style={{ width: nitroD, height: nitroD }}>
+          <NitroRing d={nitroD} />
         </div>
-      )}
+        {!autoGas && (
+          <div ref={G} role="button" aria-label={kit.gas === "GAS" ? "Gas" : "Throttle"} data-hud="gas" className={`${pedal(gasFace)} ${press3d}`} style={{ width: S.pedalW, height: S.gasH }} onPointerDown={(e) => down(e, "gas")} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onLostPointerCapture={up} onContextMenu={(e) => e.preventDefault()}>
+            <span className="pointer-events-none absolute inset-0" style={{ backgroundImage: ribs }} />
+            <span className="relative flex flex-col items-center gap-1"><ChevronsUp style={{ width: S.pedalW * 0.46, height: S.pedalW * 0.46 }} strokeWidth={3} />{label(kit.gas, kit.gas.length > 4 ? 0.15 : 0.22)}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 });
@@ -237,9 +299,11 @@ const Standings = memo(function Standings({ list, max, mode, danger }: { list: R
 });
 
 // ------------------------------------------------------------------ the view
-export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart, onCamera, onTutorialDone }: {
+export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart, onCamera, onTutorialDone, onAutoDrive }: {
   cfg: RaceConfig; settings: RacingSettings; tutorial: boolean;
   onFinish: (r: RaceResult) => void; onQuit: () => void; onRestart: () => void; onCamera: (v: CameraView) => void; onTutorialDone: () => void;
+  /** switch Auto drive (saved in Settings) from the pause menu */
+  onAutoDrive?: (on: boolean) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const sess = useRef<RaceSession | null>(null);
@@ -322,6 +386,8 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
   }, []);
 
   useEffect(() => { const s = sess.current; if (!s) return; if (player.paused || howto) s.pause(); else s.resume(); }, [player.paused, howto]);
+  // Auto drive switched mid-race (pause menu) takes effect at once
+  useEffect(() => { const s = sess.current; if (!s) return; s.touch.autoGas = S.autoDrive; s.autoDrive = S.autoDrive; if (S.autoDrive) s.touch.gas = false; }, [S.autoDrive]);
 
   const cycleCam = useCallback(() => { const v = sess.current?.cycleCamera(); if (v) { setCam(v); onCamera(v); } }, [onCamera]);
 
@@ -330,10 +396,11 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
     player.setMenu([
       { id: "restart", label: "Restart", icon: "🔄", onSelect: () => onRestart() },
       { id: "camera", label: "Camera", icon: "🎥", onSelect: () => cycleCam() },
+      ...(onAutoDrive ? [{ id: "autodrive", label: S.autoDrive ? "Auto drive: ON (tap to turn off)" : "Auto drive: OFF (tap to turn on)", icon: "🚗", onSelect: () => onAutoDrive(!S.autoDrive) }] : []),
       { id: "quit", label: "Quit race", icon: "🏳️", onSelect: () => onQuit() },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [S.autoDrive]);
 
   // tilt steering
   useEffect(() => {
@@ -408,19 +475,28 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
   const reg = useCallback<Reg>((k, el) => { (fast.current as unknown as Record<string, unknown>)[k] = el; }, []);
   const regSeg = useCallback<RegSeg>((i, el) => { fast.current.segs[i] = el; }, []);
   const onWheel = useCallback((rot: number) => { const s = sess.current; if (s) s.touch.tilt = Math.max(-1, Math.min(1, (rot / 95) * S.sensitivity)); }, [S.sensitivity]);
+  const onHorn = useCallback(() => { sess.current?.honk(); vibrate(S.vibrate, 12); }, [S.vibrate]);
   const onNitroDown = useCallback(() => { const s = sess.current; if (s && s.player && s.player.car.nitro > 0.05) vibrate(S.vibrate, 14); }, [S.vibrate]);
 
   // ---------------------------------------------------------------- layout
   const portrait = vp.portrait;
+  const kit = padKit();
   const sizes: Sizes = useMemo(() => {
     const m = Math.min(vp.w, vp.h), k = S.controlSize ?? 1;
-    let steer = Math.max(60, Math.min(100, m * 0.205)) * k;
-    const fit = (st: number) => { const small = st * 0.74, nitro = st * 1.16, gap = Math.max(8, st * 0.1); return 2 * st + gap + (S.autoDrive ? small + gap + nitro : small + gap + small * 1.15) + gap * 2 + 24; };
-    if (portrait) while (fit(steer) > vp.w && steer > 54) steer -= 2;
-    const small = Math.round(steer * 0.74), gap = Math.round(Math.max(8, steer * 0.1));
-    return { steer: Math.round(steer), small, nitro: Math.round(steer * 1.16), gap, pedalW: Math.round(small * 1.15), pedalH: Math.round(small * 1.3) };
-  }, [vp.w, vp.h, portrait, S.controlSize, S.autoDrive]);
-  const pedalsH = S.autoDrive ? Math.max(sizes.nitro, sizes.small * 2 + sizes.gap) : Math.max(sizes.small * 2 + sizes.gap, Math.round(sizes.small * 1.12) + sizes.gap + sizes.pedalH);
+    let st = Math.max(62, Math.min(104, m * 0.22)) * k;
+    // both thumbs' clusters side by side with room in the middle…
+    const fit = (x: number) => { const gap = Math.max(8, x * 0.1), pw = x * 0.86; return 2 * x + gap + pw * 0.94 + gap + (S.autoDrive ? pw * 1.22 : pw) + 24 + 18; };
+    while (fit(st) > vp.w && st > 52) st -= 2;
+    // …and in landscape low enough to leave the road in view (NITRO over GAS, or HORN + the move over BRAKE)
+    const tall = (x: number) => Math.max(x * 0.86 + x * 1.45, (kit.horn ? x * 0.56 : 0) + x * (kit.big ? 0.92 : 0.72) + x * 1.12) + x * 0.3;
+    if (!portrait) while (st > 52 && tall(st) > vp.h * 0.64) st -= 2;
+    const gap = Math.round(Math.max(8, st * 0.1)), pedalW = Math.round(st * 0.86);
+    return { steer: Math.round(st), gap, pedalW, gasH: Math.round(st * 1.45), brakeH: Math.round(st * 1.12), nitro: Math.round(st * 0.86), actW: Math.round(pedalW * 0.94), actH: Math.round(st * (kit.big ? 0.92 : 0.72)) };
+  }, [vp.w, vp.h, portrait, S.controlSize, S.autoDrive, kit.big, kit.horn]);
+  const pedalsH = Math.max(
+    S.autoDrive ? Math.round(sizes.nitro * 1.22) + 22 : sizes.nitro + sizes.gap + sizes.gasH,
+    (kit.horn ? Math.round(sizes.actW * 0.72) + sizes.gap : 0) + sizes.actH + sizes.gap + sizes.brakeH,
+  );
   const speedoW = touch ? (portrait ? Math.round(Math.min(150, vp.w * 0.4)) : Math.round(Math.min(200, Math.max(140, vp.h * 0.42)))) : 230;
   const mapSize = Math.round(touch ? (portrait ? Math.min(118, vp.w * 0.3) : Math.min(116, vp.h * 0.27)) : 150);
   const lh = S.leftHanded;
@@ -559,7 +635,8 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
           </div>
 
           {/* ---------------------------------------------- top-right: minimap + camera (under the pause button) */}
-          <div data-hud="map" className="absolute z-20 flex flex-col items-end gap-2" style={{ top: "calc(var(--safe-top) + 60px)", right: "calc(var(--safe-right, 0px) + 10px)" }}>
+          {/* phones held sideways: the camera button sits beside the map, leaving the right thumb's column to the controls */}
+          <div data-hud="map" className={`absolute z-20 flex gap-2 ${touch && !portrait ? "flex-row-reverse items-start" : "flex-col items-end"}`} style={{ top: "calc(var(--safe-top) + 60px)", right: "calc(var(--safe-right, 0px) + 10px)" }}>
             {S.showMap && <canvas ref={(el) => reg("map", el)} width={mapSize * 2} height={mapSize * 2} className="pointer-events-none rounded-2xl bg-[#0b0718]/45 ring-1 ring-white/15 backdrop-blur-sm" style={{ width: mapSize, height: mapSize }} />}
             <button type="button" onClick={cycleCam} aria-label={`Camera: ${cam}`} className="flex h-11 items-center gap-1.5 rounded-2xl bg-[#0b0718]/65 px-3 font-display text-xs text-white ring-1 ring-white/20 backdrop-blur-md active:scale-95"><Camera className="size-4" />{cam.toUpperCase()}</button>
           </div>
@@ -681,7 +758,7 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
                       <span className="relative h-2 w-full overflow-hidden rounded-full bg-white/15"><span ref={(el) => reg("tilt", el)} className="absolute top-0 left-[45%] h-full w-[10%] rounded-full bg-[#FFD25A]" /></span>
                     </div>
                   )}
-              <Pedals S={sizes} press={press} autoGas={S.autoDrive} onNitroDown={onNitroDown} />
+              <Pedals S={sizes} press={press} autoGas={S.autoDrive} lh={lh} onNitroDown={onNitroDown} onHorn={onHorn} />
             </div>
           )}
         </>
@@ -698,10 +775,13 @@ export function RaceView({ cfg, settings, tutorial, onFinish, onQuit, onRestart,
                 {[
                   touch ? (S.controls === "tilt" ? ["📱", "Steer", "Tilt your phone left and right like a steering wheel."] : S.controls === "wheel" ? ["🛞", "Steer", "Drag the wheel round to turn."] : ["◀ ▶", "Steer", "Hold the big arrows. Slide your thumb across to switch sides."])
                     : ["⬅️➡️", "Steer", "Arrow keys or A / D to steer."],
-                  S.autoDrive ? ["🚗", "Auto drive", "Your car speeds up and keeps to the road by itself. Hold BRAKE before tight corners."] : ["🟢", "Gas & brake", "Hold GAS to go, BRAKE to slow down."],
+                  S.autoDrive ? ["🚗", "Auto drive is on", "Your car speeds up and keeps to the road by itself. Hold BRAKE before tight corners."]
+                    : touch ? ["⏫", kit.gas === "GAS" ? "Gas & brake" : "Throttle & brake", `Hold the big ${kit.gas} pedal to go and BRAKE to slow down — slide your thumb between them. (Auto drive is in Settings.)`]
+                      : ["⏫", "Gas & brake", "Hold ▲ / W to go and ▼ / S to brake."],
                   cfg.game === "drift-kings"
-                    ? ["〰", "Drift chains", "Hold DRIFT and steer into a bend. Keep sliding for ×2…×5 — but a wall hit breaks the chain!"]
-                    : ["〰", "Drift", "Hold DRIFT while turning to slide — it fills your nitro!"],
+                    ? ["🅿️", "Handbrake drifts", `${touch ? "Hold HANDBRAKE" : "Hold X"} and steer into a bend. Keep sliding for ×2…×5 — but a wall hit breaks the chain!`]
+                    : kit.icon === "wheelie" ? ["🏍️", "Wheelies", `On a straight, hold ${touch ? "WHEELIE" : "X"} to lift the front wheel — it charges your nitro.`]
+                      : ["〰", "Drift", `Hold ${touch ? "DRIFT" : "X"} while turning to slide — it fills your nitro!${kit.horn && touch ? " Tap HORN to honk." : ""}`],
                   ["⚡", "Nitro", "Tap NITRO for a speed burst. Full bar? Double-tap!"],
                 ].map(([icon, title, text]) => (
                   <div key={title} className="flex items-center gap-3 rounded-2xl bg-white/[0.07] p-2.5 ring-1 ring-white/10">
