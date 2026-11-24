@@ -1,0 +1,6 @@
+# Game files (and the rest of public/) are kept byte for byte: no line-ending changes on Windows. Then this PC and
+# GitHub Actions compute the same fingerprints, so the R2 asset version (and every game file's cache) doesn't flip
+# between deploys made from different machines.
+public/** -text
+# written with LF by scripts/gen-game-index.mjs
+src/lib/game-index.ts text eol=lf
