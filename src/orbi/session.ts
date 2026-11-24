@@ -545,6 +545,14 @@ export class OrbiSession {
 }
 const CHASER_NAME: Record<string, string> = { boulder: "🪨 Boulder", rocks: "🪨 Rockfall", candy: "🍬 Candy avalanche", dominoes: "🁢 Dominoes", worm: "🪱 Sandworm", train: "🚂 Ghost train", tornado: "🌪️ Tornado", storm: "🌪️ Storm", comet: "☄️ Comet", meteor: "☄️ Meteor", chaser: "😈 Kranky's ball" };
 const GAME_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "PageUp", "PageDown"]);
+/** every sound the game plays: the menu's (the loading screen waits for these) and the race's (loaded while the
+ *  menu is up), so no sound is ever missing the first time it should play */
+export const ORBI_MENU_SOUNDS: Sound[] = ["pop", "a:levelup", "a:whooshIn", "a:race_beep", "a:race_beepGo"];
+export const ORBI_RACE_SOUNDS: Sound[] = [
+  "a:twinkle", "a:race_checkpoint", "a:whooshOut", "a:teleport", "a:rocket", "a:race_shield", "a:race_pickup", "a:race_nitro",
+  "a:race_land", "a:race_jump", "a:race_crash", "a:race_coin", "a:poof", "a:bonk", "whooshLong", "boing", "a:sparks",
+  "a:race_perfect", "a:race_finish", "a:race_crowd", "a:cheer", "a:buzz", "a:race_win", "a:race_lose",
+];
 export const POWER_LABEL: Record<PowerKind, string> = { turbo: "🚀 Turbo!", magnet: "🧲 Magnet!", shield: "🫧 Shield!", jump: "⏫ Super Jump!", giant: "🟣 Giant Marble!", feather: "🪶 Feather!", bridge: "🌈 Rainbow Bridge!", star: "⭐ Star Power!" };
 
 if (process.env.NODE_ENV !== "production" && typeof window !== "undefined") (window as unknown as { __orbi?: { last?: OrbiSession } }).__orbi ??= {};

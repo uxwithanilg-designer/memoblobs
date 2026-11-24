@@ -13,7 +13,8 @@ import { audio } from "@/lib/audio";
 import { JOURNEY, STAGES_PER_WORLD, worldOf } from "../data/worlds";
 import { autoQuality, type Quality } from "../render3d";
 import { useOrbi, useOrbiHydrated, type FinishOut } from "../save";
-import { OrbiSession, registerDev, type Controls, type OrbiHud, type RaceResult } from "../session";
+import { NEXT } from "@/lib/preload";
+import { ORBI_MENU_SOUNDS, ORBI_RACE_SOUNDS, OrbiSession, registerDev, type Controls, type OrbiHud, type RaceResult } from "../session";
 import { skinPrice } from "../three/tex";
 import type { Stage } from "../types";
 import { DexPanel, ModesPanel, ShopPanel, SkinBall, type ModeKind } from "./Panels";
@@ -117,6 +118,8 @@ export default function OrbiApp({ title }: { slug: string; title: string }) {
   const n = pick ?? stage;
 
   useEffect(() => { setLoading(null); }, [setLoading]);
+  // sounds ahead of time: the menu's before the first screen, the race's while the menu is up
+  useEffect(() => { void audio.preload(ORBI_MENU_SOUNDS); void audio.preload(ORBI_RACE_SOUNDS, [], undefined, NEXT); }, []);
   // full-screen sheets and races hide the site's own top bar (so their back button is the only one)
   useEffect(() => { setImmersive(screen !== "home"); setInRound(screen === "race"); }, [screen, setImmersive, setInRound]);
   useEffect(() => () => { setImmersive(false); setInRound(false); setMenu([]); }, [setImmersive, setInRound, setMenu]);

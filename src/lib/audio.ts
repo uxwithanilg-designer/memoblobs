@@ -729,8 +729,10 @@ class AudioEngine {
     });
   }
 
-  preload(sfx: Sound[], music: MusicName[] = [], onProgress?: (p: number) => void) {
-    const jobs = [...sfx.map((s) => this.load("sfx:" + s, sfxFile(s))), ...music.map((m) => this.load("music:" + m, musicFile(m)))];
+  /** load sounds (and music) ahead of time: at NOW the loading screen waits for them; NEXT loads them as soon as a
+   *  slot is free (a game's in-play sounds while its menu is up) */
+  preload(sfx: Sound[], music: MusicName[] = [], onProgress?: (p: number) => void, pri: Priority = NOW) {
+    const jobs = [...sfx.map((s) => this.load("sfx:" + s, sfxFile(s), pri)), ...music.map((m) => this.load("music:" + m, musicFile(m), pri))];
     let done = 0;
     return Promise.all(jobs.map((j) => j.then((r) => { done++; onProgress?.(done / jobs.length); return r; })));
   }
