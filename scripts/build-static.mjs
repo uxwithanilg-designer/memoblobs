@@ -1,6 +1,6 @@
 // Builds the whole site as static files in out/ (for Cloudflare): `npm run build:static`.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { ASSET_BASE, ASSET_DIRS } from "./r2/config.mjs";
 import { listAssets, writeIndex } from "./r2/asset-index.mjs";
@@ -11,7 +11,18 @@ import { readRemoteList } from "./r2/remote-list.mjs";
 const gen = spawnSync("node scripts/gen-game-index.mjs", { stdio: "inherit", shell: true });
 if (gen.status !== 0) process.exit(gen.status ?? 1);
 // (the bucket's upload list gives the sizes of game files that aren't on disk, as in GitHub Actions)
-const { version, versions, bundles } = writeIndex(listAssets((await readRemoteList()) ?? {}));
+const { version, versions, bundles, files: assets } = writeIndex(listAssets((await readRemoteList()) ?? {}));
+// every live game needs its pictures (on disk, or in git for GitHub Actions): the card cover (hero), the game page's
+// poster and the link-preview image. A missing one would show as a broken picture on the live site.
+{
+  const have = new Set(assets.map((f) => f.key));
+  const { games: live } = JSON.parse(readFileSync("public/data/catalog.json", "utf8"));
+  const missing = live.flatMap((g) => [g.hero.replace(/^\//, ""), `games/${g.slug}/poster.webp`, `games/${g.slug}/og.jpg`].filter((k) => !have.has(k)));
+  if (missing.length) {
+    console.error(`build-static: live games are missing pictures (put them in public/ and commit them):\n  - ${missing.join("\n  - ")}`);
+    process.exit(1);
+  }
+}
 console.log(`build-static: game files from ${ASSET_BASE} (asset version ${version}, ${bundles} bundles)`);
 // the version table goes into the site's code (src/lib/cdn.ts): a file's URL changes only with its own bucket
 const env = { ...process.env, STATIC_EXPORT: "1", NEXT_PUBLIC_ASSET_BASE: ASSET_BASE, NEXT_PUBLIC_ASSET_VER: version, NEXT_PUBLIC_ASSET_VERS: versions };

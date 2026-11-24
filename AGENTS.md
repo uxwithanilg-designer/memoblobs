@@ -11,7 +11,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## MOMOBLOBS: read `docs/AGENT_PROMPT.md` first
 
 Before you add or change a game, read `docs/AGENT_PROMPT.md`: the full brief on hosting, R2 game files, loading,
-performance, the new-game checklist, the checks to run and the deploy rules. The hard rule is repeated below.
+performance, the new-game checklist, the checks to run and the deploy rules. To make a new game, follow
+`docs/NEW_GAME_PROMPT.md` step by step (write, register, files, test, commit, push, check it's live). The hard rule is
+repeated below.
 
 ## Hosting budget — every game, every agent (MOMOBLOBS rule)
 

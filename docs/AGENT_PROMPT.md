@@ -52,8 +52,9 @@ exactly. If a request would break one of these rules, stop and ask the owner ins
 ## 3. Game files: art, sounds, music, fonts, data
 
 - Put them in:
-  - `public/games/<slug>/` — arcade games: `thumb.webp`, `og.jpg`; 3D games: `card.webp`, `hero.webp`, `og.jpg`,
-    `shot-*.webp`
+  - `public/games/<slug>/` — every live game: `cover.webp` (1280×720, cards), `poster.webp` (1000×1500, its page) and
+    `og.jpg` (1200×630, link previews); own-engine games also `card.webp` (600×800). The build fails when a live game
+    is missing `cover.webp`, `poster.webp` or `og.jpg`.
   - `public/audio/` — sounds and music
   - `public/brand/` — characters, logos
   - `public/fonts/`
@@ -134,6 +135,9 @@ game uses it, and `npm run check:perf` (part of `npm run build:static`) fails th
   a steady ~60 fps with no long pauses during play.
 
 ## 6. Adding a new game
+
+The step-by-step recipe — write, register, files, test, commit, push, check it's live — is
+**`docs/NEW_GAME_PROMPT.md`**. The short version:
 
 1. **Code**
    - **Arcade (2D canvas):**
