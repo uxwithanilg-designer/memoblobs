@@ -1,13 +1,18 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
-import { CATEGORIES, type Category } from "@/lib/game-index";
-import { ALL_PLAYABLE, NEW_GAMES } from "@/lib/catalog";
+import { CATEGORIES, type Category, type GameCard } from "@/lib/game-index";
+import { PAGE_SIZE } from "@/lib/catalog";
+import { useCatalog } from "@/lib/catalog-data";
 import { CATEGORY_ICON } from "@/components/layout/nav";
 import { GameGrid } from "@/components/home/GameRow";
 
-export function GamesBrowser() {
+/**
+ * Search, sort and filter every game. `firstPage`: the top picks the page was built with (shown until something is
+ * searched, sorted or filtered); the full list loads from /data/catalog.json only when it's needed.
+ */
+export function GamesBrowser({ firstPage, total }: { firstPage: GameCard[]; total: number }) {
   const sp = useSearchParams();
   const router = useRouter();
   const raw = sp.get("category");
@@ -21,11 +26,22 @@ export function GamesBrowser() {
     router.replace(`/games${p.toString() ? `?${p}` : ""}`, { scroll: false });
   };
 
+  // a page of games at a time; a new search / sort / filter starts again at one page
+  const view = `${cat}|${q}|${sort}`;
+  const [page, setPage] = useState({ view, n: PAGE_SIZE });
+  const n = page.view === view ? page.n : PAGE_SIZE;
+  const changed = cat !== null || q.trim() !== "" || sort !== "top";
+  const catalog = useCatalog(changed || n > PAGE_SIZE);
+
   const list = useMemo(() => {
-    const base = sort === "new" ? NEW_GAMES : sort === "az" ? [...ALL_PLAYABLE].sort((a, b) => a.title.localeCompare(b.title)) : ALL_PLAYABLE;
+    if (!catalog) return null;
+    const base = sort === "new" ? catalog.newest : sort === "az" ? [...catalog.games].sort((a, b) => a.title.localeCompare(b.title)) : catalog.games;
     const s = q.trim().toLowerCase();
     return base.filter((g) => (!cat || g.category === cat) && (!s || `${g.title} ${g.short} ${g.tagline}`.toLowerCase().includes(s)));
-  }, [cat, q, sort]);
+  }, [catalog, cat, q, sort]);
+  // until the list has loaded: the page's own first page (or nothing yet, for a search)
+  const visible = list ? list.slice(0, n) : changed ? null : firstPage;
+  const left = list ? list.length - n : changed ? 0 : total - firstPage.length;
 
   return (
     <div>
@@ -53,7 +69,22 @@ export function GamesBrowser() {
           );
         })}
       </div>
-      {list.length > 0 ? <GameGrid games={list} /> : (
+      {visible === null ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6" aria-busy="true">
+          {Array.from({ length: 10 }, (_, i) => <div key={i} className="aspect-[16/13] animate-pulse rounded-2xl bg-white/[0.05]" />)}
+        </div>
+      ) : visible.length > 0 ? (
+        <>
+          <GameGrid games={visible} />
+          {left > 0 && (
+            <div className="mt-6 flex justify-center">
+              <button onClick={() => setPage({ view, n: n + PAGE_SIZE })} className="rounded-full bg-white/[0.08] px-6 py-3 font-bold text-white ring-1 ring-white/[0.08] transition hover:bg-white/[0.14] active:scale-95">
+                {n > PAGE_SIZE && !catalog ? "Loading…" : "Show more games"} <span className="text-faint">({left})</span>
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
         <div className="rounded-2xl bg-white/[0.04] p-10 text-center ring-1 ring-white/[0.06]">
           <p className="text-lg font-bold">No games found</p>
           <p className="mt-1 text-sm text-muted">Try another word or category.</p>

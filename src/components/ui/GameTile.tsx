@@ -1,12 +1,11 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Play } from "lucide-react";
-import { CATEGORIES, type Game } from "@/lib/game-index";
-import { gameHref, is3D, isNew, thumbOf } from "@/lib/catalog";
+import type { GameCard } from "@/lib/game-index";
+import { categoryLabel as catLabel, gameHref, is3D, isNew, thumbOf } from "@/lib/catalog";
 
-const catLabel = (g: Game) => CATEGORIES.find((c) => c.id === g.category)?.label ?? "Game";
+// Game pages are plain pages (one file each): tiles link to them with <a>, not next/link (see gameHref)
 
-function Badges({ g, small = false }: { g: Game; small?: boolean }) {
+function Badges({ g, small = false }: { g: GameCard; small?: boolean }) {
   const fresh = isNew(g), three = is3D(g);
   if (!fresh && !three) return null;
   const pill = `rounded-full font-bold tracking-wide shadow-[0_2px_8px_rgb(0_0_0/0.35)] ${small ? "px-1.5 py-px text-[9px]" : "px-2 py-0.5 text-[10px]"}`;
@@ -24,12 +23,12 @@ function Badges({ g, small = false }: { g: Game; small?: boolean }) {
  * - "wide": a 16:9 tile with the title over a soft fade (continue-playing rows, small spaces).
  * - "feature" (or `big`): a large tile that fills its cell, title, tagline and a play button over the art.
  */
-export function GameTile({ g, big = false, variant, priority = false, sizes, className = "" }: { g: Game; big?: boolean; variant?: "card" | "wide" | "feature"; priority?: boolean; sizes?: string; className?: string }) {
+export function GameTile({ g, big = false, variant, priority = false, sizes, className = "" }: { g: GameCard; big?: boolean; variant?: "card" | "wide" | "feature"; priority?: boolean; sizes?: string; className?: string }) {
   const v = variant ?? (big ? "feature" : "card");
   const accent = g.accent ?? "#ffd25a";
   if (v === "card") {
     return (
-      <Link
+      <a
         href={gameHref(g)}
         aria-label={g.title}
         style={{ "--acc": accent } as React.CSSProperties}
@@ -59,23 +58,23 @@ export function GameTile({ g, big = false, variant, priority = false, sizes, cla
           </span>
         </span>
         <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100" style={{ background: `linear-gradient(90deg, ${accent}, ${g.accent2 ?? accent})` }} />
-      </Link>
+      </a>
     );
   }
   if (v === "wide") {
     return (
-      <Link href={gameHref(g)} aria-label={g.title} className={`tile group relative block aspect-video overflow-hidden rounded-2xl bg-[#1a1036] ring-1 ring-white/[0.07] transition duration-300 hover:-translate-y-0.5 hover:ring-white/25 focus-visible:ring-2 focus-visible:ring-sun ${className}`}>
+      <a href={gameHref(g)} aria-label={g.title} className={`tile group relative block aspect-video overflow-hidden rounded-2xl bg-[#1a1036] ring-1 ring-white/[0.07] transition duration-300 hover:-translate-y-0.5 hover:ring-white/25 focus-visible:ring-2 focus-visible:ring-sun ${className}`}>
         <Image src={thumbOf(g)} alt={`${g.title} game`} fill priority={priority} sizes={sizes ?? "(max-width: 640px) 60vw, 22vw"} className="object-cover transition-transform duration-500 group-hover:scale-[1.06]" />
         <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pt-8 pb-2">
           <span className="block truncate text-sm font-bold text-white drop-shadow">{g.title}</span>
         </span>
         <Badges g={g} small />
-      </Link>
+      </a>
     );
   }
   // feature
   return (
-    <Link href={gameHref(g)} aria-label={g.title} style={{ "--acc": accent } as React.CSSProperties}
+    <a href={gameHref(g)} aria-label={g.title} style={{ "--acc": accent } as React.CSSProperties}
       className={`tile group relative block min-h-[200px] overflow-hidden rounded-3xl bg-[#1a1036] ring-1 ring-white/[0.08] transition duration-300 hover:-translate-y-1 hover:ring-[color:var(--acc)]/70 hover:shadow-[0_26px_50px_-20px_var(--acc)] focus-visible:ring-2 focus-visible:ring-sun ${className}`}>
       {/* the whole cover over a soft blurred copy of itself, so a tall cell never crops the art's logo */}
       <Image src={thumbOf(g)} alt="" fill sizes="30vw" className="scale-125 object-cover opacity-55 blur-2xl" />
@@ -92,14 +91,14 @@ export function GameTile({ g, big = false, variant, priority = false, sizes, cla
         </span>
       </span>
       <Badges g={g} />
-    </Link>
+    </a>
   );
 }
 
 /** a compact list row: a small thumbnail, the title and its category (the game page's side list) */
-export function GameListItem({ g }: { g: Game }) {
+export function GameListItem({ g }: { g: GameCard }) {
   return (
-    <Link href={gameHref(g)} className="group flex items-center gap-3 rounded-2xl p-1.5 pr-3 transition hover:bg-white/[0.06]">
+    <a href={gameHref(g)} className="group flex items-center gap-3 rounded-2xl p-1.5 pr-3 transition hover:bg-white/[0.06]">
       <span className="relative block aspect-video w-[118px] shrink-0 overflow-hidden rounded-xl ring-1 ring-white/[0.07]">
         <Image src={thumbOf(g)} alt="" fill sizes="118px" className="object-cover transition-transform duration-500 group-hover:scale-[1.08]" />
       </span>
@@ -107,6 +106,6 @@ export function GameListItem({ g }: { g: Game }) {
         <span className="block truncate text-[14.5px] leading-tight font-bold text-white">{g.title}</span>
         <span className="mt-0.5 block truncate text-xs text-faint">{catLabel(g)}{is3D(g) ? " · 3D" : ""}{isNew(g) ? " · New" : ""}</span>
       </span>
-    </Link>
+    </a>
   );
 }

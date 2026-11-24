@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Flame, Sparkles, Box, LayoutGrid } from "lucide-react";
 import { GameRow, RowTitle } from "@/components/home/GameRow";
 import { AppCard, ContinueRow, SavedRow } from "@/components/home/HomeClient";
@@ -7,8 +6,9 @@ import { CategoryChips, CategoryTiles } from "@/components/home/CategoryTiles";
 import { GameTile } from "@/components/ui/GameTile";
 import { JsonLd } from "@/components/JsonLd";
 import { CATEGORY_ICON } from "@/components/layout/nav";
-import { CATEGORIES, LIVE_GAMES } from "@/lib/games";
-import { ALL_PLAYABLE, GAMES_3D, NEW_GAMES, TOP_PICKS, categoryHref, inCategory } from "@/lib/catalog";
+import { CATEGORIES } from "@/lib/categories";
+import { ALL_PLAYABLE, GAMES_3D, NEW_GAMES, TOP_PICKS, inCategory } from "@/lib/lists";
+import { ROW_SIZE, categoryHref, gameHref } from "@/lib/catalog";
 
 const FAQ = [
   { q: "What is MOMOBLOBS?", a: "MOMOBLOBS is a free games website with 3D runners, racing games, action games and quick brain games, starring Momo the orange clay blob and the clay crew from the MOMOBLOBS videos." },
@@ -49,13 +49,13 @@ export default function Home() {
       </section>
 
       <GameRow title="New games" href="/new" games={NEW_GAMES.slice(0, 16)} icon={<Sparkles className="size-5 text-mint" />} />
-      <GameRow title="3D games" href="/c/3d" games={GAMES_3D} icon={<Box className="size-5 text-[#9FB8FF]" />} />
+      <GameRow title="3D games" href="/c/3d" games={GAMES_3D.slice(0, ROW_SIZE)} icon={<Box className="size-5 text-[#9FB8FF]" />} />
       <AppCard />
       <SavedRow />
 
       {catRows.map(({ c, games }) => {
         const { icon: Icon, color } = CATEGORY_ICON[c.id];
-        return <GameRow key={c.id} title={`${c.label} games`} href={categoryHref(c.id)} games={games} icon={<Icon className="size-5" style={{ color }} />} />;
+        return <GameRow key={c.id} title={`${c.label} games`} href={categoryHref(c.id)} games={games.slice(0, ROW_SIZE)} icon={<Icon className="size-5" style={{ color }} />} />;
       })}
 
       <section>
@@ -69,11 +69,11 @@ export default function Home() {
         <div className="relative">
           <h2 className="font-display text-3xl leading-tight text-white sm:text-4xl">Free online games at <span className="text-sun">MOMOBLOBS</span></h2>
           <div className="mt-3 grid gap-3 text-[15px] leading-relaxed text-muted">
-            <p>MOMOBLOBS has {LIVE_GAMES.length} free games you can play instantly in your browser — no download, no sign-up. Run through 300 jungle places in <Link className="text-sun hover:underline" href="/games/kiko-jungle-quest">Kiko&apos;s Jungle Quest</Link>, dash across twelve worlds in <Link className="text-sun hover:underline" href="/games/momo-dash">Momo Dash</Link>, race 30+ cars in <Link className="text-sun hover:underline" href="/games/nitro-rush">Nitro Rush</Link> or lead a giant crowd in <Link className="text-sun hover:underline" href="/games/blob-brigade">Blob Brigade</Link>.</p>
+            <p>MOMOBLOBS has {ALL_PLAYABLE.length} free games you can play instantly in your browser — no download, no sign-up. Run through 300 jungle places in <a className="text-sun hover:underline" href={gameHref("kiko-jungle-quest")}>Kiko&apos;s Jungle Quest</a>, dash across twelve worlds in <a className="text-sun hover:underline" href={gameHref("momo-dash")}>Momo Dash</a>, race 30+ cars in <a className="text-sun hover:underline" href={gameHref("nitro-rush")}>Nitro Rush</a> or lead a giant crowd in <a className="text-sun hover:underline" href={gameHref("blob-brigade")}>Blob Brigade</a>.</p>
             <p>Every game is made in-house with our own clay characters — Momo, Kranky, Tiki and friends — and works on phones, tablets and computers. Your coins, trophies and saved games stay on your device.</p>
           </div>
           <div className="mt-5 grid grid-cols-3 gap-2 sm:max-w-md">
-            {[[LIVE_GAMES.length, "games"], [GAMES_3D.length, "in 3D"], ["Free", "to play"]].map(([n, l]) => (
+            {[[ALL_PLAYABLE.length, "games"], [GAMES_3D.length, "in 3D"], ["Free", "to play"]].map(([n, l]) => (
               <div key={l as string} className="rounded-2xl bg-white/[0.05] px-3 py-3 text-center ring-1 ring-white/[0.06]"><div className="font-display text-2xl text-white">{n}</div><div className="text-xs font-semibold text-faint">{l}</div></div>
             ))}
           </div>

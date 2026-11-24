@@ -4,24 +4,28 @@ import { useEffect, useState } from "react";
 import { Clock, Bookmark, Download, X } from "lucide-react";
 import { AppIcon } from "@/components/brand/Logo";
 import { GameRow } from "@/components/home/GameRow";
-import { getGame, type Game } from "@/lib/game-index";
+import { cardsOf, useCatalog } from "@/lib/catalog-data";
+import { ROW_SIZE } from "@/lib/catalog";
 import { useLibrary } from "@/lib/library";
 import { useHydrated } from "@/lib/store";
 
-const pick = (slugs: string[]) => slugs.map(getGame).filter((g): g is Game => !!g && g.status === "live");
+// these rows depend on this device, so they appear after the page loads: the games list is fetched only when there's
+// something to show
 
 export function ContinueRow() {
   const ok = useHydrated();
   const recent = useLibrary((s) => s.recent);
-  if (!ok || !recent.length) return null;
-  return <GameRow title="Continue playing" href="/recent" games={pick(recent.map((r) => r.slug))} icon={<Clock className="size-5 text-white/70" />} variant="wide" />;
+  const catalog = useCatalog(ok && recent.length > 0);
+  if (!ok || !recent.length || !catalog) return null;
+  return <GameRow title="Continue playing" href="/recent" games={cardsOf(catalog, recent.map((r) => r.slug)).slice(0, ROW_SIZE)} icon={<Clock className="size-5 text-white/70" />} variant="wide" />;
 }
 
 export function SavedRow() {
   const ok = useHydrated();
   const saved = useLibrary((s) => s.saved);
-  if (!ok || !saved.length) return null;
-  return <GameRow title="Your saved games" href="/saved" games={pick(saved)} icon={<Bookmark className="size-5 text-bubble" />} />;
+  const catalog = useCatalog(ok && saved.length > 0);
+  if (!ok || !saved.length || !catalog) return null;
+  return <GameRow title="Your saved games" href="/saved" games={cardsOf(catalog, saved).slice(0, ROW_SIZE)} icon={<Bookmark className="size-5 text-bubble" />} />;
 }
 
 type BIP = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };

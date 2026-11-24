@@ -52,4 +52,8 @@ next-env.d.ts
 /scripts/art/__pycache__/
 
 # made by scripts/gen-game-index.mjs from src/lib/games.ts (they go to R2 with each game's files)
+/public/games/*/game.json
 /public/games/*/about.json
+/public/data/
+/public/audio/families/
+/public/audio/index.json

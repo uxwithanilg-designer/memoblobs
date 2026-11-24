@@ -10,7 +10,8 @@ import { GameListItem } from "@/components/ui/GameTile";
 import { JsonLd } from "@/components/JsonLd";
 import { CATEGORY_ICON } from "@/components/layout/nav";
 import { CATEGORIES, CHARACTERS, GAMES, getGame } from "@/lib/games";
-import { categoryHref, inCategory, is3D, playHref, posterOf, similarTo } from "@/lib/catalog";
+import { ROW_SIZE, categoryHref, is3D, playHref, posterOf } from "@/lib/catalog";
+import { inCategory, similarTo, toCard } from "@/lib/lists";
 import { abs, absAsset } from "@/lib/site";
 import { seoOf } from "@/lib/seo";
 
@@ -113,7 +114,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
       {ld && <JsonLd data={ld} />}
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid min-w-0 grid-cols-1 content-start gap-5">
-          {live ? <GameStage slug={g.slug} /> : (
+          {live ? <GameStage game={toCard(g)} /> : (
             <div className="grid aspect-video place-items-center rounded-2xl bg-[#140b2c] text-center ring-1 ring-white/[0.07]">
               <div><p className="text-2xl font-bold">{g.title}</p><p className="mt-1 text-muted">Coming soon</p></div>
             </div>
@@ -249,7 +250,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[slug]">["para
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8">
-        <GameRow title={`More ${main.label.toLowerCase()} games`} href={categoryHref(main.id)} games={inCategory(main.id).filter((x) => x.slug !== g.slug)} />
+        <GameRow title={`More ${main.label.toLowerCase()} games`} href={categoryHref(main.id)} games={inCategory(main.id).filter((x) => x.slug !== g.slug).slice(0, ROW_SIZE)} />
       </div>
     </div>
   );

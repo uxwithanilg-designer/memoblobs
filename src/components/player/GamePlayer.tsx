@@ -15,10 +15,9 @@ import { useHydrated, useSettings } from "@/lib/store";
 import { audio } from "@/lib/audio";
 import { installFrameCap, setLiteUi } from "@/lib/perf";
 import { PerfOverlay } from "./PerfOverlay";
-import { soundFamily } from "@/lib/catalog";
-import type { Game, GameAbout } from "@/lib/game-index";
+import { gameHref, soundFamily } from "@/lib/catalog";
+import type { PlayerGame } from "@/lib/game-index";
 import { preloader, whenIdle } from "@/lib/preload";
-import { cdn } from "@/lib/cdn";
 
 const TIPS_COMMON = [
   "Tip: correct answers in a row build a combo — up to ×5 points!",
@@ -33,25 +32,7 @@ type FsEl = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
 
 /** embedded = runs in the frame on a game page (the page owns the title, sound and fullscreen buttons); onExit ends it */
 const noSub = () => () => {};
-const NO_HOWTO: GameAbout["howTo"] = [];
-const aboutCache = new Map<string, GameAbout>();
-/** a game's how-to and controls (public/games/<slug>/about.json, from R2 in production), fetched once per game */
-function useGameAbout(slug: string) {
-  const [about, setAbout] = useState<GameAbout | null>(() => aboutCache.get(slug) ?? null);
-  useEffect(() => {
-    if (aboutCache.has(slug)) return;
-    let live = true;
-    fetch(cdn(`/games/${slug}/about.json`)).then((r) => (r.ok ? r.json() : null)).then((a: GameAbout | null) => {
-      if (!a || !Array.isArray(a.howTo)) return;
-      aboutCache.set(slug, a);
-      if (live) setAbout(a);
-    }).catch(() => { /* the general tips still show */ });
-    return () => { live = false; };
-  }, [slug]);
-  return about ?? aboutCache.get(slug) ?? null;
-}
-
-export function GamePlayer({ game, children, embedded = false, onExit }: { game: Game; children: React.ReactNode; embedded?: boolean; onExit?: () => void }) {
+export function GamePlayer({ game, children, embedded = false, onExit }: { game: PlayerGame; children: React.ReactNode; embedded?: boolean; onExit?: () => void }) {
   const router = useRouter();
   const hydrated = useHydrated();
   const settings = useSettings();
@@ -82,8 +63,7 @@ export function GamePlayer({ game, children, embedded = false, onExit }: { game:
   const [immersive, setImmersive] = useState(false);
   const [tip, setTip] = useState(0);
   // the game's how-to and controls come from its about.json (the light games list leaves the long text out)
-  const about = useGameAbout(game.slug);
-  const howTo = about?.howTo ?? NO_HOWTO;
+  const howTo = game.howTo;
   const TIPS = useMemo(() => [...howTo.map((h) => `Tip: ${h.text}`), ...TIPS_COMMON], [howTo]);
   const wake = useRef<WakeLockSentinel | null>(null);
 
@@ -239,7 +219,7 @@ export function GamePlayer({ game, children, embedded = false, onExit }: { game:
     if (document.fullscreenElement || d.webkitFullscreenElement) void (document.exitFullscreen?.() ?? d.webkitExitFullscreen?.());
     audio.stopMusic(0.2);
     if (embedded) { onExit?.(); return; }
-    if (window.history.length > 1) router.back(); else router.push(`/games/${game.slug}`);
+    if (window.history.length > 1) router.back(); else window.location.assign(gameHref(game));
   };
 
   const iconBtn = "grid size-11 place-items-center rounded-2xl bg-ink/45 text-text ring-1 ring-white/15 backdrop-blur-md transition hover:bg-ink/65 active:scale-90";

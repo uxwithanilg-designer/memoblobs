@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Game } from "@/lib/game-index";
+import type { GameCard } from "@/lib/game-index";
 import { GameTile } from "@/components/ui/GameTile";
+import { PAGE_SIZE } from "@/lib/catalog";
+import { listOf, useCatalog, type ListName } from "@/lib/catalog-data";
 
 export function RowTitle({ title, href, icon }: { title: string; href?: string; icon?: React.ReactNode }) {
   return (
@@ -20,7 +22,7 @@ export function RowTitle({ title, href, icon }: { title: string; href?: string; 
   );
 }
 
-export function GameRow({ title, games, href, icon, priority = false, variant = "card" }: { title: string; games: Game[]; href?: string; icon?: React.ReactNode; priority?: boolean; variant?: "card" | "wide" }) {
+export function GameRow({ title, games, href, icon, priority = false, variant = "card" }: { title: string; games: GameCard[]; href?: string; icon?: React.ReactNode; priority?: boolean; variant?: "card" | "wide" }) {
   const box = useRef<HTMLDivElement>(null);
   const [edge, setEdge] = useState({ l: false, r: true });
   useEffect(() => {
@@ -54,10 +56,38 @@ export function GameRow({ title, games, href, icon, priority = false, variant = 
 }
 
 /** a plain responsive grid of tiles (category pages, search results) */
-export function GameGrid({ games, priority = false }: { games: Game[]; priority?: boolean }) {
+export function GameGrid({ games, priority = false }: { games: GameCard[]; priority?: boolean }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
       {games.map((g, i) => <GameTile key={g.slug} g={g} priority={priority && i < 6} />)}
     </div>
+  );
+}
+
+/**
+ * A list page's grid (/games, /new, /top, /c/<category>): the first page of games comes with the page (built on the
+ * server, so search engines see it); "Show more" loads the browser's games list and adds a page at a time.
+ */
+export function GameGridMore({ games, total, list, priority = false }: { games: GameCard[]; total: number; list: ListName; priority?: boolean }) {
+  const [shown, setShown] = useState(games.length);
+  const [want, setWant] = useState(false);
+  const catalog = useCatalog(want);
+  const all = catalog ? listOf(catalog, list) : null;
+  const visible = all && shown > games.length ? all.slice(0, shown) : games;
+  const left = Math.max(0, (all?.length ?? total) - visible.length);
+  return (
+    <>
+      <GameGrid games={visible} priority={priority} />
+      {left > 0 && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => { setWant(true); setShown((n) => Math.max(n, visible.length) + PAGE_SIZE); }}
+            className="rounded-full bg-white/[0.08] px-6 py-3 font-bold text-white ring-1 ring-white/[0.08] transition hover:bg-white/[0.14] active:scale-95"
+          >
+            {want && !catalog ? "Loading…" : `Show more games`} <span className="text-faint">({left})</span>
+          </button>
+        </div>
+      )}
+    </>
   );
 }

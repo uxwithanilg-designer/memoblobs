@@ -3,8 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Box, ChevronRight, Sparkles, Flame } from "lucide-react";
 import { CATEGORY_ICON } from "@/components/layout/nav";
-import { CATEGORIES, type Game } from "@/lib/game-index";
-import { GAMES_3D, MOODS, NEW_GAMES, categoryHref, inCategory, thumbOf } from "@/lib/catalog";
+import { CATEGORIES, type GameCard as Game } from "@/lib/game-index";
+import { MOODS, categoryHref, thumbOf } from "@/lib/catalog";
+import { GAMES_3D, NEW_GAMES, inCategory } from "@/lib/lists";
 
 /** three real game covers fanned like a hand of cards; they spread on hover */
 function Fan({ games }: { games: Game[] }) {

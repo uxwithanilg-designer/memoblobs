@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Box } from "lucide-react";
-import { GameGrid, GameRow } from "@/components/home/GameRow";
+import { GameGridMore, GameRow } from "@/components/home/GameRow";
 import { ListHeader } from "@/components/ui/ListHeader";
 import { CATEGORY_ICON } from "@/components/layout/nav";
-import { CATEGORIES, type Category } from "@/lib/games";
-import { ALL_PLAYABLE, GAMES_3D, inCategory } from "@/lib/catalog";
+import { CATEGORIES, type Category } from "@/lib/categories";
+import { ALL_PLAYABLE, GAMES_3D, inCategory } from "@/lib/lists";
+import { PAGE_SIZE, ROW_SIZE } from "@/lib/catalog";
 
 const BLURB: Record<string, string> = {
   "3d": "Big 3D runners, racers and adventures that play right in your browser.",
@@ -35,8 +36,8 @@ async function List({ params }: { params: PageProps<"/c/[category]">["params"] }
   return (
     <>
       <ListHeader title={`${c.label} games`} icon={<Icon className="size-6" />} color={meta.color} count={games.length} blurb={c.blurb} />
-      <GameGrid games={games} priority />
-      <div className="mt-10"><GameRow title="More games you might like" href="/top" games={ALL_PLAYABLE.filter((g) => !games.includes(g)).slice(0, 16)} /></div>
+      <GameGridMore games={games.slice(0, PAGE_SIZE)} total={games.length} list={category === "3d" ? "3d" : `c:${category}`} priority />
+      <div className="mt-10"><GameRow title="More games you might like" href="/top" games={ALL_PLAYABLE.filter((g) => !games.includes(g)).slice(0, Math.min(16, ROW_SIZE))} /></div>
     </>
   );
 }

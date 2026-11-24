@@ -6,13 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Info, Play } from "lucide-react";
-import { CATEGORIES, type Game } from "@/lib/game-index";
-import { gameHref, is3D, isNew, playHref, thumbOf } from "@/lib/catalog";
+import type { GameCard } from "@/lib/game-index";
+import { categoryLabel as label, gameHref, is3D, isNew, playHref, thumbOf } from "@/lib/catalog";
 
 const SLIDE_MS = 6500;
-const label = (g: Game) => CATEGORIES.find((c) => c.id === g.category)?.label ?? "Game";
 
-export function Spotlight({ games }: { games: Game[] }) {
+export function Spotlight({ games }: { games: GameCard[] }) {
   const [i, setI] = useState(0);
   const [hold, setHold] = useState(false);
   const [tick, setTick] = useState(0);
@@ -46,7 +45,7 @@ export function Spotlight({ games }: { games: Game[] }) {
           <p key={`p${i}`} className="max-w-md text-[15px] leading-snug text-white/80 sm:text-base animate-[rise_0.6s_ease-out_both]">{g.tagline}</p>
           <div className="mt-1 flex flex-wrap gap-2.5">
             <Link href={playHref(g)} className="flex items-center gap-2 rounded-full bg-sun px-6 py-3 font-bold text-ink shadow-[0_10px_26px_-8px_rgb(255_210_90/0.8)] transition hover:brightness-105 active:scale-95"><Play className="size-5 fill-current" /> Play now</Link>
-            <Link href={gameHref(g)} className="flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-3 font-bold text-white ring-1 ring-white/15 transition hover:bg-white/15"><Info className="size-4" /> Details</Link>
+            <a href={gameHref(g)} className="flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-3 font-bold text-white ring-1 ring-white/15 transition hover:bg-white/15"><Info className="size-4" /> Details</a>
           </div>
           {/* progress dots */}
           <div className="mt-2 flex items-center gap-1.5" role="tablist">
@@ -65,7 +64,7 @@ export function Spotlight({ games }: { games: Game[] }) {
           ))}
           <span className="pointer-events-none absolute inset-y-0 left-0 hidden w-24 bg-gradient-to-r from-[#160c33]/70 to-transparent md:block" />
           <span className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#160c33]/80 to-transparent md:hidden" />
-          <Link href={gameHref(g)} aria-label={g.title} className="absolute inset-0" />
+          <a href={gameHref(g)} aria-label={g.title} className="absolute inset-0" />
         </div>
       </div>
       {/* picker strip (desktop) */}

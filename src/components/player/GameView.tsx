@@ -2,12 +2,13 @@
 // Picks the right engine for a game. Used by the full-screen /play?g=<slug> page and by the player on the game page.
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { getGame } from "@/lib/game-index";
+import type { Game, GameCard } from "@/lib/game-index";
 import type { Difficulty } from "@/lib/store";
 import { ARCADE_MODULES } from "@/arcade/registry";
 import { audio } from "@/lib/audio";
 import { soundFamily } from "@/lib/catalog";
 import { thinNetwork } from "@/lib/preload";
+import { loadGame } from "@/lib/catalog-data";
 import type { GameCtor } from "@/arcade/ArcadeHost";
 import type { CastId } from "@/arcade/engine";
 
@@ -81,18 +82,20 @@ const warmed = new Set<string>();
  * Called on a game's page while the player looks at it: the game's code and its menu music + sounds download in
  * the background, so pressing Play opens the game almost at once. Skipped on Save-Data / 2G connections.
  */
-export function warmGame(slug: string) {
-  const g = getGame(slug);
-  if (!g || warmed.has(slug) || thinNetwork()) return;
+export function warmGame(g: GameCard) {
+  const slug = g.slug;
+  if (warmed.has(slug) || thinNetwork()) return;
   warmed.add(slug);
   const engine = slug === "momo-shuffle" ? "momo" : g.engine ?? "arcade";
   void ENGINE_CODE[engine]?.().catch(() => {});
   if (engine === "arcade") void ARCADE_MODULES[slug]?.().catch(() => {});
+  // the player's own data for this game (/games/<slug>/game.json), so the player opens without waiting for it
+  void loadGame(slug).catch(() => {});
   audio.warmFamily(soundFamily(g), "menu");
 }
 
-function Arcade({ slug }: { slug: string }) {
-  const g = getGame(slug)!;
+function Arcade({ g }: { g: Game }) {
+  const slug = g.slug;
   const [Ctor, setCtor] = useState<GameCtor | null>(null);
   useEffect(() => {
     let alive = true;
@@ -102,8 +105,8 @@ function Arcade({ slug }: { slug: string }) {
   return Ctor ? <ArcadeHost game={g} Ctor={Ctor} host={(g.host ?? "momo") as CastId} /> : null;
 }
 
-export function GameView({ slug, mode }: { slug: string; mode?: Difficulty }) {
-  const g = getGame(slug)!;
+export function GameView({ game: g, mode }: { game: Game; mode?: Difficulty }) {
+  const slug = g.slug;
   if (slug === "momo-shuffle") return <MomoShuffle initialMode={mode} />;
   switch (g.engine) {
     case "racing": return <RacingApp slug={slug} title={g.title} />;
@@ -134,6 +137,6 @@ export function GameView({ slug, mode }: { slug: string; mode?: Difficulty }) {
     case "jade": return <JadeApp slug={slug} title={g.title} />;
     case "nova": return <NovaApp slug={slug} title={g.title} />;
     case "marble": return <MarbleApp slug={slug} title={g.title} />;
-    default: return <Arcade slug={slug} />;
+    default: return <Arcade g={g} />;
   }
 }

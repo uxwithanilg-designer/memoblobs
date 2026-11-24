@@ -690,13 +690,20 @@ class AudioEngine {
     for (const n of names) if (!this.buffers.has("music:" + n)) void preloader.want(BASE + musicFile(n), NEXT);
   }
 
-  private index: Promise<Record<string, number>> | null = null;
-  /** every sound file and its size (public/audio/index.json, written by scripts/r2/asset-index.mjs) */
-  private files() {
-    this.index ??= fetchAsset(BASE + "index.json", NEXT)
-      .then((b) => (b ? (JSON.parse(new TextDecoder().decode(b)).audio as Record<string, number>) : {}))
-      .catch(() => ({}));
-    return this.index;
+  private families = new Map<string, Promise<Record<string, number>>>();
+  /**
+   * One sound family's files and their sizes (public/audio/families/<family>.json, written by
+   * scripts/r2/asset-index.mjs): a small list per family, so it doesn't grow with every game on the site.
+   */
+  private files(family: string) {
+    let p = this.families.get(family);
+    if (!p) {
+      p = fetchAsset(`${BASE}families/${family}.json`, NEXT)
+        .then((b) => (b ? (JSON.parse(new TextDecoder().decode(b)) as Record<string, number>) : {}))
+        .catch(() => ({}));
+      this.families.set(family, p);
+    }
+    return p;
   }
 
   /**
@@ -708,7 +715,7 @@ class AudioEngine {
   warmFamily(family: string, mode: "all" | "menu" | "calm" = "all") {
     const calmOnly = mode !== "all";
     if (typeof window === "undefined" || !family) return;
-    void this.files().then((all) => {
+    void this.files(family).then((all) => {
       const re = new RegExp(`^arcade/(sfx|voice|music)_${family}_`);
       const mine = Object.keys(all).filter((f) => re.test(f)).sort((a, b) => all[a] - all[b]);
       for (const f of mine) {

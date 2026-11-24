@@ -4,18 +4,21 @@ import Link from "next/link";
 import { Bookmark, Clock } from "lucide-react";
 import { GameGrid } from "@/components/home/GameRow";
 import { ListHeader } from "@/components/ui/ListHeader";
-import { getGame, type Game } from "@/lib/game-index";
-import { TOP_PICKS } from "@/lib/catalog";
+import type { GameCard } from "@/lib/game-index";
+import { cardsOf, useCatalog } from "@/lib/catalog-data";
 import { useLibrary } from "@/lib/library";
 import { useHydrated } from "@/lib/store";
 
-const pick = (slugs: string[]) => slugs.map(getGame).filter((g): g is Game => !!g && g.status === "live");
-
-export function LibraryList({ kind }: { kind: "recent" | "saved" }) {
-  const ok = useHydrated();
+/** `topPicks`: shown when the list is empty (passed in by the server-built page) */
+export function LibraryList({ kind, topPicks }: { kind: "recent" | "saved"; topPicks: GameCard[] }) {
+  const hydrated = useHydrated();
   const recent = useLibrary((s) => s.recent);
   const saved = useLibrary((s) => s.saved);
-  const games = ok ? pick(kind === "recent" ? recent.map((r) => r.slug) : saved) : [];
+  const slugs = kind === "recent" ? recent.map((r) => r.slug) : saved;
+  // the games list is fetched only when this device has games to show
+  const catalog = useCatalog(hydrated && slugs.length > 0);
+  const ok = hydrated && (slugs.length === 0 || catalog !== null);
+  const games = ok && catalog ? cardsOf(catalog, slugs) : [];
   const head = kind === "recent"
     ? <ListHeader title="Recently played" icon={<Clock className="size-6" />} color="#B9AEDB" count={ok ? games.length : undefined} blurb="Jump back in where you left off." />
     : <ListHeader title="Saved games" icon={<Bookmark className="size-6" />} color="#FF6F91" count={ok ? games.length : undefined} blurb="Tap the bookmark under any game to save it here." />;
@@ -38,7 +41,7 @@ export function LibraryList({ kind }: { kind: "recent" | "saved" }) {
       {ok && games.length === 0 && (
         <div className="mt-8">
           <h2 className="mb-2.5 text-lg font-bold text-white">Top picks</h2>
-          <GameGrid games={TOP_PICKS} />
+          <GameGrid games={topPicks} />
         </div>
       )}
     </>

@@ -19,28 +19,35 @@ exactly. If a request would break one of these rules, stop and ask the owner ins
 - **Game files live in the R2 bucket `momoblobs-assets`**, not on the site (config: `scripts/r2/config.mjs`,
   `ASSET_BASE`). The build removes them from `out/`.
 - The site's code (`/_next/static`) stays on the Worker on purpose: the games' web workers need same-origin scripts.
-- **The games list has one source and a light copy.** A game is written once, in `src/lib/games.ts` (arcade games in
-  `src/lib/arcade-catalog.ts`). `scripts/gen-game-index.mjs` makes two things from it:
-  - `src/lib/game-index.ts` — every game without its long text (description, how-to, controls, FAQ, skills).
-    Generated: never edit it, but do commit it.
-  - `public/games/<slug>/about.json` — the game's how-to and controls, which the player fetches for that one game.
-    It goes to R2 with the game's art; git ignores it.
+- **The games list: one source, and data (not code) in the browser.** A game is written once, in `src/lib/games.ts`
+  (arcade games in `src/lib/arcade-catalog.ts`).
+  - Server-built pages (home, lists, categories, a game's own page, the sitemap, layout metadata) take their lists from
+    `src/lib/lists.ts`, as small game cards. Rows show at most `ROW_SIZE` games and list pages `PAGE_SIZE` at a time
+    (`src/lib/catalog.ts`), with "See all" / "Show more", so no page grows with every game.
+  - Browser code never imports `@/lib/games` or `@/lib/lists` (that would put every game into the code every visitor
+    downloads). It uses `src/lib/catalog-data.ts`: `loadCatalog()` / `useCatalog()` for the whole list
+    (`/data/catalog.json`, fetched only when needed: search, "Show more", recently played, a random game) and
+    `loadGame(slug)` for one game (`/games/<slug>/game.json` on R2: the player's data, how-to and controls included).
+  - `scripts/gen-game-index.mjs` writes those two files and `src/lib/game-index.ts` (types, categories, aliases, the
+    catalog's version). It runs by itself in `npm run dev`, `npm run build:static` and `npm run upload:r2` (or
+    `npm run gen:index`). Commit `src/lib/game-index.ts`; git ignores the JSON files.
 
-  It runs by itself in `npm run dev`, `npm run build:static` and `npm run upload:r2` (or `npm run gen:index`).
-  **Browser code imports `@/lib/game-index`**: every `"use client"` file, the shell, search, home rows, lists and the
-  player. Only server-built pages (a game's own page, category pages, the sitemap, layout metadata) import
-  `@/lib/games`. Importing `@/lib/games` from browser code would send every game's text to every visitor.
+## 2. Hosting budget: one site file per game (hard rule)
 
-## 2. Hosting budget: 6–9 site files per game (hard rule)
-
-- Each game may use only 6–9 files on the site. Today every game uses 7: its page `/games/<slug>` (`.html` + `.txt`)
-  and the 5 data files Next writes for it.
+- Each game uses exactly one file on the site: its page, `games/<slug>.html`. With ~600 files for the site itself
+  that leaves room for about 19,000 games under the free plan's 20,000 files.
+- Next writes 6 data files per page for in-app navigation; the build leaves them out for game pages. So **link to a
+  game's page with a plain `<a href={gameHref(g)}>`** (or `goToGame(g)`), never `next/link` or `router.push`.
 - All games share **one player page: `/play?g=<slug>`** (plus `&mode=easy|medium|hard`, `&embed=1` inside a game
   page's frame). Build every player link with `playHref(game, extra)` from `src/lib/catalog.ts`.
-- Never create `/play/<slug>`, `/games/<slug>/<anything>` or any other page per game. Extra content for a game goes
-  inside its existing page or inside the game.
-- `npm run build:static` runs `scripts/check-game-budget.mjs`. It fails when a game is outside 6–9 site files or a game
-  file would ship with the site. Fix your change; never skip the check or change its limits (that's the owner's call).
+- Never create `/play/<slug>`, `/games/<slug>/<anything>` or any other page or site file per game. Extra content for a
+  game goes inside its existing page or inside the game; extra data goes to R2.
+- `npm run build:static` runs `scripts/check-game-budget.mjs`. It fails when a game has more than its one site file, a
+  game file would ship with the site, or the code every page loads (home, a game page, the player) carries the games
+  list or three.js. Fix your change; never skip the check or change its limits (that's the owner's call).
+- Each game's code is already its own file: engines and arcade games are dynamic imports (`GameView.tsx`,
+  `src/arcade/registry.ts`), loaded only when that game opens, and the Turbopack build cache recompiles only what
+  changed. Keep it that way: never import a game's code statically from shared code.
 
 ## 3. Game files: art, sounds, music, fonts, data
 
@@ -58,11 +65,17 @@ exactly. If a request would break one of these rules, stop and ask the owner ins
     loaders. Set `crossOrigin = "anonymous"` on images whose pixels you read.
   - Full URLs for metadata, JSON-LD, sitemap and link previews use `absAsset(path)` from `src/lib/site.ts`.
   - Never `import` image or audio files into JavaScript, and never hard-code the R2 URL.
-- `npm run upload:r2` uploads new and changed files (URLs are versioned, browsers keep them for a year). The site has
-  no copy of game files, so changed files must be uploaded before the deploy.
-  - It knows what's already there from the bucket's own list, `_meta/uploaded.json` (every file's fingerprint), so
-    any machine — this PC, another PC, GitHub Actions — sends only what changed. `.r2-uploaded.json` is the local
-    copy it falls back on when the bucket's list can't be read; `-- --all` sends everything again.
+- `npm run upload:r2` uploads new and changed files. The site has no copy of game files, so changed files must be
+  uploaded before the deploy (a push to `main` does it for you).
+  - It knows what's already there from the bucket's own list, `_meta/uploaded.json` (every file's git blob hash and
+    size), so any machine — this PC, another PC, GitHub Actions — sends only what changed. GitHub Actions doesn't
+    even download the unchanged game files: their fingerprints come from git. `.r2-uploaded.json` is the local copy it
+    falls back on when the bucket's list can't be read; `-- --all` sends everything again.
+  - URLs carry a version (`?v=…`, `src/lib/asset-bundle.ts`): files are grouped into bundles (each game folder, sound
+    family, brand and font folder) and bundles into 256 buckets, each with its own version. Browsers keep files for a
+    year, a change in one game re-versions only its own buckets (not every game's files), and the version table in
+    the site's code stays ~1.5 KB however many games there are.
+  - Each sound family's file list is `audio/families/<family>.json` (generated; the audio code prefetches from it).
 - Audio files and names:
   - Files: `public/audio/arcade/sfx_<family>_<name>.mp3`, `music_<family>_<name>.mp3`,
     `voice_<character>_<mood>.mp3`.
@@ -132,6 +145,7 @@ game uses it, and `npm run check:perf` (part of `npm run build:static`) fails th
      - an engine folder `src/<engine>/`;
      - an entry in `GAMES` in `src/lib/games.ts` (add the engine to `Game["engine"]`), then `npm run gen:index`
        (or `npm run dev`) and commit the regenerated `src/lib/game-index.ts`;
+     - engines get the game as props (`slug`, `title`); never look a game up from the list in browser code;
      - in `src/components/player/GameView.tsx`: a `case`, a `dynamic()` import and an `ENGINE_CODE` entry;
      - in `src/lib/catalog.ts`: entries in `ENGINES_3D` and `SOUND_FAMILY`.
 2. **Files:** art goes in `public/games/<slug>/` (thumbnails from `scripts/build_arcade_thumbs.py`,

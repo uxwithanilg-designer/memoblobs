@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { CATEGORIES, GAMES } from "@/lib/games";
-import { inCategory, is3D, posterOf } from "@/lib/catalog";
+import { is3D, posterOf } from "@/lib/catalog";
+import { inCategory } from "@/lib/lists";
 import { seoOf } from "@/lib/seo";
 import { abs, absAsset } from "@/lib/site";
 

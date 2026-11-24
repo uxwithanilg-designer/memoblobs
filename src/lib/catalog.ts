@@ -1,48 +1,45 @@
-// Lists the portal pages are built from: featured order, new games, 3D games, per-category lists and links.
-import { CATEGORIES, GAMES, LIVE_GAMES, type Category, type Game } from "./game-index";
+// Links and small helpers for games — no games list in here, so any page or component can use them without pulling
+// every game into the browser's code. The lists (top picks, new games, categories) are in src/lib/lists.ts (server
+// pages) and in /data/catalog.json (browser code, see src/lib/catalog-data.ts).
+import { CATEGORIES } from "./categories";
 
-/** hand-picked order for "Top picks" and the default sort (best and biggest first) */
-const PICKS = [
-  "orbi-gp", "rollo-rush", "momo-jelly-jam", "kiko-jungle-quest", "momo-escape", "momo-dash", "nitro-rush", "blob-brigade", "sky-roll", "momo-boing", "momo-shuffle", "drift-kings", "moto-rush",
-  "highway-heat", "whack-a-gloop", "fish-watch", "turbo-dash", "maze-munch", "spot-the-sneak", "memory-bridge", "count-fast",
-];
-const rank = (g: Game) => { const i = PICKS.indexOf(g.slug); return i < 0 ? PICKS.length + GAMES.indexOf(g) : i; };
+/** what the helpers need from a game: a game card, the player's game or the full game all fit */
+type G = { slug: string; hero?: string; engine?: string; category?: string; isNew?: boolean };
 
-export const ALL_PLAYABLE = [...LIVE_GAMES].sort((a, b) => rank(a) - rank(b));
-export const TOP_PICKS = ALL_PLAYABLE.slice(0, 12);
-export const NEW_GAMES = [...LIVE_GAMES].sort((a, b) => (b.released ?? "").localeCompare(a.released ?? "") || rank(a) - rank(b));
+/** a page of games on list pages (/games, /new, /top, /c/<category>); "Show more" loads the next one */
+export const PAGE_SIZE = 60;
+/** at most this many games in a sideways row (home page, game page); "See all" opens the full list */
+export const ROW_SIZE = 24;
+
 const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape", "clayland", "slurp", "vine", "jelly", "rush", "orbi"]);
-export const is3D = (g: Game) => g.engine !== undefined && ENGINES_3D.has(g.engine);
+export const is3D = (g: Pick<G, "engine">) => g.engine !== undefined && ENGINES_3D.has(g.engine);
 /** the sound files a game's engine uses (audio/arcade/{sfx,music,voice}_<family>_*.mp3), for background loading */
-const SOUND_FAMILY: Partial<Record<NonNullable<Game["engine"]>, string>> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine", sudoku: "sudoku", trail: "trail", quilt: "quilt", glow: "glow", crown: "crown", tide: "tide", vial: "vial", treat: "treat", sprout: "sprout", relic: "relic", breeze: "breeze", picnic: "picnic", jade: "jade", nova: "nova", marble: "marble" };
-export const soundFamily = (g: Game) => (g.engine ? SOUND_FAMILY[g.engine] ?? "" : "");
-export const GAMES_3D = ALL_PLAYABLE.filter(is3D);
-/** NEW = everything from the latest release day */
-const NEW_SLUGS = new Set(NEW_GAMES.filter((g) => g.released === NEW_GAMES[0]?.released).map((g) => g.slug));
-export const isNew = (g: Game) => NEW_SLUGS.has(g.slug);
+const SOUND_FAMILY: Record<string, string> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine", sudoku: "sudoku", trail: "trail", quilt: "quilt", glow: "glow", crown: "crown", tide: "tide", vial: "vial", treat: "treat", sprout: "sprout", relic: "relic", breeze: "breeze", picnic: "picnic", jade: "jade", nova: "nova", marble: "marble" };
+export const soundFamily = (g: Pick<G, "engine">) => (g.engine ? SOUND_FAMILY[g.engine] ?? "" : "");
+/** NEW badge: the game came out on the latest release day (worked out when the lists are made) */
+export const isNew = (g: Pick<G, "isNew">) => g.isNew === true;
 
-export const inCategory = (c: Category) => ALL_PLAYABLE.filter((g) => g.category === c);
 export const categoryOf = (id: string) => CATEGORIES.find((c) => c.id === id);
 /** the label of the one category a game sits in ("Runner", "Puzzle"…) */
-export const categoryLabel = (g: Game) => categoryOf(g.category)?.label ?? "Game";
+export const categoryLabel = (g: { category: string }) => categoryOf(g.category)?.label ?? "Game";
 export const categoryHref = (id: string) => `/c/${id}`;
-export const gameHref = (g: Game | string) => `/games/${typeof g === "string" ? g : g.slug}`;
+/**
+ * A game's own page. Game pages are plain pages (one file each, no data files for in-app navigation), so link to them
+ * with a normal <a href> (or `goToGame`), never next/link or router.push — those would ask for data files that don't
+ * exist.
+ */
+export const gameHref = (g: Pick<G, "slug"> | string) => `/games/${typeof g === "string" ? g : g.slug}`;
+/** open a game's page (a normal page load, see gameHref) */
+export const goToGame = (g: Pick<G, "slug"> | string) => { window.location.assign(gameHref(g)); };
 /** the shared player page: one page for every game, the game in the address (/play?g=<slug>&mode=…) */
-export const playHref = (g: Game | string, extra: Record<string, string> = {}) =>
+export const playHref = (g: Pick<G, "slug"> | string, extra: Record<string, string> = {}) =>
   `/play?${new URLSearchParams({ g: typeof g === "string" ? g : g.slug, ...extra })}`;
 /** the 16:9 thumbnail every card uses */
-export const thumbOf = (g: Game) => g.hero;
+export const thumbOf = (g: { hero: string }) => g.hero;
 /** the game's 2:3 poster (its own art style; shown on the game page) */
-export const posterOf = (g: Game) => `/games/${g.slug}/poster.webp`;
+export const posterOf = (g: Pick<G, "slug">) => `/games/${g.slug}/poster.webp`;
 /** the game's 3D title logo on a transparent background */
-export const titleArtOf = (g: Game) => `/games/${g.slug}/title.webp`;
-
-/** "Play next" picks for a game: same category first, then the top picks */
-export function similarTo(g: Game, n = 12) {
-  const same = ALL_PLAYABLE.filter((x) => x.slug !== g.slug && x.category === g.category);
-  const rest = ALL_PLAYABLE.filter((x) => x.slug !== g.slug && !same.includes(x));
-  return [...same, ...rest].slice(0, n);
-}
+export const titleArtOf = (g: Pick<G, "slug">) => `/games/${g.slug}/title.webp`;
 
 /** the "mood" tiles at the top of the home page */
 export const MOODS: { id: string; label: string; href: string; img: string; from: string; to: string; text: string }[] = [

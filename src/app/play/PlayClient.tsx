@@ -1,21 +1,23 @@
 "use client";
 // The one player page every game shares: /play?g=<slug> (plus &mode=easy|medium|hard, &embed=1 inside a game page's
-// frame). One page for all games keeps each game to its own page on the site (see AGENTS.md, "6–9 files per game").
+// frame). One page for all games keeps the site to one file per game (see AGENTS.md, "Hosting budget"). The game's
+// details come from /games/<slug>/game.json (R2), not from the site's code, so this page doesn't grow with every game.
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GamePlayer } from "@/components/player/GamePlayer";
 import { GameView } from "@/components/player/GameView";
-import { SLUG_ALIASES, getGame } from "@/lib/game-index";
+import { SLUG_ALIASES, type PlayerGame } from "@/lib/game-index";
+import { loadGame } from "@/lib/catalog-data";
 import type { Difficulty } from "@/lib/store";
 import { useLibrary } from "@/lib/library";
 import { track } from "@/lib/analytics";
 
+type Loaded = { slug: string; game: PlayerGame | null; failed?: boolean };
+
 export function PlayClient() {
   const sp = useSearchParams();
   const slug = sp.get("g") ?? "";
-  const g = getGame(slug);
-  const live = g?.status === "live";
   const m = sp.get("mode");
   const mode = m === "easy" || m === "medium" || m === "hard" ? (m as Difficulty) : undefined;
   const embed = sp.get("embed") === "1";
@@ -27,6 +29,23 @@ export function PlayClient() {
     const q = new URLSearchParams(sp.toString()); q.set("g", alias);
     router.replace(`/play?${q.toString()}`);
   }, [alias, sp, router]);
+
+  // the game's own data (usually already fetched by the game page while the player looked at it)
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    if (alias) return;
+    let live = true;
+    loadGame(slug).then(
+      (game) => { if (live) setLoaded({ slug, game }); },
+      () => { if (live) setLoaded({ slug, game: null, failed: true }); },
+    );
+    return () => { live = false; };
+  }, [slug, alias, attempt]);
+  const current = loaded?.slug === slug ? loaded : null;
+  const g = current?.game ?? null;
+  const live = g?.status === "live";
+
   useEffect(() => {
     if (!live || !g) return;
     useLibrary.getState().touch(slug);
@@ -39,7 +58,18 @@ export function PlayClient() {
     return () => clearTimeout(t);
   }, [live, g, slug, embed]);
 
-  if (alias) return <div className="fixed inset-0 bg-night" />;
+  if (alias || !current) return <div className="fixed inset-0 bg-night" />;
+  if (current.failed) {
+    return (
+      <div className="fixed inset-0 grid place-items-center bg-night p-6 text-center">
+        <div>
+          <p className="font-display text-3xl">Couldn&apos;t load the game</p>
+          <p className="mt-2 text-muted">Check your connection and try again.</p>
+          <button onClick={() => { setLoaded(null); setAttempt((n) => n + 1); }} className="btn-clay mt-6 inline-flex">Try again</button>
+        </div>
+      </div>
+    );
+  }
   if (!g || !live) {
     return (
       <div className="fixed inset-0 grid place-items-center bg-night p-6 text-center">
@@ -55,7 +85,7 @@ export function PlayClient() {
   const exit = () => window.parent.postMessage({ type: "momoblobs:exit", slug }, window.location.origin);
   return (
     <GamePlayer key={slug} game={g} embedded={embed} onExit={exit}>
-      <GameView slug={slug} mode={mode} />
+      <GameView game={g} mode={mode} />
     </GamePlayer>
   );
 }

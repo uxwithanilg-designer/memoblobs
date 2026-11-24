@@ -3,7 +3,7 @@
 // rail on desktop, a slide-in drawer and an app-style bottom tab bar on phones.
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Bookmark, Dices, House, LayoutGrid, Menu, Search, UserRound, X } from "lucide-react";
@@ -13,7 +13,8 @@ import { CoinPill } from "@/components/brand/CoinPill";
 import { SearchDialog } from "@/components/layout/SearchDialog";
 import { CATEGORY_ICON, FOOTER_LINKS, NAV_MAIN, NAV_ME, type NavItem } from "@/components/layout/nav";
 import { CATEGORIES } from "@/lib/game-index";
-import { ALL_PLAYABLE, categoryHref } from "@/lib/catalog";
+import { categoryHref, goToGame } from "@/lib/catalog";
+import { loadCatalog } from "@/lib/catalog-data";
 import { AVATARS, useHydrated, useProfile } from "@/lib/store";
 import { SITE } from "@/lib/site";
 import { audio } from "@/lib/audio";
@@ -88,7 +89,6 @@ const TABS = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const router = useRouter();
   const sb = useSyncExternalStore(sbSub, sbGet, () => "auto" as SbState);
   const [drawer, setDrawer] = useState(false);
   const [search, setSearch] = useState(false);
@@ -121,10 +121,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => { document.documentElement.style.overflow = ""; };
   }, [drawer]);
 
+  // a random game: the games list loads on the first press (it isn't part of the site's code)
   const random = useCallback(() => {
-    const g = ALL_PLAYABLE[Math.floor(Math.random() * ALL_PLAYABLE.length)];
-    router.push(`/games/${g.slug}`);
-  }, [router]);
+    loadCatalog().then(({ games }) => { if (games.length) goToGame(games[Math.floor(Math.random() * games.length)]); }).catch(() => {});
+  }, []);
 
   const iconBtn = "grid size-10 place-items-center rounded-full bg-white/[0.07] text-white/85 transition hover:bg-white/[0.13] hover:text-white active:scale-95";
 

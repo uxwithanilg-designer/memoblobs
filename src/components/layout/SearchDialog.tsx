@@ -5,10 +5,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CornerDownLeft, Search, X } from "lucide-react";
 import { CATEGORIES } from "@/lib/game-index";
-import { ALL_PLAYABLE, categoryHref, gameHref, thumbOf } from "@/lib/catalog";
+import { categoryHref, gameHref, thumbOf } from "@/lib/catalog";
+import { useCatalog } from "@/lib/catalog-data";
 import { ALL_PAGES } from "@/components/layout/nav";
 
-type Item = { href: string; title: string; sub: string; img?: string; emoji?: string; accent?: string; thumb?: boolean };
+type Item = { href: string; title: string; sub: string; img?: string; emoji?: string; accent?: string; thumb?: boolean; game?: boolean };
 
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
@@ -16,13 +17,16 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   const [sel, setSel] = useState(0);
   const input = useRef<HTMLInputElement>(null);
 
+  // the games list loads the first time search opens (it isn't part of the site's code)
+  const catalog = useCatalog(open);
   const items = useMemo<Item[]>(() => {
-    const games: Item[] = ALL_PLAYABLE.map((g) => ({
+    const games: Item[] = (catalog?.games ?? []).map((g) => ({
       href: gameHref(g),
       title: g.title,
       sub: `${g.short} · ${CATEGORIES.find((x) => x.id === g.category)?.label ?? ""}`,
       img: thumbOf(g),
       thumb: true,
+      game: true,
     }));
     const cats: Item[] = CATEGORIES.map((c) => ({ href: categoryHref(c.id), title: `${c.label} games`, sub: c.blurb, emoji: c.emoji }));
     const pages: Item[] = ALL_PAGES.map((p) => ({ href: p.href, title: p.label, sub: p.desc, emoji: p.emoji }));
@@ -30,7 +34,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
     const s = q.trim().toLowerCase();
     if (!s) return games.slice(0, 8);
     return all.filter((i) => `${i.title} ${i.sub}`.toLowerCase().includes(s)).slice(0, 12);
-  }, [q]);
+  }, [q, catalog]);
 
   const [wasOpen, setWasOpen] = useState(open);
   if (open !== wasOpen) {
@@ -46,7 +50,8 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
     return () => { clearTimeout(t); window.removeEventListener("keydown", esc); };
   }, [open, onClose]);
 
-  const go = (i: Item) => { onClose(); router.push(i.href); };
+  // game pages are plain pages (see gameHref): a normal page load; everything else navigates in the app
+  const go = (i: Item) => { onClose(); if (i.game) window.location.assign(i.href); else router.push(i.href); };
 
   return (
     <AnimatePresence>

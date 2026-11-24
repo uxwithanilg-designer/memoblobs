@@ -1,29 +1,37 @@
-// The light games list (AGENTS.md → "Game index"). src/lib/games.ts stays the one place a game is written; this script
-// makes, from it:
-//   - src/lib/game-index.ts — every game without its long text (description, how-to, controls, FAQ, skills). Browser code
-//     (the shell, search, home, lists, the player) imports this, so the text of a thousand games never ships to every page.
-//   - public/games/<slug>/about.json — a game's how-to and controls, which the player's help and loading tips fetch for
-//     that one game (it goes to R2 with the game's other files).
-// Server-built pages (each game's own page, the sitemap) keep importing the full src/lib/games.ts.
+// The games list for the browser (AGENTS.md → "Games list"). src/lib/games.ts stays the one place a game is written;
+// this script makes, from it:
+//   - public/data/catalog.json — every live game as a small card (src/lib/game-types.ts → GameCard), in "top picks"
+//     order, plus the newest-first order. Browser code loads it only when it needs the whole list (search, "Show
+//     more", recently played, a random game), so no page carries the list in its code: the site's code stays the
+//     same size with 60 games or 6,000.
+//   - public/games/<slug>/game.json — one game for the player (the game without its long page text, plus its how-to
+//     and controls). It goes to R2 with the game's art.
+//   - src/lib/game-index.ts — the few things browser code needs to know about the list: the catalog's version, the
+//     renamed-game aliases, the categories and the types.
+// Server-built pages (each game's page, lists, the sitemap) read src/lib/games.ts through src/lib/lists.ts.
 // Runs before `npm run dev`, in `npm run build:static` and before `npm run upload:r2`; files are only rewritten when
 // they change.  usage: node scripts/gen-game-index.mjs
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
 
-const HEAVY = ["description", "howTo", "controls", "faq", "skills"];
-
-// load games.ts (and the arcade list it pulls in) by transpiling them to plain modules
+// load the lists by transpiling src/lib's plain-data modules to temporary .mjs files
+const MODULES = ["games", "arcade-catalog", "categories", "catalog", "lists", "game-types"];
 const tmp = mkdtempSync(join(tmpdir(), "game-index-"));
-for (const f of ["games", "arcade-catalog"]) {
+for (const f of MODULES) {
   const src = readFileSync(`src/lib/${f}.ts`, "utf8");
-  const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText
-    .replace(/from "\.\/(games|arcade-catalog)"/g, 'from "./$1.mjs"');
+  const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, verbatimModuleSyntax: false } }).outputText
+    .replace(/from "(?:\.\/|@\/lib\/)([\w-]+)"/g, (m, name) => {
+      if (!MODULES.includes(name)) throw new Error(`gen-game-index: src/lib/${f}.ts imports "${name}", which isn't plain data (add it to MODULES or move the import)`);
+      return `from "./${name}.mjs"`;
+    });
   writeFileSync(join(tmp, `${f}.mjs`), js);
 }
-const m = await import(pathToFileURL(join(tmp, "games.mjs")).href);
+const games = await import(pathToFileURL(join(tmp, "games.mjs")).href);
+const lists = await import(pathToFileURL(join(tmp, "lists.mjs")).href);
 rmSync(tmp, { recursive: true, force: true });
 
 const write = (path, text) => {
@@ -32,37 +40,48 @@ const write = (path, text) => {
   return true;
 };
 
-// ---- the light list
-const lite = m.GAMES.map((g) => Object.fromEntries(Object.entries(g).filter(([k]) => !HEAVY.includes(k))));
+// ---- the browser's list: cards in top-picks order + the newest-first order (as positions in that list)
+const cards = lists.ALL_PLAYABLE;
+const at = new Map(cards.map((c, i) => [c.slug, i]));
+const catalog = JSON.stringify({ games: cards, newest: lists.NEW_GAMES.map((c) => at.get(c.slug)) });
+mkdirSync("public/data", { recursive: true });
+const changedCatalog = write("public/data/catalog.json", catalog);
+const version = createHash("sha1").update(catalog).digest("hex").slice(0, 10);
+
+// ---- each game for the player
+const PAGE_ONLY = ["description", "howTo", "controls", "faq", "skills"];
+let written = 0;
+for (const g of games.GAMES) {
+  const dir = `public/games/${g.slug}`;
+  mkdirSync(dir, { recursive: true });
+  const lite = Object.fromEntries(Object.entries(g).filter(([k]) => !PAGE_ONLY.includes(k)));
+  if (lists.isNewGame(g)) lite.isNew = true;
+  if (write(`${dir}/game.json`, JSON.stringify({ ...lite, howTo: g.howTo, controls: g.controls }))) written++;
+  // the older per-game file this one replaced
+  if (existsSync(`${dir}/about.json`)) rmSync(`${dir}/about.json`);
+}
+// a game that was removed or renamed leaves its old game.json behind: take it out
+for (const d of readdirSync("public/games")) {
+  if (!games.GAMES.some((g) => g.slug === d) && existsSync(`public/games/${d}/game.json`)) rmSync(`public/games/${d}/game.json`);
+}
+
+// ---- what browser code needs to know about the list
 const index = `// GENERATED by scripts/gen-game-index.mjs from src/lib/games.ts — don't edit; edit games.ts (\`npm run dev\` and
-// \`npm run build:static\` regenerate this). The light games list for browser code: everything a card, a list, search or
-// the player needs, without the long text (${HEAVY.join(", ")}). A game's own page is built on the server from the full
-// games.ts, and the player loads a game's how-to and controls from its about.json.
-import type { Category, Game as FullGame, GameMode, GameStatus } from "./games";
+// \`npm run build:static\` regenerate this). The games list itself isn't here: browser code loads it from
+// /data/catalog.json (src/lib/catalog-data.ts) and one game from /games/<slug>/game.json, so the site's code doesn't
+// grow with every game. Server-built pages use src/lib/lists.ts.
+export { CATEGORIES, type Category } from "./categories";
+export type { GameMode, GameStatus } from "./games";
+export type { Game, GameAbout, GameCard, PlayerGame } from "./game-types";
 
-export type { Category, GameMode, GameStatus };
-/** a game, without its long text */
-export type Game = Omit<FullGame, ${HEAVY.map((k) => JSON.stringify(k)).join(" | ")}>;
-/** a game's how-to and controls (public/games/<slug>/about.json) */
-export interface GameAbout { howTo: FullGame["howTo"]; controls: FullGame["controls"] }
-
-export const CATEGORIES: { id: Category; label: string; emoji: string; blurb: string }[] = ${JSON.stringify(m.CATEGORIES, null, 1)};
-
-export const GAMES: Game[] = ${JSON.stringify(lite, null, 1)};
-
-export const getGame = (slug: string) => GAMES.find((g) => g.slug === slug);
-export const SLUG_ALIASES: Record<string, string> = ${JSON.stringify(m.SLUG_ALIASES)};
-export const LIVE_GAMES = GAMES.filter((g) => g.status === "live");
+/** renamed games: old slug → new slug, so old links (/play?g=…, /games/…) still open the game */
+export const SLUG_ALIASES: Record<string, string> = ${JSON.stringify(games.SLUG_ALIASES)};
+/** the version of /data/catalog.json (it changes whenever the list does) */
+export const CATALOG_VERSION = ${JSON.stringify(version)};
+/** how many games are live (counts shown before the list has loaded) */
+export const GAME_COUNT = ${cards.length};
 `;
 const changedIndex = write("src/lib/game-index.ts", index);
 
-// ---- each game's how-to and controls
-let about = 0;
-for (const g of m.GAMES) {
-  const dir = `public/games/${g.slug}`;
-  mkdirSync(dir, { recursive: true });
-  if (write(`${dir}/about.json`, JSON.stringify({ howTo: g.howTo, controls: g.controls }))) about++;
-}
-const full = readFileSync("src/lib/games.ts", "utf8").length + readFileSync("src/lib/arcade-catalog.ts", "utf8").length;
-console.log(`game index: ${m.GAMES.length} games, ${Math.round(index.length / 1024)} KB for the browser (the full list is ${Math.round(full / 1024)} KB)` +
-  `${changedIndex ? ", index updated" : ""}${about ? `, ${about} about.json written` : ""}`);
+console.log(`game index: ${cards.length} live games; the browser's list is ${Math.round(catalog.length / 1024)} KB, loaded only when needed` +
+  `${changedCatalog || changedIndex ? " (updated)" : ""}${written ? `, ${written} game.json written` : ""}`);

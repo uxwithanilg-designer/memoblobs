@@ -9,7 +9,7 @@ import { QrModal } from "@/components/game/QrModal";
 import { warmGame } from "@/components/player/GameView";
 import { whenIdle } from "@/lib/preload";
 import { toast } from "@/components/ui/Toaster";
-import { getGame } from "@/lib/game-index";
+import type { GameCard } from "@/lib/game-index";
 import { playHref, thumbOf } from "@/lib/catalog";
 import { useLibrary } from "@/lib/library";
 import { useHydrated, useSettings } from "@/lib/store";
@@ -20,8 +20,8 @@ const noop = () => () => {};
 /** phones and tablets play full screen on /play (touch controls, orientation lock); mice play right here */
 const touchFirst = () => window.matchMedia("(pointer: coarse)").matches;
 
-export function GameStage({ slug }: { slug: string }) {
-  const g = getGame(slug)!;
+export function GameStage({ game: g }: { game: GameCard }) {
+  const slug = g.slug;
   const router = useRouter();
   const box = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -53,9 +53,9 @@ export function GameStage({ slug }: { slug: string }) {
 
   // while the player looks at the page, the game's code and menu sounds download, so Play opens it almost at once
   useEffect(() => {
-    const t = setTimeout(() => whenIdle(() => warmGame(slug), 2000), 900);
+    const t = setTimeout(() => whenIdle(() => warmGame(g), 2000), 900);
     return () => clearTimeout(t);
-  }, [slug]);
+  }, [g]);
 
   useEffect(() => {
     const d = document as FsDoc;

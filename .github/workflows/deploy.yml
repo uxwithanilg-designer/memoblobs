@@ -24,9 +24,20 @@ jobs:
     env:
       HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
+      # The code without the game files (sounds, art, fonts: hundreds of MB now, gigabytes with 1,000+ games).
+      # scripts/r2/asset-index.mjs reads their fingerprints from git and their sizes from the bucket's list, and only
+      # new or changed ones are downloaded, to upload them to R2.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 50
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/public/audio/
+            !/public/games/
+            !/public/brand/
+            !/public/fonts/
 
       - uses: actions/setup-node@v7
         with:

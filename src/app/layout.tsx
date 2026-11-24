@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import { Fredoka } from "next/font/google";
 import "./globals.css";
 import { SITE, abs, absAsset } from "@/lib/site";
-import { LIVE_GAMES } from "@/lib/games";
+import { TOP_PICKS } from "@/lib/lists";
 import { Providers } from "@/components/Providers";
 import { JsonLd } from "@/components/JsonLd";
 import { preconnect } from "react-dom";
@@ -85,7 +85,8 @@ const orgLd = {
       "@type": "ItemList",
       "@id": abs("/#games"),
       name: "MOMOBLOBS games",
-      itemListElement: LIVE_GAMES.map((g, i) => ({ "@type": "ListItem", position: i + 1, url: abs(`/games/${g.slug}`), name: g.title })),
+      // the top picks only: this goes on every page, so it must not grow with every game
+      itemListElement: TOP_PICKS.map((g, i) => ({ "@type": "ListItem", position: i + 1, url: abs(`/games/${g.slug}`), name: g.title })),
     },
   ],
 };
