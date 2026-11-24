@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Bookmark, Clock } from "lucide-react";
 import { GameGrid } from "@/components/home/GameRow";
 import { ListHeader } from "@/components/ui/ListHeader";
-import { getGame, type Game } from "@/lib/games";
+import { getGame, type Game } from "@/lib/game-index";
 import { TOP_PICKS } from "@/lib/catalog";
 import { useLibrary } from "@/lib/library";
 import { useHydrated } from "@/lib/store";

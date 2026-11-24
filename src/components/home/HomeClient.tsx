@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Clock, Bookmark, Download, X } from "lucide-react";
 import { AppIcon } from "@/components/brand/Logo";
 import { GameRow } from "@/components/home/GameRow";
-import { getGame, type Game } from "@/lib/games";
+import { getGame, type Game } from "@/lib/game-index";
 import { useLibrary } from "@/lib/library";
 import { useHydrated } from "@/lib/store";
 

@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GamePlayer } from "@/components/player/GamePlayer";
 import { GameView } from "@/components/player/GameView";
-import { SLUG_ALIASES, getGame } from "@/lib/games";
+import { SLUG_ALIASES, getGame } from "@/lib/game-index";
 import type { Difficulty } from "@/lib/store";
 import { useLibrary } from "@/lib/library";
 import { track } from "@/lib/analytics";

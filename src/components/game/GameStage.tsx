@@ -9,7 +9,7 @@ import { QrModal } from "@/components/game/QrModal";
 import { warmGame } from "@/components/player/GameView";
 import { whenIdle } from "@/lib/preload";
 import { toast } from "@/components/ui/Toaster";
-import { getGame } from "@/lib/games";
+import { getGame } from "@/lib/game-index";
 import { playHref, thumbOf } from "@/lib/catalog";
 import { useLibrary } from "@/lib/library";
 import { useHydrated, useSettings } from "@/lib/store";

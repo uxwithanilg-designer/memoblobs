@@ -2,7 +2,7 @@
 // A renamed game's old page link (an open tab, a bookmark) moves to its new slug instead of showing the 404 page.
 // Lives in the 404 page, so it costs no site files.
 import { useEffect } from "react";
-import { SLUG_ALIASES } from "@/lib/games";
+import { SLUG_ALIASES } from "@/lib/game-index";
 
 export function RenamedGameRedirect() {
   useEffect(() => {

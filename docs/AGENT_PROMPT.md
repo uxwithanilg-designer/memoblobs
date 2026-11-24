@@ -19,6 +19,17 @@ exactly. If a request would break one of these rules, stop and ask the owner ins
 - **Game files live in the R2 bucket `momoblobs-assets`**, not on the site (config: `scripts/r2/config.mjs`,
   `ASSET_BASE`). The build removes them from `out/`.
 - The site's code (`/_next/static`) stays on the Worker on purpose: the games' web workers need same-origin scripts.
+- **The games list has one source and a light copy.** A game is written once, in `src/lib/games.ts` (arcade games in
+  `src/lib/arcade-catalog.ts`). `scripts/gen-game-index.mjs` makes two things from it:
+  - `src/lib/game-index.ts` — every game without its long text (description, how-to, controls, FAQ, skills).
+    Generated: never edit it, but do commit it.
+  - `public/games/<slug>/about.json` — the game's how-to and controls, which the player fetches for that one game.
+    It goes to R2 with the game's art; git ignores it.
+
+  It runs by itself in `npm run dev`, `npm run build:static` and `npm run upload:r2` (or `npm run gen:index`).
+  **Browser code imports `@/lib/game-index`**: every `"use client"` file, the shell, search, home rows, lists and the
+  player. Only server-built pages (a game's own page, category pages, the sitemap, layout metadata) import
+  `@/lib/games`. Importing `@/lib/games` from browser code would send every game's text to every visitor.
 
 ## 2. Hosting budget: 6–9 site files per game (hard rule)
 
@@ -49,6 +60,9 @@ exactly. If a request would break one of these rules, stop and ask the owner ins
   - Never `import` image or audio files into JavaScript, and never hard-code the R2 URL.
 - `npm run upload:r2` uploads new and changed files (URLs are versioned, browsers keep them for a year). The site has
   no copy of game files, so changed files must be uploaded before the deploy.
+  - It knows what's already there from the bucket's own list, `_meta/uploaded.json` (every file's fingerprint), so
+    any machine — this PC, another PC, GitHub Actions — sends only what changed. `.r2-uploaded.json` is the local
+    copy it falls back on when the bucket's list can't be read; `-- --all` sends everything again.
 - Audio files and names:
   - Files: `public/audio/arcade/sfx_<family>_<name>.mp3`, `music_<family>_<name>.mp3`,
     `voice_<character>_<mood>.mp3`.
@@ -116,7 +130,8 @@ game uses it, and `npm run check:perf` (part of `npm run build:static`) fails th
      - add an `A({...})` entry in `src/lib/arcade-catalog.ts`.
    - **3D / own engine:**
      - an engine folder `src/<engine>/`;
-     - an entry in `GAMES` in `src/lib/games.ts` (add the engine to `Game["engine"]`);
+     - an entry in `GAMES` in `src/lib/games.ts` (add the engine to `Game["engine"]`), then `npm run gen:index`
+       (or `npm run dev`) and commit the regenerated `src/lib/game-index.ts`;
      - in `src/components/player/GameView.tsx`: a `case`, a `dynamic()` import and an `ENGINE_CODE` entry;
      - in `src/lib/catalog.ts`: entries in `ENGINES_3D` and `SOUND_FAMILY`.
 2. **Files:** art goes in `public/games/<slug>/` (thumbnails from `scripts/build_arcade_thumbs.py`,
@@ -132,7 +147,8 @@ game uses it, and `npm run check:perf` (part of `npm run build:static`) fails th
 
 ## 7. Before you say you're done
 
-- `npx tsc --noEmit -p .` and `npx eslint <changed files>`: no errors.
+- `npm run check:types` (TypeScript, incremental) and `npm run lint:changed` (ESLint on the files changed since
+  `origin/main`, plus anything uncommitted): no errors.
 - `npm run build:static` passes, including its `game budget:` and `mobile performance:` lines.
 - `?perf=1` on a phone-size, 4× CPU-slowed browser: steady fps, no long pauses while playing.
 - `npm run upload:r2` if you added or changed game files.
@@ -149,6 +165,11 @@ game uses it, and `npm run check:perf` (part of `npm run build:static`) fails th
 
 - Don't commit, push or deploy without the owner's explicit OK for that step. Deploy only with `npm run deploy`
   (build → upload to R2 → `wrangler deploy`).
+- **A push to `main` is a deploy.** `.github/workflows/deploy.yml` lints the changed files and runs `npm run deploy`
+  on GitHub Actions for every push to `main` (and from the Actions tab), with the repository secret
+  `CLOUDFLARE_API_TOKEN` (made by the owner in the MOMOBLOBS Cloudflare account; without it only the checks run). So
+  ask before pushing to `main` just as you would before deploying, and don't deploy from a PC as well for the same
+  push.
 - Commit as `272440351+uxwithanilg-designer@users.noreply.github.com`. Never put the owner's personal email anywhere.
 - Don't touch the account's other R2 buckets (`news-app-media`, `news-app-staging-media`) or any Cloudflare setting
   outside this project.

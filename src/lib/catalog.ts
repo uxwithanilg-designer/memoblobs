@@ -1,5 +1,5 @@
 // Lists the portal pages are built from: featured order, new games, 3D games, per-category lists and links.
-import { CATEGORIES, GAMES, LIVE_GAMES, type Category, type Game } from "./games";
+import { CATEGORIES, GAMES, LIVE_GAMES, type Category, type Game } from "./game-index";
 
 /** hand-picked order for "Top picks" and the default sort (best and biggest first) */
 const PICKS = [

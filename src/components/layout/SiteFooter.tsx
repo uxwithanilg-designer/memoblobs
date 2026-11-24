@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { BUBIRD_URL, BuBirdLogo } from "@/components/brand/BuBird";
-import { CATEGORIES } from "@/lib/games";
+import { CATEGORIES } from "@/lib/game-index";
 import { categoryHref } from "@/lib/catalog";
 import { FOOTER_LINKS } from "@/components/layout/nav";
 import { SITE } from "@/lib/site";

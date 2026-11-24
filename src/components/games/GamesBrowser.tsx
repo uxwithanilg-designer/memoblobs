@@ -2,7 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { Search, X } from "lucide-react";
-import { CATEGORIES, type Category } from "@/lib/games";
+import { CATEGORIES, type Category } from "@/lib/game-index";
 import { ALL_PLAYABLE, NEW_GAMES } from "@/lib/catalog";
 import { CATEGORY_ICON } from "@/components/layout/nav";
 import { GameGrid } from "@/components/home/GameRow";

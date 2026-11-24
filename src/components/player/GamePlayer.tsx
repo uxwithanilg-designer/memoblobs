@@ -16,8 +16,9 @@ import { audio } from "@/lib/audio";
 import { installFrameCap, setLiteUi } from "@/lib/perf";
 import { PerfOverlay } from "./PerfOverlay";
 import { soundFamily } from "@/lib/catalog";
-import type { Game } from "@/lib/games";
+import type { Game, GameAbout } from "@/lib/game-index";
 import { preloader, whenIdle } from "@/lib/preload";
+import { cdn } from "@/lib/cdn";
 
 const TIPS_COMMON = [
   "Tip: correct answers in a row build a combo — up to ×5 points!",
@@ -32,6 +33,24 @@ type FsEl = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
 
 /** embedded = runs in the frame on a game page (the page owns the title, sound and fullscreen buttons); onExit ends it */
 const noSub = () => () => {};
+const NO_HOWTO: GameAbout["howTo"] = [];
+const aboutCache = new Map<string, GameAbout>();
+/** a game's how-to and controls (public/games/<slug>/about.json, from R2 in production), fetched once per game */
+function useGameAbout(slug: string) {
+  const [about, setAbout] = useState<GameAbout | null>(() => aboutCache.get(slug) ?? null);
+  useEffect(() => {
+    if (aboutCache.has(slug)) return;
+    let live = true;
+    fetch(cdn(`/games/${slug}/about.json`)).then((r) => (r.ok ? r.json() : null)).then((a: GameAbout | null) => {
+      if (!a || !Array.isArray(a.howTo)) return;
+      aboutCache.set(slug, a);
+      if (live) setAbout(a);
+    }).catch(() => { /* the general tips still show */ });
+    return () => { live = false; };
+  }, [slug]);
+  return about ?? aboutCache.get(slug) ?? null;
+}
+
 export function GamePlayer({ game, children, embedded = false, onExit }: { game: Game; children: React.ReactNode; embedded?: boolean; onExit?: () => void }) {
   const router = useRouter();
   const hydrated = useHydrated();
@@ -62,7 +81,10 @@ export function GamePlayer({ game, children, embedded = false, onExit }: { game:
   const [inRound, setInRound] = useState(false);
   const [immersive, setImmersive] = useState(false);
   const [tip, setTip] = useState(0);
-  const TIPS = useMemo(() => [...game.howTo.map((h) => `Tip: ${h.text}`), ...TIPS_COMMON], [game.howTo]);
+  // the game's how-to and controls come from its about.json (the light games list leaves the long text out)
+  const about = useGameAbout(game.slug);
+  const howTo = about?.howTo ?? NO_HOWTO;
+  const TIPS = useMemo(() => [...howTo.map((h) => `Tip: ${h.text}`), ...TIPS_COMMON], [howTo]);
   const wake = useRef<WakeLockSentinel | null>(null);
 
   const setPaused = useCallback((p: boolean) => {
@@ -317,7 +339,7 @@ export function GamePlayer({ game, children, embedded = false, onExit }: { game:
                       <SettingsForm compact fullscreenNote={!fsOk} />
                     ) : (
                       <ol className="grid gap-3">
-                        {game.howTo.map((h, i) => (
+                        {howTo.map((h, i) => (
                           <li key={h.title} className="flex gap-3 rounded-2xl bg-white/6 p-3">
                             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-momo font-display text-lg text-ink">{i + 1}</span>
                             <span><span className="block font-bold">{h.title}</span><span className="text-sm text-muted">{h.text}</span></span>

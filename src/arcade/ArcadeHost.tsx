@@ -10,7 +10,7 @@ import { CoinIcon, useAnimatedNumber } from "@/components/brand/CoinPill";
 import { toast } from "@/components/ui/Toaster";
 import { emptyArcade, TROPHIES, useProfile, type Difficulty } from "@/lib/store";
 import { audio } from "@/lib/audio";
-import type { Game } from "@/lib/games";
+import type { Game } from "@/lib/game-index";
 import { spriteUrl, type ArcadeGame, type CastId, type EngineEvents, type HudState } from "./engine";
 import type { Settings } from "@/lib/store";
 

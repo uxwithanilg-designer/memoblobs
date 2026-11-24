@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Game } from "@/lib/games";
+import type { Game } from "@/lib/game-index";
 import { GameTile } from "@/components/ui/GameTile";
 
 export function RowTitle({ title, href, icon }: { title: string; href?: string; icon?: React.ReactNode }) {

@@ -12,7 +12,7 @@ import { BuBirdLink } from "@/components/brand/BuBird";
 import { CoinPill } from "@/components/brand/CoinPill";
 import { SearchDialog } from "@/components/layout/SearchDialog";
 import { CATEGORY_ICON, FOOTER_LINKS, NAV_MAIN, NAV_ME, type NavItem } from "@/components/layout/nav";
-import { CATEGORIES } from "@/lib/games";
+import { CATEGORIES } from "@/lib/game-index";
 import { ALL_PLAYABLE, categoryHref } from "@/lib/catalog";
 import { AVATARS, useHydrated, useProfile } from "@/lib/store";
 import { SITE } from "@/lib/site";

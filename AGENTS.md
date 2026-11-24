@@ -32,7 +32,10 @@ uses 7: its page `/games/<slug>` (`.html` + `.txt`) and the 5 data files Next wr
   files or a game file would ship with the site. Fix the game — don't skip the check or change its limits (that is
   the owner's decision).
 - **Deploy** with `npm run deploy` (build → upload to R2 → `wrangler deploy`). Never deploy without the R2 upload:
-  the site has no copy of the game files.
+  the site has no copy of the game files. A push to `main` also deploys, through `.github/workflows/deploy.yml`.
+- **Games list:** write a game only in `src/lib/games.ts` / `src/lib/arcade-catalog.ts`. Browser code imports the
+  generated light list `@/lib/game-index` (run `npm run gen:index`, commit `src/lib/game-index.ts`); only server-built
+  pages import `@/lib/games`.
 
 ## Mobile performance — every game, every agent (MOMOBLOBS rule)
 

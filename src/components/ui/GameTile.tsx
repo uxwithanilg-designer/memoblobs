@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Play } from "lucide-react";
-import { CATEGORIES, type Game } from "@/lib/games";
+import { CATEGORIES, type Game } from "@/lib/game-index";
 import { gameHref, is3D, isNew, thumbOf } from "@/lib/catalog";
 
 const catLabel = (g: Game) => CATEGORIES.find((c) => c.id === g.category)?.label ?? "Game";

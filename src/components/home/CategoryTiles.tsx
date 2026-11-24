@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Box, ChevronRight, Sparkles, Flame } from "lucide-react";
 import { CATEGORY_ICON } from "@/components/layout/nav";
-import { CATEGORIES, type Game } from "@/lib/games";
+import { CATEGORIES, type Game } from "@/lib/game-index";
 import { GAMES_3D, MOODS, NEW_GAMES, categoryHref, inCategory, thumbOf } from "@/lib/catalog";
 
 /** three real game covers fanned like a hand of cards; they spread on hover */

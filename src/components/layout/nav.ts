@@ -2,7 +2,7 @@ import {
   Box, Brain, CarFront, Calculator, Clock, Compass, Crosshair, Flame, Gamepad2, House, Layers, Puzzle, Settings,
   Sparkles, Bookmark, Trophy, UserRound, Users, Zap, Footprints, type LucideIcon,
 } from "lucide-react";
-import type { Category } from "@/lib/games";
+import type { Category } from "@/lib/game-index";
 
 export interface NavItem { href: string; label: string; icon: LucideIcon; color: string }
 

@@ -6,6 +6,9 @@ import { ASSET_BASE, ASSET_DIRS } from "./r2/config.mjs";
 import { writeIndex } from "./r2/asset-index.mjs";
 
 // game files load from R2 (scripts/r2/config.mjs); their URLs carry the asset version so browsers can cache them
+// the light games list for browser code and each game's about.json (from src/lib/games.ts), before anything is built
+const gen = spawnSync("node scripts/gen-game-index.mjs", { stdio: "inherit", shell: true });
+if (gen.status !== 0) process.exit(gen.status ?? 1);
 const { version } = writeIndex();
 console.log(`build-static: game files from ${ASSET_BASE} (asset version ${version})`);
 const env = { ...process.env, STATIC_EXPORT: "1", NEXT_PUBLIC_ASSET_BASE: ASSET_BASE, NEXT_PUBLIC_ASSET_VER: version };

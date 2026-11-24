@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/gen-game-index.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -10,6 +11,9 @@
     "build:static": "node scripts/build-static.mjs",
     "upload:r2": "node scripts/r2/upload.mjs",
     "check:perf": "node scripts/check-perf.mjs",
+    "gen:index": "node scripts/gen-game-index.mjs",
+    "check:types": "tsc --noEmit -p .",
+    "lint:changed": "node scripts/lint-changed.mjs",
     "deploy": "npm run build:static && npm run upload:r2 && npx --yes wrangler@4 deploy"
   },
   "dependencies": {

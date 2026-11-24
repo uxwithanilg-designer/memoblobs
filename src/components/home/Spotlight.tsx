@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Info, Play } from "lucide-react";
-import { CATEGORIES, type Game } from "@/lib/games";
+import { CATEGORIES, type Game } from "@/lib/game-index";
 import { gameHref, is3D, isNew, playHref, thumbOf } from "@/lib/catalog";
 
 const SLIDE_MS = 6500;

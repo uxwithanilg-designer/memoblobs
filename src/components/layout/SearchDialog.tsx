@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CornerDownLeft, Search, X } from "lucide-react";
-import { CATEGORIES } from "@/lib/games";
+import { CATEGORIES } from "@/lib/game-index";
 import { ALL_PLAYABLE, categoryHref, gameHref, thumbOf } from "@/lib/catalog";
 import { ALL_PAGES } from "@/components/layout/nav";
 

@@ -2,7 +2,7 @@
 // Picks the right engine for a game. Used by the full-screen /play?g=<slug> page and by the player on the game page.
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { getGame } from "@/lib/games";
+import { getGame } from "@/lib/game-index";
 import type { Difficulty } from "@/lib/store";
 import { ARCADE_MODULES } from "@/arcade/registry";
 import { audio } from "@/lib/audio";
