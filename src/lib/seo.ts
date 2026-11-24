@@ -110,6 +110,89 @@ export const GAME_SEO: Record<string, GameSeo> = {
     keywords: ["sudoku online free", "daily sudoku", "killer sudoku", "samurai sudoku", "16x16 sudoku", "sudoku x", "thermo sudoku", "sudoku puzzle game"],
   },
 
+  trailfold: {
+    title: "Trailfold — Free One-Line Path Puzzle Online",
+    description: "Draw one line through every cell and hit the numbers in order. Nine kinds of path puzzle, endless and free online, plus a Daily Trail.",
+    keywords: ["path puzzle", "one line puzzle", "connect the numbers", "draw a line puzzle", "hamiltonian path puzzle", "daily logic puzzle", "maze puzzle online"],
+  },
+
+  quiltfold: {
+    title: "Quiltfold — Free Rectangle Logic Puzzle Online",
+    description: "Cut the grid into rectangles, one number in each, its size. Nine kinds of rectangle puzzle, endless and free online, plus a Daily Quilt.",
+    keywords: ["rectangle puzzle", "shikaku online", "divide the grid puzzle", "area logic puzzle", "daily logic puzzle", "grid puzzle game"],
+  },
+
+  glowfold: {
+    title: "Glowfold — Free Binary Logic Puzzle Online",
+    description: "Balance Ember and Frost orbs in every row and column, never three in a row. Nine kinds of binary puzzle, endless and free, plus a Daily Glow.",
+    keywords: ["binary puzzle", "takuzu online", "binairo puzzle", "two symbol logic puzzle", "daily logic puzzle", "balance puzzle game"],
+  },
+
+  crownfold: {
+    title: "Crownfold — Free Crown Placement Logic Puzzle Online",
+    description: "Place one crown in every row, column and coloured court, and never let two crowns touch. Nine kinds of logic puzzle, endless and free, plus a Daily Court.",
+    keywords: ["crown logic puzzle", "star battle puzzle", "region queens puzzle", "daily logic puzzle", "one per row puzzle", "free brain puzzle"],
+  },
+
+  blocktide: {
+    title: "Blocktide — Free Endless Block Puzzle Game Online",
+    description: "Drag jelly blocks onto an 8×8 reef and clear full rows and columns. One block puzzle that never ends: dive deeper as you score. Free in your browser.",
+    keywords: ["block puzzle game", "free block puzzle online", "8x8 block puzzle", "endless block game", "line clear puzzle", "daily block puzzle"],
+  },
+
+  moonvial: {
+    title: "Moonvial — Free Colour Sort Puzzle Game Online, Endless Stages",
+    description: "Pour glowing potions until every vial holds one colour, then hand them to the star spirits. Endless water sort stages under the night sky, free in your browser.",
+    keywords: ["water sort puzzle", "color sort game", "liquid sort puzzle online", "potion sort game", "free sorting puzzle", "endless puzzle stages"],
+  },
+
+  treatrio: {
+    title: "Treatrio — Free 3D Goods Sort Puzzle Game Online, Endless Stages",
+    description: "Sort 3D sweets on dessert-shop shelves: three alike pop, the next row slides forward. Endless triple match sorting stages, free in your browser.",
+    keywords: ["goods sort game", "3d sorting puzzle", "triple match 3d", "shelf sort game", "match 3 sorting game", "free sort puzzle online"],
+  },
+
+  sproutpop: {
+    title: "Sproutpop — Free 3D Bubble Shooter Game Online, 500+ Stages",
+    description: "Aim, bounce and pop glossy 3D bubbles to free the seedlings. A free bubble shooter with 500 designed stages, eight gardens and endless remixes — play in your browser.",
+    keywords: ["bubble shooter", "bubble shooter 3d", "free bubble shooter online", "bubble pop game", "bubble shooter no download", "match 3 bubble game", "bubble story game"],
+  },
+
+  "bubble-relics": {
+    title: "Bubble Relics — Free 3D Bubble Shooter Game Online, 500+ Levels",
+    description: "Aim the laser, pop glossy 3D bubbles and clear the temple walls. A free bubble shooter with 500 designed levels, eight temple chambers and endless remixes — play in your browser.",
+    keywords: ["bubble shooter", "bubble shooter 3d", "bubble pop game", "free bubble shooter online", "bubble shooter levels", "classic bubble shooter", "temple bubble shooter"],
+  },
+
+  "bubble-breeze": {
+    title: "Bubble Breeze — Free Bubble Shooter Game Online, 500+ Levels",
+    description: "Aim, bounce and pop glossy bubbles in a breezy sky! A free classic bubble shooter with quests, 500 designed levels, eight worlds and endless remixes — light and smooth on any phone.",
+    keywords: ["bubble shooter", "bubble shooter free", "classic bubble shooter", "bubble pop game", "bubble shooter online", "bubble blast game", "bubble shooter levels"],
+  },
+
+  "picnic-pairs": {
+    title: "Picnic Pairs — Free Mahjong Connect Pairs Game Online, 500+ Levels",
+    description: "Link matching food tiles with a path of up to two turns and clear the board before time runs out. A free mahjong connect / Onet pairs puzzle with 500+ levels — play in your browser.",
+    keywords: ["mahjong connect", "connect pairs game", "onet game", "pair matching game", "tile matching puzzle", "mahjong pairs online", "food match game"],
+  },
+
+  "jade-slide": {
+    title: "Jade Slide — Free Mahjong Slide Tile Match Puzzle Online, 500+ Levels",
+    description: "Tap or slide mahjong tiles into line with their twins and clear the board. A free slide-mahjong tile match puzzle with 500+ levels and eight tea houses — play in your browser.",
+    keywords: ["mahjong tile match", "mahjong slide", "slide mahjong puzzle", "mahjong pairs", "tile match puzzle", "free mahjong game online", "mahjong connect slide"],
+  },
+
+  "marble-merge-2048": {
+    title: "Marble Merge 2048 — Free 2048 Balls Drop & Merge Game Online, 500+ Levels",
+    description: "Drop numbered balls into a jar, merge equal balls and chain the pops to reach each level's goal. A free 2048 balls physics merge puzzle with 500+ levels — play in your browser.",
+    keywords: ["2048 balls", "2048 ball merge", "merge balls game", "drop and merge balls", "2048 marble game", "number ball merge", "ball drop puzzle"],
+  },
+  "merge-nova": {
+    title: "Merge Nova — Free Drop & Merge Numbers Game Online, 500+ Levels",
+    description: "Drop number blocks, merge equal numbers and chain the combos to reach each level's goal. A free 2048-style drop merge puzzle with 500+ levels — play in your browser.",
+    keywords: ["drop merge numbers", "2048 drop game", "merge numbers game", "number merge puzzle", "drop the number", "2048 online free", "merge block puzzle"],
+  },
+
   // ------------------------------------------------------------ focus
   "fish-watch": {
     title: "Fish Watch — Track the Golden Fish Game",

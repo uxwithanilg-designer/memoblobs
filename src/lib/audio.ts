@@ -44,7 +44,49 @@ export type ArcadeSfx =
   | "kiko_ride" | "kiko_web" | "kiko_mud" | "kiko_wind" | "kiko_thunder" | "kiko_geyser" | "kiko_zip" | "kiko_roar" | "kiko_throw" | "kiko_stomp" | "kiko_ice" | "kiko_lava"
   // Sudoku Ninefold pack (scripts/gen_sudoku_audio.py)
   | "sudoku_select" | "sudoku_place" | "sudoku_note" | "sudoku_erase" | "sudoku_wrong" | "sudoku_unit" | "sudoku_solve"
-  | "sudoku_hint" | "sudoku_undo" | "sudoku_heart" | "sudoku_star" | "sudoku_open" | "sudoku_tick" | "sudoku_streak";
+  | "sudoku_hint" | "sudoku_undo" | "sudoku_heart" | "sudoku_star" | "sudoku_open" | "sudoku_tick" | "sudoku_streak"
+  // Trailfold pack (scripts/gen_trail_audio.py)
+  | "trail_step" | "trail_stop" | "trail_back" | "trail_bump" | "trail_solve" | "trail_hint" | "trail_undo" | "trail_reset"
+  | "trail_select" | "trail_star" | "trail_open" | "trail_streak"
+  // Quiltfold pack (scripts/gen_quilt_audio.py)
+  | "quilt_lay" | "quilt_good" | "quilt_lift" | "quilt_bump" | "quilt_solve" | "quilt_hint" | "quilt_undo" | "quilt_reset"
+  | "quilt_select" | "quilt_star" | "quilt_open" | "quilt_streak"
+  // Glowfold pack (scripts/gen_glow_audio.py)
+  | "glow_ember" | "glow_frost" | "glow_bloom" | "glow_clear" | "glow_bad" | "glow_line" | "glow_solve" | "glow_hint" | "glow_undo"
+  | "glow_reset" | "glow_star" | "glow_open" | "glow_streak"
+  // Crownfold pack (scripts/gen_crown_audio.py)
+  | "crown_crown" | "crown_mark" | "crown_clear" | "crown_bad" | "crown_court" | "crown_solve" | "crown_hint" | "crown_undo"
+  | "crown_reset" | "crown_star" | "crown_open" | "crown_streak"
+  // Blocktide pack (scripts/gen_tide_audio.py)
+  | "tide_pick" | "tide_place" | "tide_back" | "tide_clear1" | "tide_clear2" | "tide_clear3" | "tide_combo" | "tide_pearl"
+  | "tide_allclear" | "tide_deal" | "tide_undo" | "tide_swap" | "tide_over" | "tide_win" | "tide_open" | "tide_power"
+  // Moonvial pack (scripts/gen_vial_audio.py)
+  | "vial_select" | "vial_flow" | "vial_fill" | "vial_nope" | "vial_cork" | "vial_reveal" | "vial_deliver" | "vial_clear" | "vial_star"
+  | "vial_constellation" | "vial_undo" | "vial_extra" | "vial_restart" | "vial_stuck" | "vial_open"
+  // Treatrio pack (scripts/gen_treat_audio.py)
+  | "treat_pick" | "treat_drop" | "treat_nope" | "treat_pop" | "treat_combo" | "treat_slide" | "treat_unwrap" | "treat_ice" | "treat_unlock"
+  | "treat_undo" | "treat_hint" | "treat_shuffle" | "treat_tick" | "treat_clear" | "treat_star" | "treat_shop" | "treat_timeup" | "treat_open"
+  // Sproutpop pack (scripts/gen_sprout_audio.py)
+  | "sprout_shoot" | "sprout_bounce" | "sprout_stick" | "sprout_pop" | "sprout_blast" | "sprout_thaw" | "sprout_fall" | "sprout_sprout" | "sprout_firework"
+  | "sprout_swap" | "sprout_load" | "sprout_stone" | "sprout_combo" | "sprout_clear" | "sprout_star" | "sprout_garden" | "sprout_lose" | "sprout_booster" | "sprout_open"
+  // Bubble Relics pack (scripts/gen_relic_audio.py)
+  | "relic_shoot" | "relic_bounce" | "relic_stick" | "relic_pop" | "relic_blast" | "relic_thaw" | "relic_fall" | "relic_relic" | "relic_firework" | "relic_swap"
+  | "relic_load" | "relic_stone" | "relic_crumble" | "relic_combo" | "relic_clear" | "relic_star" | "relic_chamber" | "relic_lose" | "relic_booster" | "relic_open"
+  // Bubble Breeze pack (scripts/gen_breeze_audio.py)
+  | "breeze_shoot" | "breeze_bounce" | "breeze_stick" | "breeze_pop" | "breeze_blast" | "breeze_thaw" | "breeze_fall" | "breeze_crown" | "breeze_firework" | "breeze_swap"
+  | "breeze_load" | "breeze_stone" | "breeze_crumble" | "breeze_combo" | "breeze_clear" | "breeze_star" | "breeze_world" | "breeze_lose" | "breeze_booster" | "breeze_open"
+  // Picnic Pairs pack (scripts/gen_picnic_audio.py)
+  | "picnic_pick" | "picnic_match" | "picnic_combo" | "picnic_nope" | "picnic_slide" | "picnic_shuffle" | "picnic_hint" | "picnic_tick" | "picnic_clear"
+  | "picnic_star" | "picnic_spot" | "picnic_timeup" | "picnic_open" | "picnic_confetti"
+  // Jade Slide pack (scripts/gen_jade_audio.py)
+  | "jade_pick" | "jade_match" | "jade_combo" | "jade_nope" | "jade_slide" | "jade_shuffle" | "jade_hint" | "jade_undo" | "jade_clear"
+  | "jade_star" | "jade_house" | "jade_stuck" | "jade_open" | "jade_confetti"
+  // Merge Nova pack (scripts/gen_nova_audio.py)
+  | "nova_aim" | "nova_drop" | "nova_land" | "nova_merge" | "nova_combo" | "nova_crack" | "nova_smash" | "nova_thaw" | "nova_hammer"
+  | "nova_swap" | "nova_undo" | "nova_clear" | "nova_star" | "nova_galaxy" | "nova_lose" | "nova_open"
+  // Marble Merge 2048 pack (scripts/gen_marble_audio.py)
+  | "marble_aim" | "marble_drop" | "marble_tap" | "marble_merge" | "marble_combo" | "marble_crack" | "marble_smash" | "marble_thaw" | "marble_hammer"
+  | "marble_swap" | "marble_undo" | "marble_clear" | "marble_star" | "marble_room" | "marble_lose" | "marble_open";
 
 /** "a:<arcade sfx>" or "v:<character>_<mood>" (file: /audio/arcade/voice_<x>.mp3) */
 export type Sound = SfxName | `a:${ArcadeSfx}` | `v:${string}`;
@@ -241,7 +283,7 @@ const MUSIC_META: Record<string, { loop: number; gain?: number }> = {
   "a:kiko_volcano_action": { loop: 28.235294, gain: 0.95 },
   "a:kiko_boss_action": { loop: 26.30137, gain: 0.95 },
   // Puddo's Clayland (scripts/gen_clay_audio.py)
-  "a:clay_shore_action": { loop: 30.9677 },
+  "a:clay_shore_action": { loop: 30.967742 },
   "a:clay_grove_action": { loop: 30 },
   "a:clay_caves_action": { loop: 32.5424 },
   "a:clay_lagoon_action": { loop: 31.4754 },
@@ -259,13 +301,161 @@ const MUSIC_META: Record<string, { loop: number; gain?: number }> = {
   "a:clay_volcano_action": { loop: 28.2353 },
   "a:clay_crystal_action": { loop: 32.5424 },
   "a:clay_pirate_action": { loop: 30 },
-  "a:clay_moon_action": { loop: 30.9677 },
+  "a:clay_moon_action": { loop: 30.967742 },
   "a:clay_castle_action": { loop: 29.0909 },
   "a:clay_boss_action": { loop: 25.9459 },
   "a:clay_chase_action": { loop: 25.2632 },
   "a:clay_bonus_action": { loop: 27.4286 },
   "a:clay_star_action": { loop: 23.4146 },
   "a:clay_map_calm": { loop: 19.2 },
+  // Glowfold (scripts/gen_glow_audio.py)
+  "a:glow_title_calm": { loop: 20.869565 },
+  "a:glow_neon_action": { loop: 34.285714 },
+  "a:glow_pulse_action": { loop: 32.542373 },
+  "a:glow_circuit_action": { loop: 30.967742 },
+  "a:glow_grid_action": { loop: 33.103448 },
+  "a:glow_laser_action": { loop: 30 },
+  "a:glow_orbit_action": { loop: 38.4 },
+  "a:glow_prism_action": { loop: 35.555556 },
+  "a:glow_arcade_action": { loop: 29.090909 },
+  "a:glow_skyline_action": { loop: 32 },
+  "a:glow_daily_action": { loop: 33.684211 },
+  // Crownfold (scripts/gen_crown_audio.py)
+  "a:crown_title_calm": { loop: 20.869565 },
+  "a:crown_court_action": { loop: 36.923077 },
+  "a:crown_waltz_action": { loop: 40 },
+  "a:crown_bishop_action": { loop: 43.636364 },
+  "a:crown_gallop_action": { loop: 29.090909 },
+  "a:crown_ruins_action": { loop: 41.73913 },
+  "a:crown_watch_action": { loop: 34.285714 },
+  "a:crown_orbit_action": { loop: 33.103448 },
+  "a:crown_voyage_action": { loop: 38.4 },
+  "a:crown_anthem_action": { loop: 35.555556 },
+  "a:crown_daily_action": { loop: 34.909091 },
+  // Treatrio (scripts/gen_treat_audio.py)
+  "a:treat_title_calm": { loop: 20.869565 },
+  "a:treat_bakery_action": { loop: 35.555556 },
+  "a:treat_candy_action": { loop: 32 },
+  "a:treat_gelato_action": { loop: 36.923077 },
+  "a:treat_orchard_action": { loop: 34.285714 },
+  "a:treat_tea_action": { loop: 41.73913 },
+  "a:treat_cocoa_action": { loop: 40 },
+  "a:treat_diner_action": { loop: 29.090909 },
+  "a:treat_carnival_action": { loop: 33.103448 },
+  // Marble Merge 2048 (scripts/gen_marble_audio.py)
+  "a:marble_title_calm": { loop: 20.869565 },
+  "a:marble_toy_action": { loop: 34.285714 },
+  "a:marble_candy_action": { loop: 32.0 },
+  "a:marble_sea_action": { loop: 39.183673 },
+  "a:marble_arcade_action": { loop: 29.538462 },
+  "a:marble_cave_action": { loop: 43.636364 },
+  "a:marble_forge_action": { loop: 31.47541 },
+  "a:marble_globe_action": { loop: 38.4 },
+  "a:marble_garden_action": { loop: 40.851064 },
+  // Merge Nova (scripts/gen_nova_audio.py)
+  "a:nova_title_calm": { loop: 20.869565 },
+  "a:nova_nebula_action": { loop: 32.0 },
+  "a:nova_comet_action": { loop: 30.0 },
+  "a:nova_rings_action": { loop: 38.4 },
+  "a:nova_aurora_action": { loop: 42.666667 },
+  "a:nova_flare_action": { loop: 30.967742 },
+  "a:nova_ice_action": { loop: 40.0 },
+  "a:nova_hole_action": { loop: 45.714286 },
+  "a:nova_stars_action": { loop: 31.47541 },
+  // Jade Slide (scripts/gen_jade_audio.py)
+  "a:jade_title_calm": { loop: 20.869565 },
+  "a:jade_jade_action": { loop: 41.73913 },
+  "a:jade_lantern_action": { loop: 32.542373 },
+  "a:jade_porcelain_action": { loop: 43.636364 },
+  "a:jade_bamboo_action": { loop: 38.4 },
+  "a:jade_gold_action": { loop: 40.0 },
+  "a:jade_plum_action": { loop: 40.851064 },
+  "a:jade_moon_action": { loop: 45.714286 },
+  "a:jade_ink_action": { loop: 49.230769 },
+  // Picnic Pairs (scripts/gen_picnic_audio.py)
+  "a:picnic_title_calm": { loop: 20.869565 },
+  "a:picnic_meadow_action": { loop: 34.285714 },
+  "a:picnic_beach_action": { loop: 35.555556 },
+  "a:picnic_forest_action": { loop: 36.226415 },
+  "a:picnic_lake_action": { loop: 40.851064 },
+  "a:picnic_orchard_action": { loop: 32.0 },
+  "a:picnic_garden_action": { loop: 38.4 },
+  "a:picnic_camp_action": { loop: 39.183673 },
+  "a:picnic_lantern_action": { loop: 44.651163 },
+  // Bubble Breeze (scripts/gen_breeze_audio.py)
+  "a:breeze_title_calm": { loop: 20.869565 },
+  "a:breeze_sky_action": { loop: 33.103448 },
+  "a:breeze_candy_action": { loop: 30.967742 },
+  "a:breeze_lagoon_action": { loop: 36.923077 },
+  "a:breeze_autumn_action": { loop: 34.909091 },
+  "a:breeze_snow_action": { loop: 41.73913 },
+  "a:breeze_dusk_action": { loop: 35.555556 },
+  "a:breeze_aurora_action": { loop: 42.666667 },
+  "a:breeze_night_action": { loop: 44.651163 },
+  // Bubble Relics (scripts/gen_relic_audio.py)
+  "a:relic_title_calm": { loop: 20.869565 },
+  "a:relic_jungle_action": { loop: 36.923077 },
+  "a:relic_torch_action": { loop: 34.285714 },
+  "a:relic_serpent_action": { loop: 40.0 },
+  "a:relic_crystal_action": { loop: 41.73913 },
+  "a:relic_sunken_action": { loop: 45.714286 },
+  "a:relic_gold_action": { loop: 32.0 },
+  "a:relic_moon_action": { loop: 43.636364 },
+  "a:relic_dragon_action": { loop: 30.0 },
+  // Sproutpop (scripts/gen_sprout_audio.py)
+  "a:sprout_title_calm": { loop: 20.869565 },
+  "a:sprout_meadow_action": { loop: 34.285714 },
+  "a:sprout_sunflower_action": { loop: 30.967742 },
+  "a:sprout_lotus_action": { loop: 43.636364 },
+  "a:sprout_mushroom_action": { loop: 38.4 },
+  "a:sprout_cherry_action": { loop: 40 },
+  "a:sprout_cactus_action": { loop: 35.555556 },
+  "a:sprout_lavender_action": { loop: 41.73913 },
+  "a:sprout_moonflower_action": { loop: 45.714286 },
+  // Moonvial (scripts/gen_vial_audio.py)
+  "a:vial_title_calm": { loop: 20.869565 },
+  "a:vial_lantern_action": { loop: 41.73913 },
+  "a:vial_firefly_action": { loop: 38.4 },
+  "a:vial_crystal_action": { loop: 43.636364 },
+  "a:vial_starfall_action": { loop: 45.714286 },
+  "a:vial_aurora_action": { loop: 48 },
+  "a:vial_orchard_action": { loop: 39.183673 },
+  "a:vial_harbor_action": { loop: 40 },
+  "a:vial_nebula_action": { loop: 42.666667 },
+  // Blocktide (scripts/gen_tide_audio.py)
+  "a:tide_title_calm": { loop: 20.869565 },
+  "a:tide_lagoon_action": { loop: 36.923077 },
+  "a:tide_reef_action": { loop: 33.103448 },
+  "a:tide_kelp_action": { loop: 40 },
+  "a:tide_wreck_action": { loop: 38.4 },
+  "a:tide_caves_action": { loop: 41.73913 },
+  "a:tide_ice_action": { loop: 39.183673 },
+  "a:tide_vent_action": { loop: 30.967742 },
+  "a:tide_moon_action": { loop: 43.636364 },
+  // Quiltfold (scripts/gen_quilt_audio.py)
+  "a:quilt_title_calm": { loop: 20.869565 },
+  "a:quilt_cozy_action": { loop: 40 },
+  "a:quilt_craft_action": { loop: 35.555556 },
+  "a:quilt_checker_action": { loop: 33.103448 },
+  "a:quilt_ribbon_action": { loop: 38.4 },
+  "a:quilt_window_action": { loop: 40.851064 },
+  "a:quilt_mystery_action": { loop: 36.923077 },
+  "a:quilt_dance_action": { loop: 31.47541 },
+  "a:quilt_farm_action": { loop: 34.909091 },
+  "a:quilt_grand_action": { loop: 39.183673 },
+  "a:quilt_daily_action": { loop: 34.285714 },
+  // Trailfold (scripts/gen_trail_audio.py)
+  "a:trail_title_calm": { loop: 20.869565 },
+  "a:trail_glide_action": { loop: 32.542373 },
+  "a:trail_maze_action": { loop: 35.555556 },
+  "a:trail_island_action": { loop: 34.285714 },
+  "a:trail_prism_action": { loop: 36.923077 },
+  "a:trail_arrow_action": { loop: 30.47619 },
+  "a:trail_bends_action": { loop: 34.909091 },
+  "a:trail_orbit_action": { loop: 38.4 },
+  "a:trail_twin_action": { loop: 33.684211 },
+  "a:trail_summit_action": { loop: 39.183673 },
+  "a:trail_daily_action": { loop: 33.103448 },
   // Sudoku Ninefold (scripts/gen_sudoku_audio.py)
   "a:sudoku_title_calm": { loop: 20.869565 },
   "a:sudoku_pebble_action": { loop: 33.684211 },

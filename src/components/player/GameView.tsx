@@ -26,6 +26,20 @@ const JellyApp = dynamic(() => import("@/jelly/ui/JellyApp"), { ssr: false });
 const RushApp = dynamic(() => import("@/rush/ui/RushApp"), { ssr: false });
 const SudokuApp = dynamic(() => import("@/sudoku/ui/SudokuApp"), { ssr: false });
 const OrbiApp = dynamic(() => import("@/orbi/ui/OrbiApp"), { ssr: false });
+const TrailApp = dynamic(() => import("@/trail/ui/TrailApp"), { ssr: false });
+const QuiltApp = dynamic(() => import("@/quilt/ui/QuiltApp"), { ssr: false });
+const GlowApp = dynamic(() => import("@/glow/ui/GlowApp"), { ssr: false });
+const CrownApp = dynamic(() => import("@/crown/ui/CrownApp"), { ssr: false });
+const TideApp = dynamic(() => import("@/tide/ui/TideApp"), { ssr: false });
+const MoonvialApp = dynamic(() => import("@/vial/ui/MoonvialApp"), { ssr: false });
+const TreatApp = dynamic(() => import("@/treat/ui/TreatApp"), { ssr: false });
+const SproutApp = dynamic(() => import("@/sprout/ui/SproutApp"), { ssr: false });
+const RelicApp = dynamic(() => import("@/relic/ui/RelicApp"), { ssr: false });
+const BreezeApp = dynamic(() => import("@/breeze/ui/BreezeApp"), { ssr: false });
+const PicnicApp = dynamic(() => import("@/picnic/ui/PicnicApp"), { ssr: false });
+const JadeApp = dynamic(() => import("@/jade/ui/JadeApp"), { ssr: false });
+const NovaApp = dynamic(() => import("@/nova/ui/NovaApp"), { ssr: false });
+const MarbleApp = dynamic(() => import("@/marble/ui/MarbleApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 /** each engine's code (the same chunks the players below load) */
@@ -45,6 +59,20 @@ const ENGINE_CODE: Record<string, () => Promise<unknown>> = {
   rush: () => import("@/rush/ui/RushApp"),
   sudoku: () => import("@/sudoku/ui/SudokuApp"),
   orbi: () => import("@/orbi/ui/OrbiApp"),
+  trail: () => import("@/trail/ui/TrailApp"),
+  quilt: () => import("@/quilt/ui/QuiltApp"),
+  glow: () => import("@/glow/ui/GlowApp"),
+  crown: () => import("@/crown/ui/CrownApp"),
+  tide: () => import("@/tide/ui/TideApp"),
+  vial: () => import("@/vial/ui/MoonvialApp"),
+  treat: () => import("@/treat/ui/TreatApp"),
+  sprout: () => import("@/sprout/ui/SproutApp"),
+  relic: () => import("@/relic/ui/RelicApp"),
+  breeze: () => import("@/breeze/ui/BreezeApp"),
+  picnic: () => import("@/picnic/ui/PicnicApp"),
+  jade: () => import("@/jade/ui/JadeApp"),
+  nova: () => import("@/nova/ui/NovaApp"),
+  marble: () => import("@/marble/ui/MarbleApp"),
   arcade: () => import("@/arcade/ArcadeHost"),
 };
 
@@ -92,6 +120,20 @@ export function GameView({ slug, mode }: { slug: string; mode?: Difficulty }) {
     case "rush": return <RushApp slug={slug} title={g.title} />;
     case "sudoku": return <SudokuApp slug={slug} title={g.title} />;
     case "orbi": return <OrbiApp slug={slug} title={g.title} />;
+    case "trail": return <TrailApp slug={slug} title={g.title} />;
+    case "quilt": return <QuiltApp slug={slug} title={g.title} />;
+    case "glow": return <GlowApp slug={slug} title={g.title} />;
+    case "crown": return <CrownApp slug={slug} title={g.title} />;
+    case "tide": return <TideApp slug={slug} title={g.title} />;
+    case "vial": return <MoonvialApp slug={slug} title={g.title} />;
+    case "treat": return <TreatApp slug={slug} title={g.title} />;
+    case "sprout": return <SproutApp slug={slug} title={g.title} />;
+    case "relic": return <RelicApp slug={slug} title={g.title} />;
+    case "breeze": return <BreezeApp slug={slug} title={g.title} />;
+    case "picnic": return <PicnicApp slug={slug} title={g.title} />;
+    case "jade": return <JadeApp slug={slug} title={g.title} />;
+    case "nova": return <NovaApp slug={slug} title={g.title} />;
+    case "marble": return <MarbleApp slug={slug} title={g.title} />;
     default: return <Arcade slug={slug} />;
   }
 }
