@@ -34,7 +34,7 @@ export class Sky {
   private shoot = { t: -1, x: 0, y: 0, vx: 0, vy: 0 };
   private id: string;
 
-  constructor(public L: Look) {
+  constructor(public L: Look, private quality: "low" | "medium" | "high" = "high") {
     const r = makeRng(L.seed * 7 + 3);
     const id = (this.id = L.world.id);
     const night = L.night;
@@ -207,8 +207,10 @@ export class Sky {
     }
     // sun / moon
     const sx = W * L.mood.sunX, sy = H * (0.08 + L.mood.sunY * 0.5) + lift * 0.3;
-    const gs = Math.max(W, H) * (night > 0.5 ? 0.7 : 0.95);
-    c.globalCompositeOperation = "lighter"; c.globalAlpha = night > 0.5 ? 0.55 : 0.75;
+    const gs = Math.max(W, H) * (night > 0.5 ? 0.7 : 0.95) * (this.quality === "low" ? 0.6 : 1);
+    // (additive light is costly to draw on budget phones: a plain soft glow there)
+    if (this.quality !== "low") c.globalCompositeOperation = "lighter";
+    c.globalAlpha = (night > 0.5 ? 0.55 : 0.75) * (this.quality === "low" ? 0.7 : 1);
     c.drawImage(this.glow, sx - gs / 2, sy - gs / 2, gs, gs);
     c.globalCompositeOperation = "source-over"; c.globalAlpha = 1;
     if (this.body) {
@@ -249,6 +251,15 @@ export class Sky {
         if (s.t > 0.8) s.t = -1;
       }
     }
+  }
+
+  /** free the painted sprites now (a new stage is loading; don't wait for the garbage collector) */
+  dispose() {
+    const free = (c: HTMLCanvasElement | null) => { if (c) { c.width = 0; c.height = 0; } };
+    free(this.glow); free(this.stars); free(this.body); free(this.extra);
+    for (const c of this.cloudSprites) free(c);
+    for (const c of this.actorSprites) free(c);
+    this.cloudSprites = []; this.actorSprites = []; this.clouds = []; this.actors = [];
   }
 
   /** the world's mid-depth moving set pieces (gears, the Ferris wheel), drawn between the backdrop layers */

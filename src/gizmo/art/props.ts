@@ -112,6 +112,8 @@ export class PropArt {
     }
   }
   get(seed: number) { return this.sprites[seed % this.sprites.length]; }
+  /** free the painted sprites now (a new stage is loading) */
+  dispose() { for (const s2 of this.sprites) { s2.cv.width = 0; s2.cv.height = 0; } }
   /** world space (y up): a prop planted at (x, y) */
   draw(c: C, x: number, y: number, s: number, seed: number, flip: boolean) {
     const sp = this.get(seed);

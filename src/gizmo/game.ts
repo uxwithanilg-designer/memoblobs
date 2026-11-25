@@ -46,6 +46,8 @@ export interface GameOptions {
   paint: string; lives: number; coins: number;
   onHud: (h: Hud) => void; onEvent: (e: GameEvent) => void;
   onCoins: (total: number) => void; onLives: (n: number) => void; onCheckpoint: (stage: number, cp: number) => void;
+  /** the keyboard's gas / brake changed (the on-screen pedals light up with them) */
+  onKeys?: (gas: boolean, brake: boolean) => void;
 }
 
 /** where each backdrop layer's foot sits on screen (just about the ground line the camera keeps), by orientation */
@@ -108,8 +110,10 @@ export class Game {
     this.reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.resize();
     window.addEventListener("resize", this.resize);
-    window.addEventListener("keydown", this.onKey);
-    window.addEventListener("keyup", this.onKey);
+    window.addEventListener("keydown", this.onKey, true);
+    window.addEventListener("keyup", this.onKey, true);
+    window.addEventListener("message", this.onMsg);
+    window.addEventListener("blur", this.onBlur);
     this.gov = new FrameGovernor((s) => { this.govScale = s; this.resize(); }, 0.6);
     // QA and the art script (scripts/art/gizmo_art.py) look at the game through this
     (window as unknown as { __gizmo?: Game }).__gizmo = this;
@@ -136,9 +140,10 @@ export class Game {
     this.course = buildCourse(stage);
     this.look = lookFor(this.course.plan);
     const res = isPhone() ? 0.75 : 1;
+    this.freeArt();
     this.strips = paintBackdrop(this.look, res);
-    this.sky = new Sky(this.look);
-    this.art = new CourseArt(this.course, this.look);
+    this.sky = new Sky(this.look, this.quality);
+    this.art = new CourseArt(this.course, this.look, this.quality);
     this.props = new PropArt(this.look, isPhone() ? 0.8 : 1.2);
     const wc = (this.quality === "low" ? 50 : this.quality === "medium" ? 90 : 140) * (this.reduced ? 0.3 : 1);
     this.weather = new WeatherFx(this.look.world.weather, Math.round(wc), this.look.glow, this.look.night);
@@ -161,6 +166,14 @@ export class Game {
     this.snapCamera();
     this.pushHud();
     this.opts.onEvent({ k: "ride", id: this.course.vehicle.id, name: this.course.vehicle.name });
+  }
+
+  /** release the last stage's painted backdrops and sprites at once (long sessions, stage after stage) */
+  private freeArt() {
+    for (const st of this.strips) { st.canvas.width = 0; st.canvas.height = 0; }
+    this.strips = [];
+    this.sky?.dispose();
+    this.props?.dispose();
   }
 
   private place() {
@@ -220,24 +233,47 @@ export class Game {
     this.touch.gas = gas; this.touch.brake = brake;
     if ((gas || brake) && this.mode === "preview" && this.modeT > 0.35) this.skip();
   }
+  /** arrows and A/D (W/S too), on any keyboard layout (by key or by physical key) */
+  private static side(key: string, code: string): "gas" | "brake" | "" {
+    if (key === "ArrowRight" || key === "Right" || key === "ArrowUp" || key === "Up" || code === "ArrowRight" || code === "ArrowUp" || code === "KeyD" || code === "KeyW" || key === "d" || key === "D" || key === "w" || key === "W") return "gas";
+    if (key === "ArrowLeft" || key === "Left" || key === "ArrowDown" || key === "Down" || code === "ArrowLeft" || code === "ArrowDown" || code === "KeyA" || code === "KeyS" || key === "a" || key === "A" || key === "s" || key === "S") return "brake";
+    return "";
+  }
+  private key(key: string, code: string, down: boolean) {
+    const side = Game.side(key, code);
+    if (side) {
+      const was = this.keys[side];
+      this.keys[side] = down;
+      if (was !== down) this.opts.onKeys?.(this.keys.gas, this.keys.brake);
+    }
+    if (down && this.mode === "preview" && this.modeT > 0.35 && (side || key === " " || key === "Enter")) this.skip();
+    return side !== "" || key === " ";
+  }
   private onKey = (e: KeyboardEvent) => {
-    const down = e.type === "keydown";
-    const k = e.key;
-    if (k === "ArrowRight" || k === "d" || k === "D" || k === "ArrowUp" || k === "w" || k === "W") { this.keys.gas = down; e.preventDefault(); }
-    else if (k === "ArrowLeft" || k === "a" || k === "A" || k === "ArrowDown" || k === "s" || k === "S") { this.keys.brake = down; e.preventDefault(); }
-    else if (k === " ") e.preventDefault();
-    if (down && this.mode === "preview" && this.modeT > 0.35 && (this.keys.gas || this.keys.brake || k === " ")) this.skip();
+    if ((e.target as HTMLElement)?.closest?.("input,textarea,select")) return;
+    if (this.key(e.key, e.code, e.type === "keydown")) e.preventDefault();
   };
+  /** keys the game page passes in (focus was on the page around the game's frame) */
+  private onMsg = (e: MessageEvent) => {
+    const d = e.data as { type?: string; key?: string; code?: string; down?: boolean } | null;
+    if (e.origin !== window.location.origin || d?.type !== "momoblobs:key") return;
+    this.key(d.key ?? "", d.code ?? "", !!d.down);
+  };
+  /** the window lost focus: let go of the keys (a key released elsewhere never sends its keyup here) */
+  private onBlur = () => { if (this.keys.gas || this.keys.brake) { this.keys.gas = this.keys.brake = false; this.opts.onKeys?.(false, false); } };
 
   dispose() {
     this.stop();
     const w = window as unknown as { __gizmo?: Game };
     if (w.__gizmo === this) delete w.__gizmo;
     window.removeEventListener("resize", this.resize);
-    window.removeEventListener("keydown", this.onKey);
-    window.removeEventListener("keyup", this.onKey);
+    window.removeEventListener("keydown", this.onKey, true);
+    window.removeEventListener("keyup", this.onKey, true);
+    window.removeEventListener("message", this.onMsg);
+    window.removeEventListener("blur", this.onBlur);
     this.gov?.dispose?.();
     this.audio?.dispose();
+    this.freeArt();
     this.cv.remove();
   }
 
@@ -635,15 +671,17 @@ export class Game {
     // weather and the grade
     this.weather.draw(c, W, H, dt, t, (cam.x - this.lastCamX) * scale, (cam.y - this.lastCamY) * scale);
     this.lastCamX = cam.x; this.lastCamY = cam.y;
-    if (L.mood.tintAmt > 0) { c.fillStyle = rgba(L.mood.tint, L.mood.tintAmt * 0.22); c.fillRect(0, 0, W, H); }
-    if (!this.vignette) {
+    // (budget phones skip the two full-screen grading layers: the palette already carries the mood's tint)
+    const lite = this.quality === "low";
+    if (L.mood.tintAmt > 0 && !lite) { c.fillStyle = rgba(L.mood.tint, L.mood.tintAmt * 0.22); c.fillRect(0, 0, W, H); }
+    if (!this.vignette && !lite) {
       const vg = document.createElement("canvas"); vg.width = 256; vg.height = 256;
       const g = vg.getContext("2d")!, rg = g.createRadialGradient(128, 140, 80, 128, 140, 200);
       rg.addColorStop(0, "rgba(0,0,0,0)"); rg.addColorStop(1, `rgba(0,0,0,${0.24 + L.night * 0.2})`);
       g.fillStyle = rg; g.fillRect(0, 0, 256, 256);
       this.vignette = vg;
     }
-    c.drawImage(this.vignette, 0, 0, W, H);
+    if (this.vignette && !lite) c.drawImage(this.vignette, 0, 0, W, H);
     if (this.power.turbo > 0 || this.power.float > 0) {
       // a soft glow at the screen's edges in the power's colour
       const id = this.power.turbo > 0 ? "turbo" : "float";

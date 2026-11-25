@@ -31,7 +31,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "storm";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "wake" | "clash";
   host?: string;
 }
 
@@ -1622,7 +1622,7 @@ export const GAMES: Game[] = [
     short: "A 2D physics driving game through contraption courses: 600 stages, then endless remixes",
     tagline: "Seesaws, lifts, loops and wrecking balls — just don't flip.",
     description:
-      "Gizmo Drive is a free 2D physics driving game full of contraptions. Each stage is a long obstacle course of 9 to 24 gizmos with its own ride: drive Rivet's bouncy jeep, a long pickup, a monster truck, a tall double-decker bus, a tractor that loves wheelies, a flippy buggy, a hot rod or a moon bug, and get it to the finish flag without landing on the roof. Hold the right side to drive and the left side to brake and back up; in the air the same pedals tilt the car. The courses are packed with gizmos — seesaws, crumbling bridges, lifts and moving platforms you have to wait for, conveyor belts, launch pads, button gates and drawbridges, swinging wrecking balls, crushers, trapdoor bridges, spinning rollers, jump chains, rolling ball beds, loops, crate walls, fans, wobbly bridges, giant gears and ice slides — so speed control matters more than flooring it. Oil runs down as you drive, so grab the oil cans, and collect coins, star coins, hearts and power-ups: Turbo, a Helmet shield, a Coin magnet, Floaty jumps and Sticky tyres. Every stage opens with a fly-over of the course, has checkpoints, and when you cross the flag the next stage starts by itself. There are 600 stages across twelve worlds — Toybox Town, Candy Works, Hard Hat Heights, Sky Isles, Neon Grid, Glacier Lab, Scrapyard Sunset, Glowshroom Woods, Coral Deep, Clockwork Kingdom, Haunted Carnival and the low-gravity Orbit Station — each with its own painted backdrops, sky moods, music and sounds. After stage 600 the remix stages never end: every gizmo in the game can turn up, two worlds' scenery, rides and music are mixed, and twists like low gravity and turbo starts keep each one fresh. Spend coins on paint jobs in the garage; your stage and checkpoint are saved on your device.",
+      "Gizmo Drive is a free 2D physics driving game full of contraptions. Each stage is a long obstacle course of 18 to 48 gizmos with its own ride: drive Rivet's bouncy jeep, a long pickup, a monster truck, a tall double-decker bus, a tractor that loves wheelies, a flippy buggy, a hot rod or a moon bug, and get it to the finish flag without landing on the roof. Hold the right side to drive and the left side to brake and back up; in the air the same pedals tilt the car. The courses are packed with gizmos — seesaws, crumbling bridges, lifts and moving platforms you have to wait for, conveyor belts, launch pads, button gates and drawbridges, swinging wrecking balls, crushers, trapdoor bridges, spinning rollers, jump chains, rolling ball beds, loops, crate walls, fans, wobbly bridges, giant gears and ice slides — so speed control matters more than flooring it. Oil runs down as you drive, so grab the oil cans, and collect coins, star coins, hearts and power-ups: Turbo, a Helmet shield, a Coin magnet, Floaty jumps and Sticky tyres. Every stage opens with a fly-over of the course, has checkpoints, and when you cross the flag the next stage starts by itself. There are 600 stages across twelve worlds — Toybox Town, Candy Works, Hard Hat Heights, Sky Isles, Neon Grid, Glacier Lab, Scrapyard Sunset, Glowshroom Woods, Coral Deep, Clockwork Kingdom, Haunted Carnival and the low-gravity Orbit Station — each with its own painted backdrops, sky moods, music and sounds. After stage 600 the remix stages never end: every gizmo in the game can turn up, two worlds' scenery, rides and music are mixed, and twists like low gravity and turbo starts keep each one fresh. Spend coins on paint jobs in the garage; your stage and checkpoint are saved on your device.",
     status: "live",
     category: "racing",
     ages: "",
@@ -1657,6 +1657,49 @@ export const GAMES: Game[] = [
     released: "2026-11-25",
     art: "cover",
     engine: "gizmo",
+  },
+  {
+    slug: "rumble-rally",
+    title: "Rumble Rally",
+    short: "A 2D monster truck racing game: ram rivals, fire rockets, burn nitro over 600 races, then endless remixes",
+    tagline: "Race them, ram them, rocket them — first over the line wins.",
+    description:
+      "Rumble Rally is a free 2D monster truck racing game with real physics. Ziggy the fox lines up on the grid against three rival drivers, the five start lights go out and all four trucks charge over jumps, gaps, crests, rock steps, rope bridges, mud, ice and water. Hold the right side to drive and the left side to brake; in the air the same pedals tip the truck so it lands on its wheels. Burn nitro for a blast of speed, fire homing rockets that knock the truck ahead spinning, and ram rivals with your front bumper to shove them aside — but they ram and fire back, so grab a shield. Finish on the podium early on, in the top two later and win each world's final to move on; every finished race leads straight into the next one. Collect coins, oil cans to keep the tank full, hearts for extra lives and power-ups: Shield, Coin magnet, Coins ×2, a Rocket pack and Nitro cans. There are 600 races across twelve painted worlds — Dune Temples, Cinder Ruins, Polar Outpost, Neon Harbor, Canopy Falls, Scrapyard Arena, Sunset Boardwalk, Gold Rush Mine, Thunder Peaks, Candy Canyon, the low-gravity Red Planet and Cloud Isles — each with its own music, crowd, animals, times of day and weather, and twelve rivals with their own trucks and colours. After race 600 the remix races never end: two worlds blend together with twists like low gravity, nitro rushes, rocket frenzies, coin showers, night races and storms. Spend coins in the garage on five monster trucks and engine, nitro, rocket, absorber and armour upgrades. Your race is saved on your device, so you always come back to the same race.",
+    status: "live",
+    category: "racing",
+    ages: "",
+    accent: "#FF3D6E",
+    accent2: "#FFD23F",
+    cover: "/games/rumble-rally/card.webp",
+    hero: "/games/rumble-rally/cover.webp",
+    character: "/games/rumble-rally/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Rally tour", color: "#FF3D6E", desc: "600 races across 12 worlds, then endless remix races", coins: 0 },
+    ],
+    howTo: [
+      { title: "Drive and brake", text: "Hold the right side of the screen (or → / D) for gas and the left side (or ← / A) to brake. In the air, gas tips the nose up and brake tips it down — land on your wheels." },
+      { title: "Nitro and rockets", text: "Hold NITRO (Space) for a burst of speed and tap ROCKET (X) to fire a homing rocket at the truck ahead. Both refill as you race." },
+      { title: "Ram and block", text: "Hit rivals with your front bumper to shove them away. They ram and fire back — a Shield blocks one rocket." },
+      { title: "Finish high enough", text: "Finish on the podium, in the top two or first, as each race asks, to move on. Spend your coins on trucks and upgrades in the garage." },
+    ],
+    controls: [
+      { keys: "Hold right side", action: "Gas (tip back in the air)" },
+      { keys: "Hold left side", action: "Brake / reverse (tip forward in the air)" },
+      { keys: "NITRO / Space", action: "Nitro boost" },
+      { keys: "ROCKET / X", action: "Fire a homing rocket" },
+    ],
+    faq: [
+      { q: "Is Rumble Rally free?", a: "Yes. Rumble Rally is free to play in your browser with no sign-up and nothing to download." },
+      { q: "What kind of game is it?", a: "A 2D monster truck racing game with physics: four trucks race over jumps and rough ground, ram each other, fire rockets and use nitro to get to the finish line first." },
+      { q: "How many races are there?", a: "600 races across twelve worlds, and after that the remix races never end — each one mixes two worlds, rivals, times of day, weather and twists." },
+      { q: "What happens if I lose a race?", a: "If the rivals take the places you need, the race starts again by itself. Crashes cost a life and put you back on the track a little behind; hearts give extra lives." },
+      { q: "Does it work on phones?", a: "Yes. Rumble Rally is made for touch screens first — gas and nitro under your right thumb, brake and rockets under your left — and works with a keyboard on computers. Your race, coins and garage are saved on your device." },
+    ],
+    skills: ["Timing", "Balance", "Reflexes", "Strategy"],
+    released: "2026-11-25",
+    art: "cover",
+    engine: "rumble",
   },
   {
     slug: "blockstorm",
@@ -1700,6 +1743,95 @@ export const GAMES: Game[] = [
     released: "2026-11-25",
     art: "cover",
     engine: "storm",
+  },
+  {
+    slug: "wake-racers",
+    title: "Wake Racers",
+    short: "A 3D speedboat racing game: race rivals through 600 stages across twelve water worlds, then endless remixes",
+    tagline: "Full throttle on open water — jump the ramps, ride the falls, take the win.",
+    description:
+      "Wake Racers is a free 3D speedboat racing game. Pick up your boat, line up on the grid and race clay rivals down winding water courses: turquoise lagoons with palm islands and a lighthouse, a red rock canyon with stone arches and roaring waterfalls, a neon harbour at night, a glacier fjord under the northern lights, jade jungle rivers past temple ruins, lantern-lit canals, a blossom lake with red gates, lava isles, a stormy coast, an underground river of glowing crystals, a desert oasis and a neon racing bay. Every course is a long haul — from about 9 km on the first stage to 30 km later on — and every stage is a little harder than the one before. Steer through tight bends, launch off ramps and over waterfalls, hop over logs, dodge rocks, mines, sliding lock gates, whirlpools and crossing ferries, and hold nitro on the straights. Every stage is its own event: races where you need a podium place, knockouts where the last boat at each gate is out, checkpoint rushes against the clock, coin rushes, traffic runs, survival runs through hazards, docking runs that end in a glowing berth, and a one-on-one duel with each world's champion. Checkpoints along the way save your progress: wreck your boat or run dry and you can continue from the last one, and if you leave mid-race you come back to it. Collect coins, hearts to mend your hull, oil cans before your tank runs dry and ? boxes with powers: Turbo, Bubble Shield, Coin Magnet, Tidal Wave, Ghost Hull, Mega Hop and Ice Wake. Each race opens with a cinematic drone fly-over, big jumps and the finish line play in slow motion, the music changes with every world and stage, and the boats sound off around you. There are 600 stages across twelve worlds, and after that the remix stages never end, blending two worlds with twists like fog, night runs, rough water and turbo rivals. Spend coins on ten boats — a runabout, a jet ski, a catamaran, a hydroplane, a hovercraft, a tugboat, an offshore racer, a twin-V, a hydrofoil and a hover racer — tune their engine, handling and nitro, and paint them. Your stage is saved on your device, so you always come back to where you left off.",
+    status: "live",
+    category: "racing",
+    ages: "",
+    accent: "#19D3C5",
+    accent2: "#FFB547",
+    cover: "/games/wake-racers/card.webp",
+    hero: "/games/wake-racers/cover.webp",
+    character: "/games/wake-racers/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Water tour", color: "#19D3C5", desc: "600 stages across 12 worlds, then endless remix stages", coins: 0 },
+    ],
+    howTo: [
+      { title: "Steer", text: "Your boat speeds up by itself. Steer with the ◀ ▶ buttons (or ← → / A D). Hold BRAKE (↓ / S) to slow down; brake while turning for a power slide." },
+      { title: "Nitro and jumps", text: "Hold NITRO (Shift) for a burst of speed — it fills from coins, big jumps, power slides and near misses. Tap JUMP (Space) to hop over logs and debris." },
+      { title: "Coins, hearts, oil and powers", text: "Coins buy and tune boats. Hearts mend your hull, oil cans refill the tank, and ? boxes give a power — tap POWER (E) to use it." },
+      { title: "Win the event", text: "Each stage is a race, knockout, checkpoint rush, coin rush, traffic run, survival run, docking run or champion duel. Meet its goal to move on." },
+    ],
+    controls: [
+      { keys: "◀ ▶ / ← → / A D", action: "Steer" },
+      { keys: "BRAKE / ↓ / S", action: "Brake, reverse, power slide" },
+      { keys: "NITRO / Shift", action: "Nitro boost" },
+      { keys: "JUMP / Space", action: "Jump" },
+      { keys: "POWER / E", action: "Use your power" },
+    ],
+    faq: [
+      { q: "Is Wake Racers free?", a: "Yes. Wake Racers is free to play in your browser with no sign-up and nothing to download." },
+      { q: "What kind of game is it?", a: "A 3D speedboat racing game: race rival boats down winding water courses full of ramps, waterfalls and hazards, with a different event on every stage." },
+      { q: "How many stages are there?", a: "600 stages across twelve worlds, and after that the remix stages never end — each one blends two worlds with its own event and a twist." },
+      { q: "What if I run out of oil or hearts?", a: "Oil cans refill your tank and hearts mend your hull. If the tank runs dry or the hull is wrecked, continue from the last checkpoint, or restart the stage and tune your boat in the garage." },
+      { q: "How long is a race?", a: "Courses run from about 9 km on the first stage to 30 km later on, and every stage is a little harder than the last. Checkpoints save your place, so you can leave mid-race and continue later." },
+      { q: "Does it work on phones?", a: "Yes. Wake Racers is made for touch screens first — steer with your left thumb, nitro, jump, brake and power under your right — and works with a keyboard on computers. Your stage, coins and boats are saved on your device." },
+    ],
+    skills: ["Reflexes", "Steering", "Timing", "Planning"],
+    released: "2026-11-25",
+    art: "cover",
+    engine: "wake",
+  },
+  {
+    slug: "cube-clash",
+    title: "Cube Clash",
+    short: "A 3D block shooter with building: sky island battles, crystal wars, zombie nights and obby runs over 1,000 stages",
+    tagline: "Build the bridge, blast the rivals, knock them into the void.",
+    description:
+      "Cube Clash is a free 3D blocky shooter where you build as you fight. Your avatar carries a cube blaster that breaks blocks and knocks people back, a jetpack that runs on oil, and a pouch of building cubes — hold BUILD while you walk off an edge and a bridge appears under your feet. Every stage is a match: in Sky Clash you start on your own floating island and battle rivals who bridge across to you, knock them off their islands into the void; in Crystal Clash your team guards its crystal while you break the other teams' crystals, and a team without a crystal can't come back; in Zombie Night you hold a walled village against waves of shambling moss zombies, jelly hoppers and glowing wisps; in Obby Run you race a parkour course of jump pads, lava strips, ice, crumbling clouds and gaps you bridge by shooting targets; and every tenth stage a giant Titan stomps the arena, throws boulders and calls its mobs. Rivals have their own names, outfits and team colours, build their own bridges, pillar up to reach you and shoot back. Collect coins from knockouts, chests and gold ore, oil cans for the jetpack, cube packs, hearts, health packs and ? boxes with Rapid fire, a Boom blaster, a Bubble shield, a Mega magnet, Speed boots and Endless cubes. There are 1,000 stages across twenty maps — Meadow Isles, Sakura Heights, Sunset Mesa, Frost Peaks, Mushroom Grove, Magma Rocks, Candy Clouds, Pirate Bay, Jungle Ruins, Crystal Caverns, Neon Arcade, Harvest Farm, Haunted Isles, Sky Temple, Clockwork Isles, the low-gravity Moon Station, Coral Lagoon, Volcano Rim, Toy Town and the Aurora Realm — each with its own blocks, sky, the sea of clouds or ocean far below, weather, music and sounds. Each stage opens with a cinematic fly-over, and when a match is won the next one starts by itself; after stage 1,000 the remix matches never end. Spend coins in the Armory on blaster power, fire rate, the jetpack tank, armour, the cube pouch and the coin magnet, and on outfits like Astro, Kitty, Shadow, Corsair, Paladin, Robo and Starlock. Your stage is saved on your device, so you always come back to where you left off.",
+    status: "live",
+    category: "shoot",
+    ages: "",
+    accent: "#9CFFB4",
+    accent2: "#3D8BFF",
+    cover: "/games/cube-clash/card.webp",
+    hero: "/games/cube-clash/cover.webp",
+    character: "/games/cube-clash/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Match tour", color: "#9CFFB4", desc: "1,000 matches across 20 maps — Sky Clash, Crystal Clash, Zombie Night, Obby Run and Titan fights — then endless remixes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Move, aim and shoot", text: "On a phone, drag the left side to move, drag the right side to aim and hold FIRE. On a computer, use WASD, aim with the mouse and click to shoot." },
+      { title: "Build bridges", text: "Hold BUILD (right-click or E) to place cubes where you aim — or walk off an edge while holding it and a bridge forms under your feet." },
+      { title: "Knock them off", text: "Your blaster knocks people back. In Sky Clash, push your rivals off their islands into the void; break enemy crystals in Crystal Clash." },
+      { title: "Jetpack and oil", text: "Hold JUMP in the air to fire the jetpack — it can save you from a fall. It runs on oil, so grab the oil cans." },
+    ],
+    controls: [
+      { keys: "Left thumb / WASD", action: "Move (push the stick all the way, or hold Shift, to sprint)" },
+      { keys: "Right thumb / mouse", action: "Aim" },
+      { keys: "FIRE / left click", action: "Shoot" },
+      { keys: "BUILD / right click / E", action: "Place cubes and build bridges" },
+      { keys: "JUMP / Space", action: "Jump (hold in the air: jetpack)" },
+    ],
+    faq: [
+      { q: "Is Cube Clash free?", a: "Yes. Cube Clash is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Is it like MineFun.io?", a: "It's a blocky game in the same family: sky-island battles, crystal (bed-wars-style) team fights, zombie survival and obby parkour in a world of blocks. Cube Clash is a single-player shooter with its own characters, rival bots that build and fight, twenty maps and 1,000 stages with endless remixes." },
+      { q: "What are the game modes?", a: "Sky Clash (knock every rival into the void), Crystal Clash (break the enemy crystals, guard yours), Zombie Night (survive the waves), Obby Run (a parkour course to the finish flag) and a Titan fight every tenth stage." },
+      { q: "How do I build a bridge?", a: "Hold BUILD (right-click or E on a computer) and walk toward the gap: cubes appear under your feet as you go. You can also place cubes wherever you aim to build walls and stairs. Breaking blocks gives you cubes back." },
+      { q: "Does it work on phones?", a: "Yes. Cube Clash is made for touch screens first — a thumb stick, drag to aim, big FIRE, JUMP and BUILD buttons and optional auto-fire — and works with a keyboard and mouse on computers. Your stage, coins, upgrades and outfits are saved on your device." },
+    ],
+    skills: ["Aim", "Building", "Strategy", "Reflexes"],
+    released: "2026-11-26",
+    art: "cover",
+    engine: "clash",
   },
 ];
 

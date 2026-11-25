@@ -18,6 +18,8 @@ const SLOP = 0.004, BETA = 0.25, MAXFIX = 4;
 const fix = (v: number) => (v > MAXFIX ? MAXFIX : v < -MAXFIX ? -MAXFIX : v);
 const SPIN_DAMP = 0.5;
 const CELL = 2;
+/** bodies further than this from the car (m, plus their own size) sleep */
+const SLEEP = 55;
 const MAXC = 160;
 
 export const STATIC = 0, KINEMATIC = 1, PIVOT = 2, BALL = 3;
@@ -57,6 +59,8 @@ export class Body {
   /** the car touched it this step / launch pads: time of the last launch */
   touched = 0;
   breakSpeed = 0;
+  /** far from the car: not simulated this step (long courses stay cheap); a clocked body is drawn from its clock */
+  asleep = false;
   /** drawing hints (sizes, colours, skins) set by the course builder */
   d: Record<string, number> = {};
 }
@@ -177,7 +181,7 @@ export class World {
     for (const b of this.bodies) {
       const s = this.saved[b.id];
       b.x = s[0]; b.y = s[1]; b.a = s[2]; b.vx = s[3]; b.vy = s[4]; b.w = s[5];
-      b.trig = -1; b.touched = 0; b.on = true;
+      b.trig = -1; b.touched = 0; b.on = true; b.asleep = false;
       this.placeSegs(b);
     }
     for (const bt of this.buttons) bt.pressed = 0;
@@ -260,10 +264,14 @@ export class World {
     this.car = car;
     this.t += h;
     const t = this.t;
-    // ---- moving bodies
+    // ---- moving bodies (only the ones near the car: a long course has hundreds)
+    const cx0 = car.x;
     for (const b of this.movers) {
       if (!b.on) continue;
       const m = b.motion;
+      const near = Math.abs(b.x0 - cx0) < SLEEP + b.bound;
+      b.asleep = !(near || (m?.k === "fall" && b.trig >= 0));
+      if (b.asleep) { b.touched = 0; continue; }
       if (b.kind === KINEMATIC && m) {
         if (m.k === "fall") {
           if (b.trig >= 0 && t - b.trig > m.period) {
@@ -271,7 +279,8 @@ export class World {
             if (b.y < b.y0 - 40) b.on = false;
           }
         } else {
-          const ox = b.x, oy = b.y, oa = b.a;
+          // the pose from the clock, the velocity from the clock a step earlier (right even just after waking up)
+          const q0 = this.poseAt(b, t - h), ox = q0.x, oy = q0.y, oa = q0.a;
           const q = this.poseAt(b, t);
           b.x = q.x; b.y = q.y; b.a = q.a;
           b.vx = (b.x - ox) / h; b.vy = (b.y - oy) / h; b.w = (b.a - oa) / h;
@@ -289,7 +298,8 @@ export class World {
       b.touched = 0;
     }
     for (const b of this.balls) {
-      if (!b.on) continue;
+      b.asleep = Math.abs(b.x - cx0) > SLEEP;
+      if (!b.on || b.asleep) continue;
       b.vy -= g * h;
       b.vx *= 1 - 0.05 * h; b.vy *= 1 - 0.05 * h; b.w *= 1 - 0.3 * h;
     }
@@ -335,7 +345,7 @@ export class World {
     const hx = car.x + hd.x * ca - hd.y * sa, hy = car.y + hd.x * sa + hd.y * ca;
     this.gather(-3, hx, hy, hd.r, 0.4);
     if (this.cn > before) { if (car.shield) car.shieldHit = true; else car.headHit = true; }
-    for (const b of this.balls) if (b.on) this.gather(b.id, b.x, b.y, b.r, 0.7);
+    for (const b of this.balls) if (b.on && !b.asleep) this.gather(b.id, b.x, b.y, b.r, 0.7);
     // launch pads and breakables react to the car's first touch
     this.reactions(car);
 
@@ -359,13 +369,13 @@ export class World {
       if (a < 0 && a > -3 && this.cB[k] >= 0) car.onBody[-a - 1] = this.cB[k];
     }
     for (const b of this.movers) {
-      if (b.kind !== PIVOT || !b.on) continue;
+      if (b.kind !== PIVOT || !b.on || b.asleep) continue;
       b.a += b.w * h;
       if (b.a < b.lo) { b.a = b.lo; if (b.w < 0) b.w = -b.w * 0.25; }
       else if (b.a > b.hi) { b.a = b.hi; if (b.w > 0) b.w = -b.w * 0.25; }
     }
     for (const b of this.balls) {
-      if (!b.on) continue;
+      if (!b.on || b.asleep) continue;
       b.x += b.vx * h; b.y += b.vy * h; b.a += b.w * h;
       if (b.y < this.killY) b.on = false;
     }
@@ -431,7 +441,7 @@ export class World {
     }
     for (let q = 0; q < this.movers.length; q++) {
       const b = this.movers[q];
-      if (!b.on) continue;
+      if (!b.on || b.asleep) continue;
       const dx = cx - b.x, dy = cy - b.y, R = b.bound + r;
       if (dx * dx + dy * dy > R * R) continue;
       for (let s = 0; s < b.segs.length; s++) this.segHit(e, b.segs[s], cx, cy, r, mu);
@@ -445,7 +455,7 @@ export class World {
     }
     for (let q = 0; q < this.balls.length; q++) {
       const b = this.balls[q];
-      if (!b.on || b.id === e || (e >= 0 && b.id < e)) continue;
+      if (!b.on || b.asleep || b.id === e || (e >= 0 && b.id < e)) continue;
       this.circHit(e, b.id, cx, cy, r, b.x, b.y, b.r, mu);
     }
   }
@@ -697,11 +707,11 @@ export class Car {
     //  - balanced on one wheel (a wheelie, or the nose tipping over an edge), the car leans back towards the ground;
     //  - in the air with hands off the pedals, it slowly levels out to the angle of the ground it left
     const touching = this.touch[0] + this.touch[1];
-    this.w *= 1 - (touching ? 1.4 : SPIN_DAMP) * h;
+    this.w *= 1 - (touching ? 1.1 : SPIN_DAMP) * h;
     let rel = this.a - this.groundA;
     rel = Math.atan2(Math.sin(rel), Math.cos(rel));
-    if (touching === 1 && Math.abs(rel) > 0.18) this.w -= (rel - Math.sign(rel) * 0.18) * 7 * h;
-    else if (!touching && hold && this.airTime > 0.12) this.w -= (2 * rel + 0.9 * this.w) * h;
+    if (touching === 1 && Math.abs(rel) > 0.24) this.w -= (rel - Math.sign(rel) * 0.24) * 4.5 * h;
+    else if (!touching && hold && this.airTime > 0.15) this.w -= (1.2 * rel + 0.6 * this.w) * h;
   }
 
   private sideways = new Float64Array(2);

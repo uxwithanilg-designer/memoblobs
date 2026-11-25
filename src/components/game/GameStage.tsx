@@ -82,6 +82,24 @@ export function GameStage({ game: g }: { game: GameCard }) {
     return () => window.removeEventListener("message", on);
   }, [slug, stop]);
 
+  // while a game runs, keys pressed on the page around it (focus left the frame after a click outside it) go to the
+  // game: the arrows and WASD don't scroll the page, the key is passed into the frame, and the frame takes focus back
+  useEffect(() => {
+    if (!playing) return;
+    const KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "KeyA", "KeyD", "KeyW", "KeyS", "Space", "Enter"]);
+    const on = (e: KeyboardEvent) => {
+      if (!KEYS.has(e.code) || (e.target as HTMLElement)?.closest?.("input,textarea,select,button,a")) return;
+      const w = frame.current?.contentWindow;
+      if (!w) return;
+      e.preventDefault();
+      w.postMessage({ type: "momoblobs:key", key: e.key, code: e.code, down: e.type === "keydown" }, window.location.origin);
+      if (e.type === "keydown") w.focus();
+    };
+    window.addEventListener("keydown", on);
+    window.addEventListener("keyup", on);
+    return () => { window.removeEventListener("keydown", on); window.removeEventListener("keyup", on); };
+  }, [playing]);
+
   const share = async () => {
     const url = `${window.location.origin}/games/${slug}`;
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };

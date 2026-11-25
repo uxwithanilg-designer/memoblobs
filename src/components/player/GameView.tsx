@@ -43,8 +43,11 @@ const NovaApp = dynamic(() => import("@/nova/ui/NovaApp"), { ssr: false });
 const MarbleApp = dynamic(() => import("@/marble/ui/MarbleApp"), { ssr: false });
 const RoverApp = dynamic(() => import("@/rover/ui/RoverApp"), { ssr: false });
 const HaulApp = dynamic(() => import("@/haul/ui/HaulApp"), { ssr: false });
+const RumbleApp = dynamic(() => import("@/rumble/ui/RumbleApp"), { ssr: false });
 const GizmoApp = dynamic(() => import("@/gizmo/ui/GizmoApp"), { ssr: false });
+const WakeApp = dynamic(() => import("@/wake/ui/WakeApp"), { ssr: false });
 const StormApp = dynamic(() => import("@/storm/ui/StormApp"), { ssr: false });
+const ClashApp = dynamic(() => import("@/clash/ui/ClashApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 /** each engine's code (the same chunks the players below load) */
@@ -80,8 +83,11 @@ const ENGINE_CODE: Record<string, () => Promise<unknown>> = {
   marble: () => import("@/marble/ui/MarbleApp"),
   rover: () => import("@/rover/ui/RoverApp"),
   haul: () => import("@/haul/ui/HaulApp"),
+  rumble: () => import("@/rumble/ui/RumbleApp"),
   gizmo: () => import("@/gizmo/ui/GizmoApp"),
+  wake: () => import("@/wake/ui/WakeApp"),
   storm: () => import("@/storm/ui/StormApp"),
+  clash: () => import("@/clash/ui/ClashApp"),
   arcade: () => import("@/arcade/ArcadeHost"),
 };
 
@@ -147,8 +153,11 @@ export function GameView({ game: g, mode }: { game: Game; mode?: Difficulty }) {
     case "marble": return <MarbleApp slug={slug} title={g.title} />;
     case "rover": return <RoverApp slug={slug} title={g.title} />;
     case "haul": return <HaulApp slug={slug} title={g.title} />;
+    case "rumble": return <RumbleApp slug={slug} title={g.title} />;
     case "gizmo": return <GizmoApp slug={slug} title={g.title} />;
+    case "wake": return <WakeApp slug={slug} title={g.title} />;
     case "storm": return <StormApp slug={slug} title={g.title} />;
+    case "clash": return <ClashApp slug={slug} title={g.title} />;
     default: return <Arcade g={g} />;
   }
 }

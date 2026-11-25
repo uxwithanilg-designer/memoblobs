@@ -1,4 +1,4 @@
-// The stage plan. Stages 1–600 walk through the twelve worlds, 50 stages each. A stage is a long obstacle course (9 to 24 gizmos):
+// The stage plan. Stages 1–600 walk through the twelve worlds, 50 stages each. A stage is a long obstacle course (18 to 48 gizmos):
 // a ride (picked from the world's garage), a sky mood, a difficulty, and a list of contraptions. Each world brings in
 // its own contraptions one at a time over its first stages ("New gizmo!"), then mixes them with the classics (hills,
 // bumps, kickers, drops, steps); every 10th stage is a longer "big course" and the 50th the world's finale. After
@@ -95,7 +95,7 @@ export function stagePlan(n: number): StagePlan {
   const summit = local % 10 === 0, finale = local === STAGES_PER_WORLD;
   const within = (local - 1) / (STAGES_PER_WORLD - 1);
   const breather = local % 10 === 1 && local > 1 ? -0.07 : 0;
-  const difficulty = clamp(0.4 + 0.52 * within + 0.03 * wi + (summit ? 0.05 : 0) + breather + (r() - 0.5) * 0.06, 0.36, 1);
+  const difficulty = clamp(0.47 + 0.5 * within + 0.03 * wi + (summit ? 0.05 : 0) + breather + (r() - 0.5) * 0.06, 0.42, 1);
   // the world's gizmos arrive one by one (every second stage), then they all mix
   const sig = signature(w);
   // (the first world starts with three lessons in the basics)
@@ -108,14 +108,14 @@ export function stagePlan(n: number): StagePlan {
   if (n <= 3) vehicle = "jeep";
   const pool: [ModuleKind, number][] = [
     ...w.pool.filter(([k]) => allowed.has(k)),
-    ...BASIC.filter((k) => !w.pool.some(([q]) => q === k)).map((k) => [k, 0.8] as [ModuleKind, number]),
+    ...BASIC.filter((k) => !w.pool.some(([q]) => q === k)).map((k) => [k, 0.55] as [ModuleKind, number]),
   ];
-  // long courses: 9 gizmos at the start of a world, up to 24 on its finale
-  const count = clamp(3 * (3 + Math.floor(local / 12) + (summit ? 1 : 0) + (finale ? 1 : 0)), 9, 24);
+  // long courses: 18 gizmos at the start of a world, up to 48 on its finale
+  const count = clamp(6 * (3 + Math.floor(local / 12) + (summit ? 1 : 0) + (finale ? 1 : 0)), 18, 48);
   let modules = pickModules(r, pool, count, vehicle, fresh);
-  if (n === 1) modules = ["hills", "kicker", "bumps", "steps", "hills", "drop", "kicker", "bumps", "kicker"];
-  else if (n === 2) modules = ["bumps", "drop", "kicker", "hills", "steps", "kicker", "drop", "bumps", "hills", "kicker"];
-  else if (n === 3) modules = ["hills", "steps", "kicker", "drop", "bumps", "kicker", "hills", "drop", "steps", "kicker", "bumps", "drop"];
+  if (n === 1) modules = ["hills", "kicker", "bumps", "steps", "hills", "drop", "kicker", "bumps", "kicker", "steps", "hills", "kicker", "drop", "bumps", "steps", "kicker", "hills", "drop"];
+  else if (n === 2) modules = ["bumps", "drop", "kicker", "hills", "steps", "kicker", "drop", "bumps", "hills", "kicker", "steps", "drop", "kicker", "bumps", "hills", "steps", "kicker", "drop", "bumps", "kicker"];
+  else if (n === 3) modules = ["hills", "steps", "kicker", "drop", "bumps", "kicker", "hills", "drop", "steps", "kicker", "bumps", "drop", "hills", "kicker", "steps", "bumps", "drop", "kicker", "hills", "steps", "kicker", "bumps", "drop", "kicker"];
   const mood = n <= 3 ? 0 : (local * 2 + Math.floor(r() * 3)) % w.moods.length;
   return {
     n, world: w.id, blend: null, local, remix: 0, mood, seed: n * 104729 + 31, difficulty, modules, vehicle, summit, finale, twist: null,
@@ -152,9 +152,9 @@ function remixPlan(n: number): StagePlan {
   if (twist === "lowgrav" && w.gravity < 9) twist = "turbo";
   // difficulty swings in waves around a high level
   const wave = Math.sin(k * 0.55) * 0.5 + Math.sin(k * 0.13) * 0.5;
-  const difficulty = clamp(0.84 + 0.13 * wave + (r() - 0.5) * 0.06, 0.68, 1);
+  const difficulty = clamp(0.88 + 0.1 * wave + (r() - 0.5) * 0.06, 0.76, 1);
   const summit = k % 10 === 0;
-  const count = clamp(3 * (4 + Math.floor(r() * 4) + (summit ? 1 : 0)), 12, 24);
+  const count = clamp(6 * (4 + Math.floor(r() * 4) + (summit ? 1 : 0)), 24, 48);
   const modules = pickModules(r, [...merged.entries()], count, vehicle, null);
   let mood = Math.floor(r() * w.moods.length);
   if (twist === "night") mood = w.moods.reduce((best, m, i) => (m.night > w.moods[best].night ? i : best), 0);

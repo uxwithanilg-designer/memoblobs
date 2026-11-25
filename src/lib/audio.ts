@@ -104,6 +104,15 @@ export type ArcadeSfx =
   | "haul_upgrade" | "haul_buy" | "haul_whoosh" | "haul_flap" | "haul_rustle"
   | "haul_birdA" | "haul_birdB" | "haul_owl" | "haul_frog" | "haul_cricket" | "haul_gust" | "haul_stream" | "haul_bees" | "haul_hen"
   | "haul_sheep" | "haul_hawk" | "haul_chime" | "haul_bell" | "haul_saw" | "haul_lava" | "haul_radio" | "haul_crow" | "haul_duck"
+  // Cube Clash (scripts/gen_clash_audio.py)
+  | "clash_shoot" | "clash_boom" | "clash_hit" | "clash_hitBlock" | "clash_knock" | "clash_place" | "clash_breakSoft" | "clash_breakWood" | "clash_breakStone"
+  | "clash_breakGlass" | "clash_breakCube" | "clash_crumble" | "clash_collapse" | "clash_jet" | "clash_jetEmpty" | "clash_jump" | "clash_land" | "clash_fall"
+  | "clash_elim" | "clash_out" | "clash_respawn" | "clash_crystalHit" | "clash_crystalBreak" | "clash_crystalWarn" | "clash_zGrowl" | "clash_zHop" | "clash_zWisp"
+  | "clash_zDie" | "clash_orb" | "clash_titanRoar" | "clash_titanSlam" | "clash_pad" | "clash_checkpoint" | "clash_finish" | "clash_target" | "clash_bridge"
+  | "clash_coin" | "clash_gem" | "clash_oil" | "clash_heart" | "clash_health" | "clash_power" | "clash_cubes" | "clash_shield" | "clash_shieldPop" | "clash_go"
+  | "clash_clear" | "clash_worldClear" | "clash_stageStart" | "clash_wave" | "clash_beep" | "clash_tap" | "clash_open" | "clash_buy" | "clash_upgrade" | "clash_whoosh"
+  | "clash_birdA" | "clash_birdB" | "clash_wind" | "clash_gull" | "clash_owl" | "clash_crickets" | "clash_lava" | "clash_chimes" | "clash_frog" | "clash_beeps"
+  | "clash_bells" | "clash_crow" | "clash_bubbles"
   // Blockstorm (scripts/gen_storm_audio.py)
   | "storm_shoot" | "storm_shootDry" | "storm_rocket" | "storm_boom" | "storm_hit" | "storm_hitBlock" | "storm_breakSoft" | "storm_breakWood" | "storm_breakStone"
   | "storm_breakMetal" | "storm_breakGlass" | "storm_breakGloom" | "storm_collapse" | "storm_crumble" | "storm_coreBreak" | "storm_enemyDie" | "storm_enemyDieBig"
@@ -114,6 +123,14 @@ export type ArcadeSfx =
   | "storm_upgrade" | "storm_whoosh"
   | "storm_birdA" | "storm_birdB" | "storm_wind" | "storm_city" | "storm_owl" | "storm_crickets" | "storm_lava" | "storm_bubbles" | "storm_gull" | "storm_gears"
   | "storm_chimes" | "storm_frog" | "storm_goo" | "storm_beeps" | "storm_glitch" | "storm_drums" | "storm_crow"
+  // Rumble Rally (scripts/gen_rumble_audio.py)
+  | "rumble_coin" | "rumble_coinBig" | "rumble_gem" | "rumble_fuel" | "rumble_heart" | "rumble_power" | "rumble_nitro" | "rumble_shield" | "rumble_magnet"
+  | "rumble_rocketPick" | "rumble_launch" | "rumble_blast" | "rumble_hit" | "rumble_ram" | "rumble_shieldHit" | "rumble_land" | "rumble_landHard"
+  | "rumble_crash" | "rumble_checkpoint" | "rumble_overtake" | "rumble_passed" | "rumble_light" | "rumble_go" | "rumble_finish" | "rumble_win"
+  | "rumble_podium" | "rumble_lose" | "rumble_lifeLost" | "rumble_lowFuel" | "rumble_sputter" | "rumble_horn" | "rumble_crowd" | "rumble_cheer"
+  | "rumble_tap" | "rumble_open" | "rumble_upgrade" | "rumble_buy" | "rumble_whoosh" | "rumble_splash" | "rumble_mud" | "rumble_flap" | "rumble_rustle"
+  | "rumble_worldClear" | "rumble_gust" | "rumble_gull" | "rumble_crow" | "rumble_birdA" | "rumble_birdB" | "rumble_parrot" | "rumble_wave"
+  | "rumble_machine" | "rumble_shiphorn" | "rumble_drip" | "rumble_thunder" | "rumble_chime" | "rumble_radio" | "rumble_lava" | "rumble_bell"
   // Gizmo Drive (scripts/gen_gizmo_audio.py)
   | "gizmo_coin" | "gizmo_star" | "gizmo_fuel" | "gizmo_heart" | "gizmo_power" | "gizmo_turbo" | "gizmo_shield" | "gizmo_shieldPop" | "gizmo_magnet"
   | "gizmo_float" | "gizmo_grip" | "gizmo_land" | "gizmo_landHard" | "gizmo_bump" | "gizmo_crash" | "gizmo_splash" | "gizmo_checkpoint" | "gizmo_finish"
@@ -122,7 +139,15 @@ export type ArcadeSfx =
   | "gizmo_crumble" | "gizmo_clank" | "gizmo_loop" | "gizmo_swoosh" | "gizmo_stamp" | "gizmo_newGizmo" | "gizmo_amb_chime" | "gizmo_amb_whistle" | "gizmo_amb_cuckoo"
   | "gizmo_amb_bubble" | "gizmo_amb_pop" | "gizmo_amb_jackhammer" | "gizmo_amb_reverse" | "gizmo_amb_clank" | "gizmo_amb_gust" | "gizmo_amb_bird" | "gizmo_amb_zap" | "gizmo_amb_blip"
   | "gizmo_amb_crack" | "gizmo_amb_howl" | "gizmo_amb_creak" | "gizmo_amb_crow" | "gizmo_amb_owl" | "gizmo_amb_frog" | "gizmo_amb_whale" | "gizmo_amb_tick" | "gizmo_amb_steam"
-  | "gizmo_amb_bell" | "gizmo_amb_ghost" | "gizmo_amb_bat" | "gizmo_amb_radio" | "gizmo_amb_airlock";
+  | "gizmo_amb_bell" | "gizmo_amb_ghost" | "gizmo_amb_bat" | "gizmo_amb_radio" | "gizmo_amb_airlock"
+  // Wake Racers (scripts/gen_wake_audio.py)
+  | "wake_coin" | "wake_heart" | "wake_fuel" | "wake_box" | "wake_power" | "wake_turbo" | "wake_shield" | "wake_shieldPop" | "wake_magnet" | "wake_wave"
+  | "wake_ghost" | "wake_hop" | "wake_freeze" | "wake_splash" | "wake_splashBig" | "wake_land" | "wake_jump" | "wake_hit" | "wake_bump" | "wake_wall"
+  | "wake_mine" | "wake_smash" | "wake_pad" | "wake_nitro" | "wake_checkpoint" | "wake_timeAdd" | "wake_knockout" | "wake_finish" | "wake_lose" | "wake_go"
+  | "wake_beep" | "wake_overtake" | "wake_nearMiss" | "wake_lowFuel" | "wake_horn" | "wake_tap" | "wake_open" | "wake_buy" | "wake_whoosh" | "wake_wreck"
+  | "wake_docked" | "wake_cheer" | "wake_star" | "wake_unlock" | "wake_amb_gull" | "wake_amb_surf" | "wake_amb_parrot" | "wake_amb_whale" | "wake_amb_hawk" | "wake_amb_wind"
+  | "wake_amb_horn" | "wake_amb_bell" | "wake_amb_ice" | "wake_amb_frog" | "wake_amb_chime" | "wake_amb_lava" | "wake_amb_thunder" | "wake_amb_drip" | "wake_amb_synth" | "wake_amb_monkey"
+  | "wake_amb_crowd";
 
 /** "a:<arcade sfx>" or "v:<character>_<mood>" (file: /audio/arcade/voice_<x>.mp3) */
 export type Sound = SfxName | `a:${ArcadeSfx}` | `v:${string}`;

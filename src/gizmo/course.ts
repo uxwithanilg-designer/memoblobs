@@ -371,7 +371,7 @@ class Builder {
     const n = 4 + Math.floor(4 * d + this.r() * 2), pw = 1.85, gp = 0.05, th = 0.32;
     const x0 = this.x, y = this.y;
     this.cut();
-    const delay = clamp(0.75 - 0.35 * d, 0.38, 0.75);
+    const delay = clamp(0.72 - 0.38 * d, 0.34, 0.72);
     for (let i = 0; i < n; i++) {
       const b = this.kin(x0 + gp + i * (pw + gp) + pw / 2, y - th / 2, "plank", motion("fall", { period: delay }));
       this.rect(b, -pw / 2, -th / 2, pw / 2, th / 2, 0.05);
@@ -441,7 +441,7 @@ class Builder {
   spring() {
     const d = this.d, g = this.g;
     this.flat(7);
-    const Hs = this.R(3, 3.4 + 2.4 * d), pw = 2.6, y = this.y;
+    const Hs = this.R(3.2, 3.6 + 2.8 * d), pw = 2.6, y = this.y;
     const xp = this.x;
     this.pt(xp, y - 0.5); this.pt(xp + pw, y - 0.5); this.pt(xp + pw, y);
     const b = this.kin(xp + pw / 2, y - 0.25, "pad", null);
@@ -542,7 +542,7 @@ class Builder {
     const vPass = clamp(0.45 * this.V, 4, 5.5), ph0 = this.r();
     for (let i = 0; i < n; i++) {
       const ph = (((ph0 - (i * sp) / vPass / per) % 1) + 1) % 1;
-      const b = this.kin(x0 + i * sp, up, "stamper", motion("osc", { dy: -stroke, period: per, hold: 0.42, hold2: 0.12, phase: ph }));
+      const b = this.kin(x0 + i * sp, up, "stamper", motion("osc", { dy: -stroke, period: per, hold: 0.42 - 0.06 * d, hold2: 0.12, phase: ph }));
       this.rect(b, -bw / 2, 0, bw / 2, bh, 0.08);
       b.d = { w: bw, h: bh };
       ids.push(b.id);
@@ -607,7 +607,7 @@ class Builder {
     const len = this.R(14, 18 + 7 * d), amp = 0.16 + 0.24 * d;
     const x0 = this.x, y = this.y;
     for (let s = 0.5; s <= len + 1e-6; s += 0.5) this.pt(x0 + s, y + amp * Math.sin((Math.PI * s) / 3) ** 2 * clamp(Math.min(s, len - s) / 2, 0, 1));
-    const clear = y + amp + this.H + 0.55 + 0.45 * (1 - d);
+    const clear = y + amp + this.H + 0.5 + 0.4 * (1 - d);
     const pts = [x0 - 2.2, clear + 1.4, x0 - 0.2, clear, x0 + len + 0.2, clear, x0 + len + 2.2, clear + 1.4, x0 + len + 2.2, clear + 6, x0 - 2.2, clear + 6];
     this.w.poly(this.b0, pts, true);
     this.solids.push({ pts, top: [], kind: "ceiling" });
@@ -646,9 +646,11 @@ class Builder {
     this.flat(8);
     const Wf = this.R(8, 8 + 6 * d), x0 = this.x, y = this.y;
     this.cut();
-    const rise = this.r() < 0.4 ? this.R(0.4, 1.4) : 0;
+    // a step up on the far side only where the updraft lifts the car fast enough to clear it (not in low gravity)
+    const rise = this.r() < 0.4 && g >= 9 ? this.R(0.4, 1.4) : 0;
     const top = 2.6 + rise;
-    this.w.winds.push({ x0: x0 + 0.2, x1: x0 + Wf - 0.2, y0: y - 14, y1: y + top, ax: 0, ay: g * 1.32 });
+    // the fans lean forward a little, so a car that stalls over them drifts on to the far side (never hovers for ever)
+    this.w.winds.push({ x0: x0 + 0.2, x1: x0 + Wf - 0.2, y0: y - 14, y1: y + top, ax: 0.9, ay: g * 1.32 });
     this.pit(x0, x0 + Wf, y, 4.2);
     this.deco("fans", x0, y - 3.6, Wf, top + 3.6);
     this.moveTo(x0 + Wf, y + rise);

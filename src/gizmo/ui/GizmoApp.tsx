@@ -71,6 +71,7 @@ export default function GizmoApp({ slug }: { slug: string; title: string }) {
   const [toast, setToast] = useState<{ id: number; text: string; color: string } | null>(null);
   const [result, setResult] = useState<StageStats | null>(null);
   const [pedal, setPedal] = useState({ gas: false, brake: false });
+  const [keyPedal, setKeyPedal] = useState({ gas: false, brake: false });
   const host = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Game | null>(null);
   const coinsRef = useRef(0);
@@ -158,6 +159,7 @@ export default function GizmoApp({ slug }: { slug: string; title: string }) {
       onCoins: (n) => { coinsRef.current = n; if (!flush) flush = setTimeout(() => { flush = null; useGizmo.getState().setCoins(coinsRef.current); }, 900); },
       onLives: (n) => useGizmo.getState().setLives(n),
       onCheckpoint: (st, cp) => useGizmo.getState().reach(st, cp),
+      onKeys: (gas, brake) => setKeyPedal({ gas, brake }),
     });
     gameRef.current = g;
     g.load(s.stage, s.checkpoint, "attract");
@@ -190,6 +192,8 @@ export default function GizmoApp({ slug }: { slug: string; title: string }) {
     sfx("tap");
     setSheet("");
     setScreen("play");
+    // keyboard focus belongs to the game (inside a game page's frame too)
+    window.focus();
     const s = useGizmo.getState();
     g.load(s.stage, s.checkpoint, "preview");
     g.play();
@@ -248,6 +252,23 @@ export default function GizmoApp({ slug }: { slug: string; title: string }) {
   }, [applyPedals]);
   const up = useCallback((e: React.PointerEvent) => { pointers.current.delete(e.pointerId); applyPedals(); }, [applyPedals]);
 
+  // the keyboard on the menus: → / D / Enter / Space plays the stage, and on the stage-clear card moves on
+  const nextRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    const on = (e: KeyboardEvent | { key: string; code: string; down: boolean }) => {
+      const down = "type" in e ? e.type === "keydown" : e.down;
+      if (!down) return;
+      const go = e.key === "Enter" || e.key === " " || e.key === "ArrowRight" || e.code === "ArrowRight" || e.code === "KeyD";
+      if (!go || sheet) return;
+      if (screen === "home" && gameReady) { if ("preventDefault" in e) e.preventDefault(); play(); }
+      else if (screen === "play" && result) { if ("preventDefault" in e) e.preventDefault(); nextRef.current(); }
+    };
+    const onMsg = (m: MessageEvent) => { if (m.origin === window.location.origin && m.data?.type === "momoblobs:key") on({ key: m.data.key ?? "", code: m.data.code ?? "", down: !!m.data.down }); };
+    window.addEventListener("keydown", on);
+    window.addEventListener("message", onMsg);
+    return () => { window.removeEventListener("keydown", on); window.removeEventListener("message", onMsg); };
+  }, [screen, sheet, result, gameReady, play]);
+
   // ---------------------------------------------------------------- render
   const plan = stagePlan(save.stage);
   const acc = hud?.accent ?? worldOf(plan.world).accent;
@@ -255,7 +276,7 @@ export default function GizmoApp({ slug }: { slug: string; title: string }) {
   const stars = save.stars.reduce((a, b) => a + b, 0);
 
   return (
-    <div className="gz-root" style={{ ["--acc" as string]: acc }} data-slug={slug}>
+    <div className="gz-root" style={{ ["--acc" as string]: acc }} data-slug={slug} onPointerDown={() => window.focus()}>
       <style>{GIZMO_CSS}</style>
       <div ref={host} className="gz-stage" />
 
@@ -344,16 +365,16 @@ export default function GizmoApp({ slug }: { slug: string; title: string }) {
               <div className="gz-zone" data-side="brake" style={{ left: 0 }} onPointerDown={down} onPointerUp={up} onPointerCancel={up} onPointerLeave={up} />
               <div className="gz-zone" data-side="gas" style={{ right: 0 }} onPointerDown={down} onPointerUp={up} onPointerCancel={up} onPointerLeave={up} />
               <div className="gz-pedals">
-                <div className={`gz-pedal brake ${pedal.brake ? "on" : ""}`} data-side="brake" onPointerDown={down} onPointerUp={up} onPointerCancel={up}>
+                <div className={`gz-pedal brake ${pedal.brake || keyPedal.brake ? "on" : ""}`} data-side="brake" onPointerDown={down} onPointerUp={up} onPointerCancel={up}>
                   <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
                   <small>BRAKE</small>
                 </div>
-                <div className={`gz-pedal gas ${pedal.gas ? "on" : ""}`} data-side="gas" onPointerDown={down} onPointerUp={up} onPointerCancel={up}>
+                <div className={`gz-pedal gas ${pedal.gas || keyPedal.gas ? "on" : ""}`} data-side="gas" onPointerDown={down} onPointerUp={up} onPointerCancel={up}>
                   <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5l7 7-7 7" /></svg>
                   <small>GAS</small>
                 </div>
               </div>
-              {!touchDevice && <div className="gz-keys gz-panel"><kbd>←</kbd><kbd>A</kbd> brake · <kbd>→</kbd><kbd>D</kbd> gas · in the air they tilt</div>}
+              {!touchDevice && <div className="gz-keys gz-panel"><kbd>←</kbd> / <kbd>A</kbd> brake · <kbd>→</kbd> / <kbd>D</kbd> gas · in the air they tilt</div>}
             </>
           )}
           <AnimatePresence>
@@ -386,7 +407,7 @@ export default function GizmoApp({ slug }: { slug: string; title: string }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>{result && <ResultCard key={result.stage} r={result} onNext={next} onHome={home} onRetry={restart} />}</AnimatePresence>
+      <AnimatePresence>{result && <ResultCard key={result.stage} r={result} onNext={next} onHome={home} onRetry={restart} nextRef={nextRef} />}</AnimatePresence>
 
       <AnimatePresence>
         {sheet && (
@@ -412,7 +433,7 @@ export default function GizmoApp({ slug }: { slug: string; title: string }) {
 }
 
 // ------------------------------------------------------------------ the stage-clear card: moves on by itself
-function ResultCard({ r, onNext, onHome, onRetry }: { r: StageStats; onNext: () => void; onHome: () => void; onRetry: () => void }) {
+function ResultCard({ r, onNext, onHome, onRetry, nextRef }: { r: StageStats; onNext: () => void; onHome: () => void; onRetry: () => void; nextRef: React.MutableRefObject<() => void> }) {
   const worldDone = r.stage % STAGES_PER_WORLD === 0 && r.stage <= DESIGNED_STAGES;
   const secs = worldDone ? 6 : 4;
   const [left, setLeft] = useState(secs);
@@ -425,6 +446,8 @@ function ResultCard({ r, onNext, onHome, onRetry }: { r: StageStats; onNext: () 
   }, [hold]);
   const fired = useRef(false);
   useEffect(() => { if (left <= 0 && !fired.current) { fired.current = true; onNext(); } }, [left, onNext]);
+  // Enter / → on the keyboard moves on at once
+  useEffect(() => { nextRef.current = () => { if (!fired.current) { fired.current = true; onNext(); } }; return () => { nextRef.current = () => {}; }; }, [nextRef, onNext]);
   const mins = Math.floor(r.time / 60), s = Math.round(r.time % 60);
   return (
     // the wrapper centres the card (the card's own transform belongs to its pop-in animation)

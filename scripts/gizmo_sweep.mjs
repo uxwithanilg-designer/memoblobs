@@ -91,6 +91,7 @@ for (let n = from; n <= to; n += step) {
   const r = drive(n);
   rows.push(r);
   const pl = r.c.plan;
+  if (process.env.SPANS && !r.ok) console.log("   " + r.c.modules.map((m) => `${m.k}@${Math.round(m.x0)}-${Math.round(m.x1)}`).join(" "));
   console.log(`${String(n).padStart(4)} ${pl.world.padEnd(9)} ${pl.vehicle.padEnd(7)} d=${pl.difficulty.toFixed(2)} len=${Math.round(r.c.finish.x)} [${pl.modules.join(",")}]  ${r.ok ? "finished" : `NOT FINISHED (at ${r.x} m)`}  ${r.t.toFixed(0)}s crashes=${r.crashes}${r.crashes ? " " + JSON.stringify(r.why) : ""}${r.nan ? "  NaN!" : ""}`);
 }
 const ok = rows.filter((r) => r.ok).length;

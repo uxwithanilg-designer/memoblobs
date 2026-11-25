@@ -24,7 +24,8 @@ export class CourseArt {
   private id: string;
   /** checkpoints passed (flags turn green) */
   cpPassed = 0;
-  constructor(private course: Course, private L: Look) {
+  /** "low" (budget phones) skips the texture and the cap's clipped shadow; "medium" draws a cheaper shadow */
+  constructor(private course: Course, private L: Look, private quality: "low" | "medium" | "high" = "high") {
     this.id = L.world.id;
     for (const s of course.solids) {
       const path = new Path2D();
@@ -170,12 +171,14 @@ export class CourseArt {
         else { sa.grad.addColorStop(0, gr.body[0]); sa.grad.addColorStop(1, gr.body[1]); }
       }
       c.fillStyle = sa.grad; c.fill(sa.path);
-      if (this.pattern && s.kind !== "ice") { c.globalAlpha = 0.9; c.fillStyle = this.pattern; c.fill(sa.path); c.globalAlpha = 1; }
+      if (this.pattern && s.kind !== "ice" && this.quality !== "low") { c.globalAlpha = 0.9; c.fillStyle = this.pattern; c.fill(sa.path); c.globalAlpha = 1; }
       // the shade a cap casts on the block below it
-      if (sa.top) {
+      if (sa.top && this.quality === "high") {
         c.save(); c.clip(sa.path);
         c.translate(0, -0.42); c.strokeStyle = rgba("#000000", 0.2); c.lineWidth = 1.2; c.lineJoin = "round"; c.stroke(sa.top);
         c.restore();
+      } else if (sa.top && this.quality === "medium") {
+        c.save(); c.translate(0, -0.36); c.strokeStyle = rgba("#000000", 0.14); c.lineWidth = 0.5; c.lineJoin = "round"; c.stroke(sa.top); c.restore();
       }
       c.strokeStyle = gr.edge; c.lineWidth = 0.07; c.lineJoin = "round"; c.stroke(sa.path);
       if (s.kind === "ceiling") {
@@ -388,7 +391,9 @@ export class CourseArt {
     for (const b of W.bodies) {
       if (b.id === 0 || !b.on || !b.tag) continue;
       if (b.x + b.bound + 1 < v.x0 || b.x - b.bound - 1 > v.x1) continue;
-      c.save(); c.translate(b.x, b.y); c.rotate(b.a);
+      c.save();
+      if (b.asleep && b.motion && b.motion.k !== "fall") { const q = W.poseAt(b, W.t); c.translate(q.x, q.y); c.rotate(q.a); }
+      else { c.translate(b.x, b.y); c.rotate(b.a); }
       switch (b.tag) {
         case "seesaw": case "tilt": this.plank(c, b, b.d.len ?? 8, b.tag === "tilt" ? 0.28 : b.d.th ?? 0.24, true); break;
         case "plank": this.collapsePlank(c, b, t, W.t); break;

@@ -192,6 +192,22 @@ export const GAME_SEO: Record<string, GameSeo> = {
     description: "Drive a wobbly car over seesaws, lifts, loops and wrecking balls to the finish flag without flipping. A free 2D physics driving game — play in your browser.",
     keywords: ["physics driving game", "car physics game", "drive without flipping", "obstacle course car game", "2d driving game", "contraption car game", "stunt car levels game"],
   },
+  "wake-racers": {
+    title: "Wake Racers — Free 3D Speedboat Racing Game, 600+ Stages",
+    description: "Race speedboats through lagoons, canyons, neon harbours and glacier fjords: jump ramps, ride waterfalls and beat the pack. A free 3D boat racing game — play in your browser.",
+    keywords: ["boat racing game", "speedboat game", "3d boat game", "jet ski racing", "water racing game", "boat driving game", "powerboat racing online"],
+  },
+  "rumble-rally": {
+    title: "Rumble Rally — Free Monster Truck Racing Game with Rockets & Nitro, 600+ Races",
+    description: "Race three rival monster trucks, ram them, fire homing rockets and burn nitro to the finish line. A free 2D monster truck racing game — play in your browser.",
+    keywords: ["monster truck racing game", "monster truck race", "truck racing game", "2d monster truck game", "racing game with rockets", "nitro truck race", "monster truck challenge game"],
+  },
+  "cube-clash": {
+    title: "Cube Clash — Free 3D Sky Wars Block Shooter",
+    description: "Bridge between sky islands, knock rivals into the void, break enemy crystals and survive zombie nights in a free 3D block shooter. Play in your browser.",
+    keywords: ["sky wars game", "bed wars game online", "block shooter game", "3d block building game", "build and shoot game", "obby parkour game", "zombie survival block game", "blocky io style game"],
+    updated: "2026-11-26",
+  },
   blockstorm: {
     title: "Blockstorm — Free 3D Pixel Block Shooter, 1000+ Stages",
     description: "Blast blocky monsters and tear block towers down onto them in a free 3D pixel shooter with bosses, friends and 1000+ stages. Play in your browser.",
