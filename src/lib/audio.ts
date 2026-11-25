@@ -104,6 +104,16 @@ export type ArcadeSfx =
   | "haul_upgrade" | "haul_buy" | "haul_whoosh" | "haul_flap" | "haul_rustle"
   | "haul_birdA" | "haul_birdB" | "haul_owl" | "haul_frog" | "haul_cricket" | "haul_gust" | "haul_stream" | "haul_bees" | "haul_hen"
   | "haul_sheep" | "haul_hawk" | "haul_chime" | "haul_bell" | "haul_saw" | "haul_lava" | "haul_radio" | "haul_crow" | "haul_duck"
+  // Blockstorm (scripts/gen_storm_audio.py)
+  | "storm_shoot" | "storm_shootDry" | "storm_rocket" | "storm_boom" | "storm_hit" | "storm_hitBlock" | "storm_breakSoft" | "storm_breakWood" | "storm_breakStone"
+  | "storm_breakMetal" | "storm_breakGlass" | "storm_breakGloom" | "storm_collapse" | "storm_crumble" | "storm_coreBreak" | "storm_enemyDie" | "storm_enemyDieBig"
+  | "storm_growl" | "storm_growlBig" | "storm_hop" | "storm_flap" | "storm_spit" | "storm_splat" | "storm_fuse" | "storm_swing" | "storm_slam" | "storm_hurt"
+  | "storm_die" | "storm_jump" | "storm_land" | "storm_coin" | "storm_gem" | "storm_oil" | "storm_heart" | "storm_health" | "storm_power" | "storm_shield"
+  | "storm_shieldPop" | "storm_ally" | "storm_arrow" | "storm_sword" | "storm_punch" | "storm_bossRoar" | "storm_warn" | "storm_go" | "storm_clear"
+  | "storm_worldClear" | "storm_stageStart" | "storm_lowOil" | "storm_freed" | "storm_beaconHit" | "storm_rift" | "storm_tap" | "storm_open" | "storm_buy"
+  | "storm_upgrade" | "storm_whoosh"
+  | "storm_birdA" | "storm_birdB" | "storm_wind" | "storm_city" | "storm_owl" | "storm_crickets" | "storm_lava" | "storm_bubbles" | "storm_gull" | "storm_gears"
+  | "storm_chimes" | "storm_frog" | "storm_goo" | "storm_beeps" | "storm_glitch" | "storm_drums" | "storm_crow"
   // Gizmo Drive (scripts/gen_gizmo_audio.py)
   | "gizmo_coin" | "gizmo_star" | "gizmo_fuel" | "gizmo_heart" | "gizmo_power" | "gizmo_turbo" | "gizmo_shield" | "gizmo_shieldPop" | "gizmo_magnet"
   | "gizmo_float" | "gizmo_grip" | "gizmo_land" | "gizmo_landHard" | "gizmo_bump" | "gizmo_crash" | "gizmo_splash" | "gizmo_checkpoint" | "gizmo_finish"

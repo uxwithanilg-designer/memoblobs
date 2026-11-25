@@ -1,12 +1,13 @@
 // The shelves (categories), in menu order. Small and shared by every page (menus, footer, search); the games themselves
 // are in src/lib/games.ts. Each game sits on exactly one shelf.
 
-export type Category = "runner" | "adventure" | "racing" | "puzzle" | "brain" | "memory" | "focus" | "reflex" | "numbers";
+export type Category = "runner" | "adventure" | "racing" | "shoot" | "puzzle" | "brain" | "memory" | "focus" | "reflex" | "numbers";
 
 export const CATEGORIES: { id: Category; label: string; emoji: string; blurb: string }[] = [
   { id: "runner", label: "Runner", emoji: "🏃", blurb: "Endless 3D runs: swipe, dodge, roll and dash as fast as you can." },
   { id: "adventure", label: "Adventure", emoji: "🗺️", blurb: "Big 3D worlds to climb, bounce, blast and march through, stage after stage." },
   { id: "racing", label: "Racing", emoji: "🏎️", blurb: "3D car, drift, highway and motorbike races with nitro and 30+ rides." },
+  { id: "shoot", label: "Shooting", emoji: "🎯", blurb: "Aim, blast and tear things down: shooters with monsters, bosses and blocks that break." },
   { id: "puzzle", label: "Puzzle", emoji: "🧩", blurb: "Slide, squish, connect and solve — puzzles that make you plan ahead." },
   { id: "brain", label: "Brain", emoji: "🧠", blurb: "Logic, patterns and odd-one-out teasers that make you think." },
   { id: "memory", label: "Memory", emoji: "💡", blurb: "Watch, remember and repeat — sequences, pairs and orders." },

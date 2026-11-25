@@ -4,7 +4,7 @@ import { Box, Clock, Flame, LayoutGrid, Sparkles, Bookmark } from "lucide-react"
 import { ListHeader } from "@/components/ui/ListHeader";
 import { CategoryTiles } from "@/components/home/CategoryTiles";
 
-export const metadata: Metadata = { title: "Game Categories", description: "Browse MOMOBLOBS games by category: action, adventure, racing, brain, puzzle, memory, focus, speed and number games.", alternates: { canonical: "/categories" } };
+export const metadata: Metadata = { title: "Game Categories", description: "Browse MOMOBLOBS games by category: action, adventure, racing, shooting, brain, puzzle, memory, focus, speed and number games.", alternates: { canonical: "/categories" } };
 
 const LISTS = [
   { href: "/top", label: "Top picks", icon: Flame, color: "#FF8A3D" },

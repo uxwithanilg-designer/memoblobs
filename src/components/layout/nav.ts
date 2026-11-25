@@ -1,6 +1,6 @@
 import {
   Box, Brain, CarFront, Calculator, Clock, Compass, Crosshair, Flame, Gamepad2, House, Layers, Puzzle, Settings,
-  Sparkles, Bookmark, Trophy, UserRound, Users, Zap, Footprints, type LucideIcon,
+  Sparkles, Bookmark, Trophy, UserRound, Users, Zap, Footprints, Target, type LucideIcon,
 } from "lucide-react";
 import type { Category } from "@/lib/game-index";
 
@@ -20,6 +20,7 @@ export const CATEGORY_ICON: Record<Category, { icon: LucideIcon; color: string }
   runner: { icon: Footprints, color: "#FF9AC3" },
   adventure: { icon: Compass, color: "#74C94E" },
   racing: { icon: CarFront, color: "#5BB5FF" },
+  shoot: { icon: Target, color: "#FF5A5A" },
   puzzle: { icon: Puzzle, color: "#9FB8FF" },
   brain: { icon: Brain, color: "#D2A8FF" },
   memory: { icon: Layers, color: "#2EC4B6" },

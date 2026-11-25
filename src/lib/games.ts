@@ -31,7 +31,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "storm";
   host?: string;
 }
 
@@ -1657,6 +1657,49 @@ export const GAMES: Game[] = [
     released: "2026-11-25",
     art: "cover",
     engine: "gizmo",
+  },
+  {
+    slug: "blockstorm",
+    title: "Blockstorm",
+    short: "A 3D pixel block shooter: blast monsters and tear block towers down over 1,000 stages, then endless remixes",
+    tagline: "Blast the monsters, tear the blocks down — and watch the towers fall.",
+    description:
+      "Blockstorm is a free 3D blocky shooter where every block can be broken. Play as Rook, a pixel ranger with a blaster, on floating islands built entirely of blocks, and fight off the gloom monsters pouring out of glowing rifts: hopping cubelings, grumblers that dig through walls to reach you, diving batbits, spitters that lob goo from a distance, fusebugs that blow up (and take their friends with them) and huge wall-smashing brutes. Shoot a tower's base and everything above it comes crashing down onto the monsters below; red barrels explode and chain into each other. Every stage has its own goal — defeat the monsters, topple the gloom totems by breaking their glowing cores, wreck a gloom fortress, defend the beacon, free your caged friends, or beat a giant golem boss every ten stages. Your blaster runs on oil, so grab the oil cans; collect coins, gems, hearts, health packs and ? boxes with power-ups: Rapid fire, Triple shot, a Rocket blaster that blows blocks apart, a Shield, a Mega magnet and Call a friend, who jumps in as an archer, a knight or a brawler. There are 1,000 stages across twenty worlds — Grassy Isle, Sunbaked Dunes, Neon City, Frostbite Peaks, Mushroom Marsh, Lava Forge, Candy Cliffs, Coral Reef, Haunted Hollow, Sky Ruins, Crystal Caverns, Jungle Temple, Amber Woods, Cyber Grid, Pirate Cove, Clockwork Factory, Blossom Garden, the low-gravity Moon Base, Toxic Wastes and the Glitch Core — each with its own blocks, skyline, weather, times of day, ambience and music. Each stage opens with a cinematic fly-over, and when it's done the camera rises into the sky and the next island starts by itself. After stage 1,000 the remixes never end, mixing two worlds with twists like night raids, fog, giant monsters, swarms, gold rushes and storms. Spend coins in the Armory on blaster power, fire rate, oil tank, armour and coin magnet upgrades, and on new hero suits. Your stage is saved on your device, so you always come back to where you left off.",
+    status: "live",
+    category: "shoot",
+    ages: "",
+    accent: "#7CF5FF",
+    accent2: "#FFD23F",
+    cover: "/games/blockstorm/card.webp",
+    hero: "/games/blockstorm/cover.webp",
+    character: "/games/blockstorm/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Island tour", color: "#7CF5FF", desc: "1,000 stages across 20 worlds, then endless remixes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Move and aim", text: "On a phone, drag the left side to move and the right side to look. On a computer, use WASD to move and click to aim with the mouse." },
+      { title: "Shoot and tear down", text: "Hold FIRE (or click) to shoot. Blocks break, and anything left hanging falls — bring towers down on the monsters below." },
+      { title: "Meet the goal", text: "Defeat the monsters, topple the totems' glowing cores, wreck the gloom fortress, defend the beacon, free your friends or beat the boss." },
+      { title: "Oil, coins and powers", text: "Your blaster runs on oil — grab the cans. Coins buy upgrades and hero suits; ? boxes hold power-ups." },
+    ],
+    controls: [
+      { keys: "Left thumb / WASD", action: "Move (push the stick all the way, or hold Shift, to sprint)" },
+      { keys: "Right thumb / mouse", action: "Look and aim" },
+      { keys: "FIRE / left click", action: "Shoot" },
+      { keys: "JUMP / Space", action: "Jump" },
+    ],
+    faq: [
+      { q: "Is Blockstorm free?", a: "Yes. Blockstorm is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Is it like Tear Blocks Down?", a: "It's a blocky shooter in the same family: shoot monsters and blocks on maps made of blocks. Blockstorm has its own hero, monsters, friends and twenty worlds, with 1,000 stages that each have a goal, and endless remixes after that." },
+      { q: "How many stages are there?", a: "1,000 stages across twenty worlds, and after that the remix stages never end — each one mixes two worlds, goals and twists like night raids, fog, giant monsters and swarms." },
+      { q: "Can I break everything?", a: "Almost: every block on the island can be broken except the bedrock floor. Anything that loses its support falls and smashes, hurting monsters underneath." },
+      { q: "Does it work on phones?", a: "Yes. Blockstorm is made for touch screens first — a thumb stick, drag to look, and big fire and jump buttons, with optional auto-fire — and works with a keyboard and mouse on computers. Your stage, coins, upgrades and suits are saved on your device." },
+    ],
+    skills: ["Aim", "Reflexes", "Strategy", "Spatial thinking"],
+    released: "2026-11-25",
+    art: "cover",
+    engine: "storm",
   },
 ];
 

@@ -192,6 +192,11 @@ export const GAME_SEO: Record<string, GameSeo> = {
     description: "Drive a wobbly car over seesaws, lifts, loops and wrecking balls to the finish flag without flipping. A free 2D physics driving game — play in your browser.",
     keywords: ["physics driving game", "car physics game", "drive without flipping", "obstacle course car game", "2d driving game", "contraption car game", "stunt car levels game"],
   },
+  blockstorm: {
+    title: "Blockstorm — Free 3D Pixel Block Shooter, 1000+ Stages",
+    description: "Blast blocky monsters and tear block towers down onto them in a free 3D pixel shooter with bosses, friends and 1000+ stages. Play in your browser.",
+    keywords: ["block shooter game", "pixel shooter game", "3d blocky shooter", "voxel shooting game", "destroy blocks game", "monster shooting game", "blocky zombie shooter", "third person shooter online"],
+  },
   "tumble-truck": {
     title: "Tumble Truck — Free Monster Truck Delivery Game, 600+ Stages",
     description: "Drive a monster truck with a loose load and deliver as much as you can over bumps, mud and bridges. A free 2D cargo truck game — play in your browser.",
@@ -372,7 +377,7 @@ export const GAME_SEO: Record<string, GameSeo> = {
 };
 
 const CATEGORY_WORDS: Record<Game["category"], string> = {
-  runner: "running game", adventure: "adventure game", racing: "racing game", puzzle: "puzzle game", brain: "brain game",
+  runner: "running game", adventure: "adventure game", racing: "racing game", shoot: "shooting game", puzzle: "puzzle game", brain: "brain game",
   memory: "memory game", focus: "focus game", reflex: "reaction game", numbers: "number game",
 };
 

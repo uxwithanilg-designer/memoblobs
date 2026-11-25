@@ -11,10 +11,10 @@ export const PAGE_SIZE = 60;
 /** at most this many games in a sideways row (home page, game page); "See all" opens the full list */
 export const ROW_SIZE = 24;
 
-const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape", "clayland", "slurp", "vine", "jelly", "rush", "orbi"]);
+const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape", "clayland", "slurp", "vine", "jelly", "rush", "orbi", "storm"]);
 export const is3D = (g: Pick<G, "engine">) => g.engine !== undefined && ENGINES_3D.has(g.engine);
 /** the sound files a game's engine uses (audio/arcade/{sfx,music,voice}_<family>_*.mp3), for background loading */
-const SOUND_FAMILY: Record<string, string> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine", sudoku: "sudoku", trail: "trail", quilt: "quilt", glow: "glow", crown: "crown", tide: "tide", vial: "vial", treat: "treat", sprout: "sprout", relic: "relic", breeze: "breeze", picnic: "picnic", jade: "jade", nova: "nova", marble: "marble", rover: "rover", haul: "haul", gizmo: "gizmo" };
+const SOUND_FAMILY: Record<string, string> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine", sudoku: "sudoku", trail: "trail", quilt: "quilt", glow: "glow", crown: "crown", tide: "tide", vial: "vial", treat: "treat", sprout: "sprout", relic: "relic", breeze: "breeze", picnic: "picnic", jade: "jade", nova: "nova", marble: "marble", rover: "rover", haul: "haul", gizmo: "gizmo", storm: "storm" };
 export const soundFamily = (g: Pick<G, "engine">) => (g.engine ? SOUND_FAMILY[g.engine] ?? "" : "");
 /** NEW badge: the game came out on the latest release day (worked out when the lists are made) */
 export const isNew = (g: Pick<G, "isNew">) => g.isNew === true;
@@ -46,6 +46,7 @@ export const MOODS: { id: string; label: string; href: string; img: string; from
   { id: "runner", label: "Run & dash", href: "/c/runner", img: "/games/kiko-jungle-quest/kiko.webp", from: "#8A1F4A", to: "#3A0B20", text: "#FF9AC3" },
   { id: "adventure", label: "Big adventures", href: "/c/adventure", img: "/games/puddo-clayland/puddo.webp", from: "#1F6B3A", to: "#0D2E1A", text: "#8CF08F" },
   { id: "race", label: "Race & drift", href: "/c/racing", img: "/brand/chars/turbo-happy.webp", from: "#1D3B8F", to: "#0E1B44", text: "#7FC4FF" },
+  { id: "shoot", label: "Blast & shoot", href: "/c/shoot", img: "/games/blockstorm/hero.webp", from: "#8F1D2E", to: "#3A0B14", text: "#FF9AA8" },
   { id: "puzzle", label: "Puzzles", href: "/c/puzzle", img: "/brand/chars/zib-happy.webp", from: "#2E4F9E", to: "#121F45", text: "#9FB8FF" },
   { id: "brain", label: "Train your brain", href: "/c/brain", img: "/brand/chars/hoot-happy.webp", from: "#5B2E9E", to: "#25124A", text: "#D2A8FF" },
   { id: "memory", label: "Memory masters", href: "/c/memory", img: "/brand/chars/pip-happy.webp", from: "#17707A", to: "#0A3035", text: "#7FF0E6" },
