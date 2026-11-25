@@ -14,7 +14,7 @@ export const ROW_SIZE = 24;
 const ENGINES_3D = new Set(["momo", "racing", "brigade", "boing", "dash", "jungle", "roll", "escape", "clayland", "slurp", "vine", "jelly", "rush", "orbi"]);
 export const is3D = (g: Pick<G, "engine">) => g.engine !== undefined && ENGINES_3D.has(g.engine);
 /** the sound files a game's engine uses (audio/arcade/{sfx,music,voice}_<family>_*.mp3), for background loading */
-const SOUND_FAMILY: Record<string, string> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine", sudoku: "sudoku", trail: "trail", quilt: "quilt", glow: "glow", crown: "crown", tide: "tide", vial: "vial", treat: "treat", sprout: "sprout", relic: "relic", breeze: "breeze", picnic: "picnic", jade: "jade", nova: "nova", marble: "marble" };
+const SOUND_FAMILY: Record<string, string> = { dash: "dash", jungle: "kiko", racing: "race", boing: "boing", brigade: "brigade", clayland: "clay", slurp: "slurp", vine: "vine", sudoku: "sudoku", trail: "trail", quilt: "quilt", glow: "glow", crown: "crown", tide: "tide", vial: "vial", treat: "treat", sprout: "sprout", relic: "relic", breeze: "breeze", picnic: "picnic", jade: "jade", nova: "nova", marble: "marble", rover: "rover", haul: "haul", gizmo: "gizmo" };
 export const soundFamily = (g: Pick<G, "engine">) => (g.engine ? SOUND_FAMILY[g.engine] ?? "" : "");
 /** NEW badge: the game came out on the latest release day (worked out when the lists are made) */
 export const isNew = (g: Pick<G, "isNew">) => g.isNew === true;

@@ -41,6 +41,9 @@ const PicnicApp = dynamic(() => import("@/picnic/ui/PicnicApp"), { ssr: false })
 const JadeApp = dynamic(() => import("@/jade/ui/JadeApp"), { ssr: false });
 const NovaApp = dynamic(() => import("@/nova/ui/NovaApp"), { ssr: false });
 const MarbleApp = dynamic(() => import("@/marble/ui/MarbleApp"), { ssr: false });
+const RoverApp = dynamic(() => import("@/rover/ui/RoverApp"), { ssr: false });
+const HaulApp = dynamic(() => import("@/haul/ui/HaulApp"), { ssr: false });
+const GizmoApp = dynamic(() => import("@/gizmo/ui/GizmoApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 /** each engine's code (the same chunks the players below load) */
@@ -74,6 +77,9 @@ const ENGINE_CODE: Record<string, () => Promise<unknown>> = {
   jade: () => import("@/jade/ui/JadeApp"),
   nova: () => import("@/nova/ui/NovaApp"),
   marble: () => import("@/marble/ui/MarbleApp"),
+  rover: () => import("@/rover/ui/RoverApp"),
+  haul: () => import("@/haul/ui/HaulApp"),
+  gizmo: () => import("@/gizmo/ui/GizmoApp"),
   arcade: () => import("@/arcade/ArcadeHost"),
 };
 
@@ -137,6 +143,9 @@ export function GameView({ game: g, mode }: { game: Game; mode?: Difficulty }) {
     case "jade": return <JadeApp slug={slug} title={g.title} />;
     case "nova": return <NovaApp slug={slug} title={g.title} />;
     case "marble": return <MarbleApp slug={slug} title={g.title} />;
+    case "rover": return <RoverApp slug={slug} title={g.title} />;
+    case "haul": return <HaulApp slug={slug} title={g.title} />;
+    case "gizmo": return <GizmoApp slug={slug} title={g.title} />;
     default: return <Arcade g={g} />;
   }
 }

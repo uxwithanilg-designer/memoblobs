@@ -31,7 +31,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo";
   host?: string;
 }
 
@@ -1531,6 +1531,132 @@ export const GAMES: Game[] = [
     released: "2026-11-25",
     art: "cover",
     engine: "marble",
+  },
+  {
+    slug: "peak-rover",
+    title: "Peak Rover",
+    short: "A 2D hill climb driving game: 600 stages across 12 worlds, then endless remixes",
+    tagline: "Climb every hill, flip over every jump — and never run out of fuel.",
+    description:
+      "Peak Rover is a free 2D hill climb driving game with real physics. Drive Zuzu's little rover over rolling hills, rock steps, kicker ramps, rope bridges and gaps — hold the right side to drive and the left side to brake, and in the air the same pedals tilt the car so you can land on your wheels. Keep an eye on the fuel gauge and grab the red cans before the tank runs dry, collect coins and gems, and pull off flips and big jumps for bonus coins. Every stage has checkpoints and a finish flag, and as soon as you cross it the next stage starts by itself. There are 600 stages across twelve painted worlds — Meadow Bloom, Sunset Canyon, Pine Lake, Saffron Dunes, Frost Peaks under the northern lights, Midnight Metro, Jungle Falls, Volcano Ridge, Coral Coast, Amber Valley, Crystal Caverns and the low-gravity Starfall Crater — each with its own music, mornings, golden hours, dusks, nights and weather. After stage 600 the road never ends: remix stages blend two worlds and add twists like low gravity and turbo rushes. Hearts give extra lives, and power-ups add Turbo, a Shield, a coin Magnet, Feather jumps and Coins ×2. Spend your coins in the garage on engine, suspension, tyre and fuel tank upgrades, or on new rides: the Zip Scrambler dirt bike, the Bumble Monster truck and the Comet Rover. Your stage and checkpoint are saved on your device, so you always pick up where you left off.",
+    status: "live",
+    category: "racing",
+    ages: "",
+    accent: "#FF7A3D",
+    accent2: "#FFD23F",
+    cover: "/games/peak-rover/card.webp",
+    hero: "/games/peak-rover/cover.webp",
+    character: "/games/peak-rover/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "World tour", color: "#FF7A3D", desc: "600 stages across 12 worlds, then endless remixes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Drive and brake", text: "Hold the right side of the screen (or → / D) to drive, the left side (or ← / A) to brake and reverse." },
+      { title: "Tilt in the air", text: "In the air, gas tilts the car back and brake tilts it forward. Land on your wheels — the driver's head must not touch the ground." },
+      { title: "Watch the fuel", text: "Fuel runs down as you drive. Grab the red fuel cans to fill the tank before it runs dry." },
+      { title: "Collect and upgrade", text: "Collect coins, gems, hearts and power-ups, then upgrade your ride or buy new ones in the garage." },
+    ],
+    controls: [
+      { keys: "Hold right side", action: "Gas (tilt back in the air)" },
+      { keys: "Hold left side", action: "Brake / reverse (tilt forward in the air)" },
+      { keys: "→ / D and ← / A", action: "Gas and brake on a keyboard" },
+    ],
+    faq: [
+      { q: "Is Peak Rover free?", a: "Yes. Peak Rover is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Is it like Hill Climb Racing?", a: "It's a hill climb driving game in the same family: drive over bumpy hills with physics, manage your fuel and land your jumps. Peak Rover has its own driver, rides, worlds and music, 600 stages with finish lines and endless remix stages after that." },
+      { q: "How many stages are there?", a: "600 stages across twelve worlds, and after that the remix stages never end — each one mixes two worlds with fresh terrain, times of day, weather and twists." },
+      { q: "What happens when I crash?", a: "A crash costs a life and puts you back at the last checkpoint. Collect hearts for extra lives; if you run out, the stage starts again." },
+      { q: "Does it work on phones?", a: "Yes. Peak Rover is made for touch screens first — hold the right side to drive and the left to brake — and works with a keyboard on computers. Your stage, checkpoint, coins and garage are saved on your device." },
+    ],
+    skills: ["Timing", "Balance", "Planning", "Reflexes"],
+    released: "2026-11-25",
+    art: "cover",
+    engine: "rover",
+  },
+  {
+    slug: "tumble-truck",
+    title: "Tumble Truck",
+    short: "A 2D monster truck delivery game: keep the load in the bed over 600 stages, then endless remixes",
+    tagline: "Big wheels, a loose load — drive easy and deliver it all.",
+    description:
+      "Tumble Truck is a free 2D monster truck delivery game with real physics. Bodo's truck carries a loose load in its open bed — crates, melons, barrels, honey jars, giant eggs, clay vases, potions, logs, gifts, paper lanterns, fire crystals and star orbs — and every piece bounces, slides and tumbles as you drive. Hold the right side to drive and the left side to brake, take bumps, crests, fallen logs and rock steps gently, and roll onto the delivery pad with as much of the load as you can. Every delivery needs a minimum number of pieces: lose too many and the run fails, deliver everything for three stars. Fragile loads crack on hard knocks, mud sticks to the tyres, ice slides, water crossings slow you down, rope bridges sway and gusts of wind blow light cargo backwards. Fuel cans keep the tank full, hearts give extra lives, and power-ups add Nitro, a Cargo net that keeps everything in, Bubble wrap for fragile loads, a coin Magnet and Coins ×2. There are 600 stages across twelve painted worlds — Pinewood Hollow, Orchard Valley, Mudwater Bayou, Honeybloom Meadows, Hen Hill Farm, Redrock Canyon, Glowcap Grove, Timber Ridge, Frostbell Village, Blossom Terraces, Ember Peaks and the low-gravity Starfall Moon — each with its own load, music, animals, mornings, golden hours, nights and weather. Each finished delivery leads straight into the next, and after stage 600 the roads never end: remix stages blend two worlds and mix their loads. Spend coins in the garage on engine, suspension, tyre, fuel tank and cargo padding upgrades, or on new trucks: the Timberjaw, the Thunderhoof and the electric Glowtail. Your stage, checkpoint and load are saved on your device, so you always pick up where you left off.",
+    status: "live",
+    category: "racing",
+    ages: "",
+    accent: "#FF6A2C",
+    accent2: "#FFD23F",
+    cover: "/games/tumble-truck/card.webp",
+    hero: "/games/tumble-truck/cover.webp",
+    character: "/games/tumble-truck/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Delivery tour", color: "#FF6A2C", desc: "600 deliveries across 12 worlds, then endless remixes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Drive and brake", text: "Hold the right side of the screen (or → / D) for gas and the left side (or ← / A) to brake and reverse. Tap the gas for a gentle speed." },
+      { title: "Keep the load in", text: "The cargo rides loose in the open bed. Bumps, crests and hard braking throw it out — drive smoothly over rough ground." },
+      { title: "Mind fragile cargo", text: "Jars, eggs, vases, potions and crystals break on hard knocks. Land softly and take steps slowly." },
+      { title: "Deliver and earn stars", text: "Roll onto the delivery pad with at least the pieces the order needs. Deliver everything for three stars and upgrade your truck in the garage." },
+    ],
+    controls: [
+      { keys: "Hold right side", action: "Gas (tilt back in the air)" },
+      { keys: "Hold left side", action: "Brake / reverse (tilt forward in the air)" },
+      { keys: "→ / D and ← / A", action: "Gas and brake on a keyboard" },
+    ],
+    faq: [
+      { q: "Is Tumble Truck free?", a: "Yes. Tumble Truck is free to play in your browser with no sign-up and nothing to download." },
+      { q: "What kind of game is it?", a: "A monster truck cargo delivery game with physics: you drive over rough roads with a loose load in the truck's bed and try to deliver as much of it as you can." },
+      { q: "How many stages are there?", a: "600 deliveries across twelve worlds, and after that the remix stages never end — each one mixes two worlds, their loads, times of day, weather and twists." },
+      { q: "What happens if I lose cargo?", a: "Each order needs a minimum number of pieces. If too many fall out or break, the run fails and you go back to the last checkpoint with the load you had there. Hearts give extra lives." },
+      { q: "Does it work on phones?", a: "Yes. Tumble Truck is made for touch screens first — hold the right side for gas and the left to brake — and works with a keyboard on computers. Your stage, checkpoint, load, coins and garage are saved on your device." },
+    ],
+    skills: ["Throttle control", "Balance", "Planning", "Patience"],
+    released: "2026-11-25",
+    art: "cover",
+    engine: "haul",
+  },
+  {
+    slug: "gizmo-drive",
+    title: "Gizmo Drive",
+    short: "A 2D physics driving game through contraption courses: 600 stages, then endless remixes",
+    tagline: "Seesaws, lifts, loops and wrecking balls — just don't flip.",
+    description:
+      "Gizmo Drive is a free 2D physics driving game full of contraptions. Each stage is a long obstacle course of 9 to 24 gizmos with its own ride: drive Rivet's bouncy jeep, a long pickup, a monster truck, a tall double-decker bus, a tractor that loves wheelies, a flippy buggy, a hot rod or a moon bug, and get it to the finish flag without landing on the roof. Hold the right side to drive and the left side to brake and back up; in the air the same pedals tilt the car. The courses are packed with gizmos — seesaws, crumbling bridges, lifts and moving platforms you have to wait for, conveyor belts, launch pads, button gates and drawbridges, swinging wrecking balls, crushers, trapdoor bridges, spinning rollers, jump chains, rolling ball beds, loops, crate walls, fans, wobbly bridges, giant gears and ice slides — so speed control matters more than flooring it. Oil runs down as you drive, so grab the oil cans, and collect coins, star coins, hearts and power-ups: Turbo, a Helmet shield, a Coin magnet, Floaty jumps and Sticky tyres. Every stage opens with a fly-over of the course, has checkpoints, and when you cross the flag the next stage starts by itself. There are 600 stages across twelve worlds — Toybox Town, Candy Works, Hard Hat Heights, Sky Isles, Neon Grid, Glacier Lab, Scrapyard Sunset, Glowshroom Woods, Coral Deep, Clockwork Kingdom, Haunted Carnival and the low-gravity Orbit Station — each with its own painted backdrops, sky moods, music and sounds. After stage 600 the remix stages never end: every gizmo in the game can turn up, two worlds' scenery, rides and music are mixed, and twists like low gravity and turbo starts keep each one fresh. Spend coins on paint jobs in the garage; your stage and checkpoint are saved on your device.",
+    status: "live",
+    category: "racing",
+    ages: "",
+    accent: "#4DF2C4",
+    accent2: "#B79CFF",
+    cover: "/games/gizmo-drive/card.webp",
+    hero: "/games/gizmo-drive/cover.webp",
+    character: "/games/gizmo-drive/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Gizmo tour", color: "#4DF2C4", desc: "600 contraption courses across 12 worlds, then endless remixes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Drive and brake", text: "Hold the right side of the screen (or → / D) to drive, the left side (or ← / A) to brake and back up." },
+      { title: "Don't flip", text: "In the air, gas tilts the car back and brake tilts it forward; let go and it steadies itself. Land on your wheels — if the driver's head bumps anything, it's a crash." },
+      { title: "Time the gizmos", text: "Wait for lifts and moving platforms, press buttons to open gates, and pass wrecking balls and crushers at the right moment." },
+      { title: "Grab oil and coins", text: "Oil runs down as you drive — pick up the oil cans. Coins buy paint jobs; hearts and power-ups help you through." },
+    ],
+    controls: [
+      { keys: "Hold right side", action: "Gas (tilt back in the air)" },
+      { keys: "Hold left side", action: "Brake / back up (tilt forward in the air)" },
+      { keys: "→ / D and ← / A", action: "Gas and brake on a keyboard" },
+    ],
+    faq: [
+      { q: "Is Gizmo Drive free?", a: "Yes. Gizmo Drive is free to play in your browser with no sign-up and nothing to download." },
+      { q: "Is it like Drive Mad?", a: "It's a physics driving game in the same family: get a wobbly car through a short obstacle course without flipping it. Gizmo Drive has its own driver, rides, worlds, contraptions and music, 600 stages and endless remix stages after that." },
+      { q: "How many stages are there?", a: "600 long stages across twelve worlds, and after that the remix stages never end — each one mixes every kind of gizmo with the scenery, rides and music of two worlds, plus twists like low gravity." },
+      { q: "What happens when I crash?", a: "A crash costs a life and puts you back at the last checkpoint. Collect hearts for extra lives; if you run out, the stage starts again." },
+      { q: "Does it work on phones?", a: "Yes. Gizmo Drive is made for touch screens first — hold the right side to drive and the left to brake — and works with a keyboard on computers. Your stage, checkpoint, coins and paint jobs are saved on your device." },
+    ],
+    skills: ["Timing", "Throttle control", "Balance", "Planning"],
+    released: "2026-11-25",
+    art: "cover",
+    engine: "gizmo",
   },
 ];
 

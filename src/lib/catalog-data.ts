@@ -45,13 +45,15 @@ export function useCatalog(want = true): Catalog | null {
 /** the lists list pages show: top picks, newest first, 3D games, or one category */
 export type ListName = "top" | "new" | "3d" | `c:${string}`;
 const lists = new WeakMap<Catalog, Map<ListName, GameCard[]>>();
+/** the latest release first in a category, as src/lib/lists.ts does (browser code can't import that file) */
+const newFirst = (l: GameCard[]) => [...l.filter((g) => g.isNew), ...l.filter((g) => !g.isNew)];
 /** a named list, in the same order the server-built page shows it (src/lib/lists.ts) */
 export function listOf(c: Catalog, name: ListName): GameCard[] {
   let m = lists.get(c);
   if (!m) lists.set(c, (m = new Map()));
   let l = m.get(name);
   if (!l) {
-    l = name === "top" ? c.games : name === "new" ? c.newest : name === "3d" ? c.games.filter(is3D) : c.games.filter((g) => g.category === name.slice(2));
+    l = name === "top" ? c.games : name === "new" ? c.newest : name === "3d" ? c.games.filter(is3D) : newFirst(c.games.filter((g) => g.category === name.slice(2)));
     m.set(name, l);
   }
   return l;

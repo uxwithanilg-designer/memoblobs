@@ -30,7 +30,9 @@ export const ALL_PLAYABLE: GameCard[] = [...LIVE_GAMES].sort((a, b) => rank(a) -
 export const TOP_PICKS = ALL_PLAYABLE.slice(0, 12);
 export const NEW_GAMES: GameCard[] = newestFirst.map(toCard);
 export const GAMES_3D = ALL_PLAYABLE.filter(is3D);
-export const inCategory = (c: Category) => ALL_PLAYABLE.filter((g) => g.category === c);
+/** a category's games: the latest release first (a new game is seen at once, not at the end of its row), then the usual order */
+export const newFirst = <T extends { isNew?: boolean }>(l: T[]) => [...l.filter((g) => g.isNew), ...l.filter((g) => !g.isNew)];
+export const inCategory = (c: Category) => newFirst(ALL_PLAYABLE.filter((g) => g.category === c));
 
 /** "Play next" picks for a game: same category first, then the top picks */
 export function similarTo(g: { slug: string; category: string }, n = 12) {

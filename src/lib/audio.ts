@@ -86,7 +86,33 @@ export type ArcadeSfx =
   | "nova_swap" | "nova_undo" | "nova_clear" | "nova_star" | "nova_galaxy" | "nova_lose" | "nova_open"
   // Marble Merge 2048 pack (scripts/gen_marble_audio.py)
   | "marble_aim" | "marble_drop" | "marble_tap" | "marble_merge" | "marble_combo" | "marble_crack" | "marble_smash" | "marble_thaw" | "marble_hammer"
-  | "marble_swap" | "marble_undo" | "marble_clear" | "marble_star" | "marble_room" | "marble_lose" | "marble_open";
+  | "marble_swap" | "marble_undo" | "marble_clear" | "marble_star" | "marble_room" | "marble_lose" | "marble_open"
+  // Peak Rover (scripts/gen_rover_audio.py)
+  | "rover_beep" | "rover_bigAir" | "rover_birdA" | "rover_birdB"
+  | "rover_bump" | "rover_buy" | "rover_checkpoint" | "rover_coin" | "rover_coinBig" | "rover_crash" | "rover_crow"
+  | "rover_drip" | "rover_feather" | "rover_finish" | "rover_flip" | "rover_frog" | "rover_fuel" | "rover_gameOver"
+  | "rover_gem" | "rover_go" | "rover_gull" | "rover_gust" | "rover_hawk" | "rover_heart" | "rover_horn"
+  | "rover_land" | "rover_landHard" | "rover_lifeLost" | "rover_loon" | "rover_lowFuel" | "rover_magnet"
+  | "rover_open" | "rover_owl" | "rover_power" | "rover_radio" | "rover_rumble" | "rover_shield" | "rover_shieldPop"
+  | "rover_siren" | "rover_sputter" | "rover_tap" | "rover_turbo" | "rover_upgrade" | "rover_whoosh"
+  | "rover_worldClear"
+  // Tumble Truck (scripts/gen_haul_audio.py)
+  | "haul_coin" | "haul_coinBig" | "haul_gem" | "haul_fuel" | "haul_heart" | "haul_power" | "haul_nitro" | "haul_net" | "haul_bubble"
+  | "haul_magnet" | "haul_land" | "haul_landHard" | "haul_bump" | "haul_crash" | "haul_checkpoint" | "haul_deliver" | "haul_star"
+  | "haul_go" | "haul_beep" | "haul_thud" | "haul_lost" | "haul_glass" | "haul_crack" | "haul_splash" | "haul_mud" | "haul_creak"
+  | "haul_horn" | "haul_lowFuel" | "haul_sputter" | "haul_lifeLost" | "haul_fail" | "haul_worldClear" | "haul_tap" | "haul_open"
+  | "haul_upgrade" | "haul_buy" | "haul_whoosh" | "haul_flap" | "haul_rustle"
+  | "haul_birdA" | "haul_birdB" | "haul_owl" | "haul_frog" | "haul_cricket" | "haul_gust" | "haul_stream" | "haul_bees" | "haul_hen"
+  | "haul_sheep" | "haul_hawk" | "haul_chime" | "haul_bell" | "haul_saw" | "haul_lava" | "haul_radio" | "haul_crow" | "haul_duck"
+  // Gizmo Drive (scripts/gen_gizmo_audio.py)
+  | "gizmo_coin" | "gizmo_star" | "gizmo_fuel" | "gizmo_heart" | "gizmo_power" | "gizmo_turbo" | "gizmo_shield" | "gizmo_shieldPop" | "gizmo_magnet"
+  | "gizmo_float" | "gizmo_grip" | "gizmo_land" | "gizmo_landHard" | "gizmo_bump" | "gizmo_crash" | "gizmo_splash" | "gizmo_checkpoint" | "gizmo_finish"
+  | "gizmo_go" | "gizmo_beep" | "gizmo_flip" | "gizmo_bigAir" | "gizmo_lowFuel" | "gizmo_sputter" | "gizmo_lifeLost" | "gizmo_gameOver" | "gizmo_worldClear"
+  | "gizmo_tap" | "gizmo_open" | "gizmo_buy" | "gizmo_whoosh" | "gizmo_button" | "gizmo_gate" | "gizmo_spring" | "gizmo_crate" | "gizmo_creak"
+  | "gizmo_crumble" | "gizmo_clank" | "gizmo_loop" | "gizmo_swoosh" | "gizmo_stamp" | "gizmo_newGizmo" | "gizmo_amb_chime" | "gizmo_amb_whistle" | "gizmo_amb_cuckoo"
+  | "gizmo_amb_bubble" | "gizmo_amb_pop" | "gizmo_amb_jackhammer" | "gizmo_amb_reverse" | "gizmo_amb_clank" | "gizmo_amb_gust" | "gizmo_amb_bird" | "gizmo_amb_zap" | "gizmo_amb_blip"
+  | "gizmo_amb_crack" | "gizmo_amb_howl" | "gizmo_amb_creak" | "gizmo_amb_crow" | "gizmo_amb_owl" | "gizmo_amb_frog" | "gizmo_amb_whale" | "gizmo_amb_tick" | "gizmo_amb_steam"
+  | "gizmo_amb_bell" | "gizmo_amb_ghost" | "gizmo_amb_bat" | "gizmo_amb_radio" | "gizmo_amb_airlock";
 
 /** "a:<arcade sfx>" or "v:<character>_<mood>" (file: /audio/arcade/voice_<x>.mp3) */
 export type Sound = SfxName | `a:${ArcadeSfx}` | `v:${string}`;

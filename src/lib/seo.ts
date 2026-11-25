@@ -182,6 +182,21 @@ export const GAME_SEO: Record<string, GameSeo> = {
     keywords: ["mahjong tile match", "mahjong slide", "slide mahjong puzzle", "mahjong pairs", "tile match puzzle", "free mahjong game online", "mahjong connect slide"],
   },
 
+  "peak-rover": {
+    title: "Peak Rover — Free 2D Hill Climb Driving Game Online, 600+ Stages",
+    description: "Drive over hills, ramps and bridges, keep your fuel up and land your flips. A free 2D hill climb driving game with 600+ stages — play in your browser.",
+    keywords: ["hill climb game", "hill climb driving", "2d driving game", "car physics game", "uphill driving game", "fuel driving game", "monster truck hill game"],
+  },
+  "gizmo-drive": {
+    title: "Gizmo Drive — Free Physics Car Driving Game with Contraptions, 600+ Stages",
+    description: "Drive a wobbly car over seesaws, lifts, loops and wrecking balls to the finish flag without flipping. A free 2D physics driving game — play in your browser.",
+    keywords: ["physics driving game", "car physics game", "drive without flipping", "obstacle course car game", "2d driving game", "contraption car game", "stunt car levels game"],
+  },
+  "tumble-truck": {
+    title: "Tumble Truck — Free Monster Truck Delivery Game, 600+ Stages",
+    description: "Drive a monster truck with a loose load and deliver as much as you can over bumps, mud and bridges. A free 2D cargo truck game — play in your browser.",
+    keywords: ["monster truck delivery game", "cargo truck game", "truck delivery game", "monster truck game", "2d truck physics game", "cargo transport game", "delivery driving game"],
+  },
   "marble-merge-2048": {
     title: "Marble Merge 2048 — Free 2048 Balls Drop & Merge Game Online, 500+ Levels",
     description: "Drop numbered balls into a jar, merge equal balls and chain the pops to reach each level's goal. A free 2048 balls physics merge puzzle with 500+ levels — play in your browser.",
