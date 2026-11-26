@@ -202,7 +202,7 @@ export class Game {
   private onMouseDown = (e: MouseEvent) => {
     if (this.touch || this.mode !== "play") return;
     this.mouseHeld = true;
-    if (document.pointerLockElement !== this.view.renderer.domElement) { this.view.renderer.domElement.requestPointerLock?.(); }
+    if (document.pointerLockElement !== this.view.renderer.domElement) { (this.view.renderer.domElement.requestPointerLock?.() as unknown as Promise<void> | undefined)?.catch?.(() => {}); }
     if (e.button === 0) this.firing = true;
   };
   private onMouseUp = (e: MouseEvent) => { this.mouseHeld = false; if (!this.touch && e.button === 0) this.firing = false; };

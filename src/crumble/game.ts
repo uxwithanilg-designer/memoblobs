@@ -1474,7 +1474,7 @@ export class Game {
     if (e.type === "mousemove") { if (document.pointerLockElement === this.renderer.domElement) this.turn(e.movementX, e.movementY); return; }
     if (e.type === "mousedown") {
       if (this.mode !== "play") return;
-      if (document.pointerLockElement !== this.renderer.domElement) { this.renderer.domElement.requestPointerLock?.(); return; }
+      if (document.pointerLockElement !== this.renderer.domElement) { (this.renderer.domElement.requestPointerLock?.() as unknown as Promise<void> | undefined)?.catch?.(() => {}); return; }
       if (e.button === 0) this.setUse(true);
       if (e.button === 2) this.throwBomb();
     } else if (e.type === "mouseup" && e.button === 0) this.setUse(false);
