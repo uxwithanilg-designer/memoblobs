@@ -209,8 +209,8 @@ export const GAME_SEO: Record<string, GameSeo> = {
   },
   "crumble-crew": {
     title: "Crumble Crew — Free 3D Voxel Destruction Heist Game, Smash & Grab",
-    description: "Smash into blocky buildings with a mallet, drill and dynamite, grab the gold and fight off robot security in a free 3D voxel destruction game. Play in your browser.",
-    keywords: ["voxel destruction game", "smash buildings game", "heist game online", "destroy building game", "3d smash game", "block breaking game", "sledgehammer game", "robbery game browser"],
+    description: "Smash into blocky buildings with a mallet, drill, guns and bombs, grab the gold and fight off robot security in a free 3D voxel destruction game. Play in your browser.",
+    keywords: ["voxel destruction game", "smash buildings game", "heist game online", "destroy building game", "3d smash game", "block breaking game", "sledgehammer game", "robbery game browser", "voxel shooter with bombs"],
     updated: "2026-11-26",
   },
   "cube-clash": {

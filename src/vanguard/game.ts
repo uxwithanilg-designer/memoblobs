@@ -5,8 +5,10 @@
 //    that keep calling robots in, stand in the relay rings until they're yours, beat a squad of gold elites — and at
 //    the very end, a boss. Robots never stop teleporting in from the gates while a phase runs;
 //  - you run (left stick / WASD), look and aim (drag on the right / the mouse), fire (hold), jump and fly the jetpack
-//    (hold; it burns oil, oil cans refill it), swap blasters, and switch between the over-the-shoulder view and first
-//    person. Aim helps on phones: the crosshair settles on the robot nearest it;
+//    (hold; it burns oil, oil cans refill it), switch between four guns (and a mission gun from a gun crate), throw
+//    bombs (frag, sticky, cluster, EMP, fire, gravity, mega), and switch between the over-the-shoulder view and first
+//    person. Aim helps on phones: the crosshair settles on the robot nearest it. Gun power grows every operation;
+//  - ammo crates refill your spare ammo, bomb crates give bombs, gold gun crates give a mission gun;
 //  - when a phase is won, every robot still standing blows apart; between sectors the camera orbits the squad and
 //    they warp on to the next place (a new arena, the day moving on); progress is saved after every phase;
 //  - robots drop coins (and sometimes hearts, oil and power cubes); hearts heal, or add a life when you're healthy;
@@ -21,9 +23,9 @@ import { buildArena, cellOf, clearLine, CELL_LAVA, CELL_WATER, solidAt, type Are
 import { paintAtlas } from "./art/atlas";
 import { buildBackdrop, lookFor, type Backdrop, type Look } from "./art/backdrop";
 import { gunGeometry, gunMaterial, pickupGeometry, POWER_COL, SQUAD, type PickupKind } from "./art/rigs";
-import { Fx, DEBRIS, EXHAUST, FLASH, GLINT, SMOKE, SPARK } from "./fx";
+import { Fx, DEBRIS, EXHAUST, FIRE, FLASH, GLINT, RING, SMOKE, SPARK } from "./fx";
 import { allyThink, fall, inVoid, makeHuman, makeRobot, muzzleOf, pose, robotThink, walkTo, type Shot, type Unit, type World3 } from "./units";
-import { ROBOTS, jetTank, maxHealth, outfitOf, runSpeed, tunedWeapon, weaponOf, type OutfitId, type WeaponId, type WeaponSpec } from "./gear";
+import { BOMBS, MISSION_GUNS, ROBOTS, SLOTS, bombOf, gunPower, jetTank, maxHealth, outfitOf, runSpeed, tunedWeapon, weaponOf, type BombId, type OutfitId, type WeaponId, type WeaponSpec } from "./gear";
 import { VanguardAudio, sfx, type VanguardSfx } from "./sound";
 import type { RobotKind } from "./worlds";
 import { angDiff, clamp, hex, lerp, makeRng } from "./util";
@@ -36,8 +38,13 @@ export interface Hud {
   stage: number; codename: string; sector: number; sectors: number; sectorName: string; phase: number; phases: number;
   /** the phase's objective: what to do, and how far along it is */
   obj: { kind: Objective; title: string; line: string; prog: number; done: boolean } | null;
-  hp: number; maxHp: number; lives: number; fuel: number; ammo: number; mag: number; reload: number;
-  weapon: WeaponId; slot: 0 | 1; weapons: [WeaponId, WeaponId];
+  hp: number; maxHp: number; lives: number; fuel: number; ammo: number; mag: number; reserve: number; reload: number;
+  /** the gun in hand (slot 0–3, or 4 for a mission gun), the four carried guns, the mission gun */
+  weapon: WeaponId; slot: number; guns: { id: WeaponId; ammo: number; mag: number; reserve: number }[]; mission: { id: WeaponId; ammo: number; mag: number } | null;
+  /** the bomb ready to throw and how many of each */
+  bomb: BombId; bombs: { id: BombId; n: number }[];
+  /** gun power (×) */
+  power: number;
   coins: number; powers: { id: PowerId; left: number; secs: number }[];
   mode: Mode; boss: { name: string; hp: number } | null;
   allies: { name: string; color: string; hp: number; down: boolean }[];
@@ -49,11 +56,14 @@ export type GameEvent =
   | { k: "phaseClear"; title: string; coins: number } | { k: "zone"; left: number }
   | { k: "sectorClear"; name: string; coins: number } | { k: "fail"; why: string } | { k: "boss"; name: string }
   | { k: "clear"; stage: number; kills: number; coins: number; time: number }
-  | { k: "pickup"; what: PickupKind } | { k: "hurt" } | { k: "down"; livesLeft: number } | { k: "restart" }
+  | { k: "pickup"; what: PickupKind; name?: string } | { k: "mission"; gun: WeaponId } | { k: "missionEmpty"; gun: WeaponId }
+  | { k: "noAmmo"; gun: WeaponId } | { k: "noBombs" } | { k: "bomb"; id: BombId } | { k: "gun"; id: WeaponId } | { k: "bombType"; id: BombId } | { k: "hurt" } | { k: "down"; livesLeft: number } | { k: "restart" }
   | { k: "ally"; name: string; up: boolean } | { k: "lowFuel" } | { k: "kill"; streak: number } | { k: "reload" } | { k: "fell" } | { k: "view"; first: boolean };
 
 export interface GameOptions {
-  weapons: [WeaponId, WeaponId]; levels: Partial<Record<WeaponId, number>>;
+  weapons: WeaponId[]; levels: Partial<Record<WeaponId, number>>;
+  bombs: Partial<Record<BombId, number>>; bomb: BombId;
+  onBombs: (b: Partial<Record<BombId, number>>, current: BombId) => void;
   suit: { armor: number; jet: number; boots: number }; outfit: OutfitId;
   lives: number; coins: number; firstPerson: boolean;
   onHud: (h: Hud) => void; onEvent: (e: GameEvent) => void;
@@ -62,8 +72,15 @@ export interface GameOptions {
   onCheckpoint: (stage: number, sector: number, phase: number, kills: number) => void;
 }
 
-interface Bolt { x: number; y: number; z: number; vx: number; vy: number; vz: number; life: number; dmg: number; team: 0 | 1; splash: number; pierce: boolean; hex: number; kind: number; len: number; w: number; g: number; owner: number; hit: number; from: Unit | null }
-const BOLT = 0, ROCKET = 1, MORTAR = 2, MISSILE = 3, CANNON = 4;
+interface Bolt {
+  x: number; y: number; z: number; vx: number; vy: number; vz: number; life: number; dmg: number; team: 0 | 1; splash: number; pierce: boolean; hex: number; kind: number; len: number; w: number; g: number; owner: number; hit: number; from: Unit | null;
+  /** bombs: which, the fuse, stuck (to a robot), bomblets; homing rockets: what they chase */
+  bomb?: BombId; fuse?: number; stuck?: boolean; stuckTo?: Unit | null; ox?: number; oy?: number; oz?: number; mini?: boolean; home?: Unit | null;
+}
+const BOLT = 0, ROCKET = 1, MORTAR = 2, MISSILE = 3, CANNON = 4, ORB = 5, FLAME = 6, BOMB = 7;
+/** a pool of fire (fire bomb) and a gravity well (gravity bomb) */
+interface Burn { x: number; y: number; z: number; r: number; t: number; dps: number; tick: number }
+interface Well { x: number; y: number; z: number; r: number; t: number; dmg: number }
 interface Beam { x0: number; y0: number; z0: number; x1: number; y1: number; z1: number; life: number; max: number; hex: number; w: number; jag: number }
 interface Pickup { kind: PickupKind; x: number; y: number; z: number; vy: number; mesh: THREE.Mesh; t: number; value: number; settled: boolean }
 interface Num { x: number; y: number; z: number; v: number; life: number; crit: boolean }
@@ -113,7 +130,13 @@ export class Game {
   private boss: Unit | null = null;
   fuel = 1; private fuelMax = 3.2; private lowFuelWarned = false;
   private power: Record<PowerId, number> = { rapid: 0, damage: 0, shield: 0, magnet: 0, speed: 0 };
-  private slot: 0 | 1 = 0; private ammo: [number, number] = [0, 0]; private reloadT = 0; private fireT = 0; private spec: [WeaponSpec, WeaponSpec];
+  private slot = 0; private lastSlot = 0; private ammo: number[] = []; private reserve: number[] = []; private reloadT = 0; private fireT = 0; private spec: WeaponSpec[] = [];
+  /** a mission gun from a gun crate (slot 4): no reload, gone when its ammo runs out */
+  private mission: { spec: WeaponSpec; ammo: number } | null = null;
+  private bombs: Partial<Record<BombId, number>> = {}; bombType: BombId = "frag"; private bombT = 0; private twinSide = 1;
+  private burns: Burn[] = []; private wells: Well[] = [];
+  /** gun power for this operation (every shot and bomb ×) */
+  pow = 1;
   private gun: THREE.Mesh; private viewGun: THREE.Mesh;
   // input
   private move = { x: 0, y: 0 }; private keys = new Set<string>(); private firing = false; private jetting = false; private jetPress = false; private sprint = false;
@@ -135,6 +158,8 @@ export class Game {
   private onKey = (e: KeyboardEvent) => this.key(e);
   private onMouse = (e: MouseEvent) => this.mouse(e);
   private onResize = () => this.resize();
+  private onWheel = (e: WheelEvent) => { if (this.mode === "play" && Math.abs(e.deltaY) > 2) this.nextGun(e.deltaY > 0 ? 1 : -1); };
+  private onContext = (e: Event) => e.preventDefault();
 
   constructor(host: HTMLElement, opts: GameOptions) {
     this.host = host; this.opts = opts;
@@ -159,7 +184,8 @@ export class Game {
     if (this.sunL.castShadow) { this.sunL.shadow.mapSize.set(1024, 1024); const s = this.sunL.shadow.camera; s.left = -30; s.right = 30; s.top = 30; s.bottom = -30; s.near = 1; s.far = 140; this.sunL.shadow.bias = -0.0015; }
     this.scene.add(this.camera);
     this.lives = opts.lives; this.coins = opts.coins; this.firstPerson = opts.firstPerson;
-    this.spec = [this.tuned(opts.weapons[0]), this.tuned(opts.weapons[1])];
+    this.spec = opts.weapons.map((w) => this.tuned(w));
+    this.bombs = { ...opts.bombs }; this.bombType = opts.bomb;
     this.gun = new THREE.Mesh(gunGeometry(this.spec[0].id, this.spec[0].color), gunMaterial);
     this.viewGun = new THREE.Mesh(gunGeometry(this.spec[0].id, this.spec[0].color), gunMaterial);
     this.viewGun.position.set(-0.32, -0.3, 0.55); this.viewGun.rotation.y = Math.PI; this.viewGun.scale.setScalar(1.25);
@@ -170,10 +196,25 @@ export class Game {
     window.addEventListener("mousemove", this.onMouse);
     this.renderer.domElement.addEventListener("mousedown", this.onMouse);
     window.addEventListener("mouseup", this.onMouse);
+    this.renderer.domElement.addEventListener("wheel", this.onWheel, { passive: true });
+    this.renderer.domElement.addEventListener("contextmenu", this.onContext);
     // QA and the art script (scripts/art/vanguard_art.py) look at the game through this
     (window as unknown as { __voxelVanguard?: Game }).__voxelVanguard = this;
   }
   private tuned(id: WeaponId) { return tunedWeapon(weaponOf(id), this.opts.levels[id] ?? 0); }
+  /** the four carried guns, full magazines and spare ammo (the zapper never runs dry) */
+  private armGuns() {
+    this.spec = this.opts.weapons.slice(0, SLOTS).map((w) => this.tuned(w));
+    if (!this.spec.length) this.spec = [this.tuned("zapper")];
+    this.ammo = this.spec.map((s) => s.mag);
+    this.reserve = this.spec.map((s) => (s.id === "zapper" ? -1 : s.mag * 6));
+    this.reloadT = 0;
+    if (this.slot >= this.spec.length && this.slot !== 4) this.slot = 0;
+    if (this.slot === 4 && !this.mission) this.slot = 0;
+    this.lastSlot = Math.min(this.lastSlot, this.spec.length - 1);
+    this.setGun();
+  }
+  private cur(): WeaponSpec { return this.slot === 4 && this.mission ? this.mission.spec : this.spec[this.slot] ?? this.spec[0]; }
 
   // ---------------------------------------------------------------- setup
   resize() {
@@ -190,10 +231,10 @@ export class Game {
     this.camera.updateProjectionMatrix();
   }
 
-  setLoadout(weapons: [WeaponId, WeaponId], levels: Partial<Record<WeaponId, number>>, suit: GameOptions["suit"], outfit: OutfitId) {
+  setLoadout(weapons: WeaponId[], levels: Partial<Record<WeaponId, number>>, suit: GameOptions["suit"], outfit: OutfitId, bombs?: Partial<Record<BombId, number>>) {
     this.opts.weapons = weapons; this.opts.levels = levels; this.opts.suit = suit; this.opts.outfit = outfit;
-    this.spec = [this.tuned(weapons[0]), this.tuned(weapons[1])];
-    this.ammo = [this.spec[0].mag, this.spec[1].mag];
+    if (bombs) { this.bombs = { ...bombs }; this.opts.bombs = bombs; }
+    this.armGuns();
     if (this.plan) this.load(this.stage, this.mode === "attract" ? "attract" : "intro", false, { sector: this.sectorI, phase: this.phaseI });
   }
 
@@ -256,8 +297,10 @@ export class Game {
     this.camYaw = 0; this.camPitch = -0.12;
     this.fuelMax = jetTank(this.opts.suit.jet); this.fuel = 1;
     this.power = { rapid: 0, damage: 0, shield: 0, magnet: 0, speed: 0 };
-    this.spec = [this.tuned(this.opts.weapons[0]), this.tuned(this.opts.weapons[1])];
-    this.ammo = [this.spec[0].mag, this.spec[1].mag]; this.reloadT = 0; this.slot = 0; this.setGun();
+    this.pow = gunPower(stage);
+    this.armGuns();
+    if (mode === "attract") this.mission = null;
+    this.burns = []; this.wells = [];
     this.stageCoins = 0; this.kills = 0; this.killsBanked = 0; this.streak = 0; this.stageT = 0; this.boss = null;
     this.resetPhase(); this.phaseWait = 1.4;
     this.seedPickups();
@@ -443,50 +486,89 @@ export class Game {
     if (this.cellKind(p) === CELL_LAVA && p.y < a.liquid + 0.3) this.damagePlayer(28 * dt, null, true);
     if (inVoid(a, p)) { this.damagePlayer(30, null, true); this.opts.onEvent({ k: "fell" }); if (p.alive) this.toPad(p); }
     // weapons
-    this.fireT -= dt;
-    const ws = this.spec[this.slot];
-    if (this.reloadT > 0) { this.reloadT -= dt; if (this.reloadT <= 0) { this.ammo[this.slot] = ws.mag; sfx("reloaded", { gain: 0.6 }); } }
-    if (this.keys.has("KeyR") && this.reloadT <= 0 && this.ammo[this.slot] < ws.mag) this.reload();
+    this.fireT -= dt; this.bombT -= dt;
+    const ws = this.cur();
+    if (this.reloadT > 0) { this.reloadT -= dt; if (this.reloadT <= 0) this.finishReload(); }
+    if (this.keys.has("KeyR") && this.reloadT <= 0) this.reload();
     if (this.firing && this.fireT <= 0 && this.reloadT <= 0) {
-      if (this.ammo[this.slot] <= 0) this.reload();
-      else this.shoot(ws);
+      if (this.slot === 4 && this.mission) {
+        if (this.mission.ammo > 0) this.shoot(ws);
+        if (this.mission.ammo <= 0) { this.opts.onEvent({ k: "missionEmpty", gun: this.mission.spec.id }); this.mission = null; this.selectSlot(this.lastSlot); }
+      } else if (this.ammo[this.slot] > 0) this.shoot(ws);
+      else if (this.reserve[this.slot] !== 0) this.reload();
+      else {
+        // dry: on to a gun that still has ammo
+        this.opts.onEvent({ k: "noAmmo", gun: ws.id });
+        for (let k = 1; k <= this.spec.length; k++) { const i = (this.slot + k) % this.spec.length; if (this.ammo[i] > 0 || this.reserve[i] !== 0) { this.selectSlot(i); break; } }
+        this.fireT = 0.4;
+      }
     }
   }
   private cellKind(u: Unit) { const c = cellOf(this.arena, u.x, u.z); return c < 0 ? 0 : this.arena.kind[c]; }
   private toPad(u: Unit) { const sp = this.arena.spawn; u.x = sp.x; u.z = sp.z; u.y = solidAt(this.arena, sp.x, sp.z) + 4; u.vy = 0; }
-  private reload() { if (this.reloadT > 0) return; this.reloadT = this.spec[this.slot].reload; sfx("reload", { gain: 0.7 }); this.opts.onEvent({ k: "reload" }); }
-  swap() {
-    if (this.mode !== "play" || this.opts.weapons[0] === this.opts.weapons[1]) return;
-    this.slot = this.slot === 0 ? 1 : 0; this.reloadT = 0; this.fireT = 0.25;
-    this.setGun(); sfx("swap");
-  }
-  private setGun() {
+  reload() {
+    if (this.reloadT > 0 || this.slot === 4) return;
     const s = this.spec[this.slot];
+    if (!s || this.ammo[this.slot] >= s.mag || this.reserve[this.slot] === 0) return;
+    this.reloadT = s.reload; sfx("reload", { gain: 0.7 }); this.opts.onEvent({ k: "reload" });
+  }
+  private finishReload() {
+    const s = this.spec[this.slot];
+    if (!s) return;
+    const need = s.mag - this.ammo[this.slot], r = this.reserve[this.slot], take = r < 0 ? need : Math.min(need, r);
+    this.ammo[this.slot] += take; if (r >= 0) this.reserve[this.slot] = r - take;
+    sfx("reloaded", { gain: 0.6 });
+  }
+  /** take a gun in hand: slots 0–3, or 4 for the mission gun */
+  selectSlot(i: number) {
+    if (this.mode !== "play" && this.mode !== "intro") return;
+    if (i === 4 ? !this.mission : i >= this.spec.length || i === this.slot) return;
+    if (this.slot !== 4) this.lastSlot = this.slot;
+    this.slot = i; this.reloadT = 0; this.fireT = 0.2;
+    this.setGun(); sfx("swap");
+    this.opts.onEvent({ k: "gun", id: this.cur().id });
+  }
+  /** the next (or previous) gun, the mission gun included */
+  nextGun(dir = 1) {
+    const order: number[] = this.spec.map((_, i) => i);
+    if (this.mission) order.push(4);
+    if (order.length < 2) return;
+    const at = order.indexOf(this.slot);
+    this.selectSlot(order[(at + dir + order.length) % order.length]);
+  }
+  /** back to the gun you had before */
+  swap() { this.selectSlot(this.slot === this.lastSlot ? (this.slot + 1) % this.spec.length : this.lastSlot); }
+  private setGun() {
+    const s = this.cur();
     this.gun.geometry = gunGeometry(s.id, s.color); this.viewGun.geometry = gunGeometry(s.id, s.color);
   }
 
   private shoot(ws: WeaponSpec) {
     const p = this.player;
-    this.ammo[this.slot]--;
+    if (this.slot === 4 && this.mission) this.mission.ammo--; else this.ammo[this.slot]--;
     const rate = ws.rate * (this.power.rapid > 0 ? 1.8 : 1);
     this.fireT = 1 / rate;
-    const dmgMul = this.power.damage > 0 ? 2 : 1;
-    const m = this.firstPerson ? this.viewMuzzle() : muzzleOf(p);
+    const dmgMul = (this.power.damage > 0 ? 2 : 1) * this.pow;
+    const m0 = this.firstPerson ? this.viewMuzzle() : muzzleOf(p);
+    const m = { x: m0.x, y: m0.y, z: m0.z };
+    if (ws.id === "twin") { this.twinSide = -this.twinSide; m.x += -Math.cos(this.camYaw) * 0.22 * this.twinSide; m.z += Math.sin(this.camYaw) * 0.22 * this.twinSide; }
     const aim = this.aim;
     p.recoil = 1;
     this.shake = Math.max(this.shake, ws.recoil * 0.12);
     this.fx.cube(m.x, m.y, m.z, 0.28 + ws.recoil * 0.25, hex(ws.glow), 1.4);
     this.fx.spawn(FLASH, m.x, m.y, m.z, 0, 0, 0, 0.06, 0.35 + ws.recoil * 0.3, hex(ws.glow));
-    sfx(`fire_${ws.id}` as VanguardSfx, { gain: 0.6, rate: 0.95 + Math.random() * 0.1 });
+    if (ws.id !== "laser" || Math.random() < 0.25) sfx(`fire_${ws.id}` as VanguardSfx, { gain: ws.rate > 12 ? 0.4 : 0.6, rate: 0.95 + Math.random() * 0.1 });
     // camera kick
     this.camPitch = clamp(this.camPitch + ws.recoil * 0.012, -1.1, 0.85);
     const dx = aim.x - m.x, dy = aim.y - m.y, dz = aim.z - m.z, d = Math.hypot(dx, dy, dz) || 1;
-    if (ws.id === "rail" || ws.id === "arc") { this.hitscan(ws, m.x, m.y, m.z, dx / d, dy / d, dz / d, dmgMul); return; }
+    if (ws.mode === "rail" || ws.mode === "arc" || ws.mode === "beam") { this.hitscan(ws, m.x, m.y, m.z, dx / d, dy / d, dz / d, dmgMul); return; }
+    const home = ws.mode === "homing" ? this.locked ?? this.nearestRobot(aim.x, aim.z, 30) : null;
+    const kind = ws.mode === "flame" ? FLAME : ws.mode === "homing" || ws.id === "boom" ? ROCKET : ws.splash > 0 ? ORB : BOLT;
     for (let k = 0; k < ws.pellets; k++) {
       const sp = ws.spread * (this.firstPerson ? 0.8 : 1);
       const ex = (Math.random() - 0.5) * 2 * sp, ey = (Math.random() - 0.5) * 2 * sp, ez = (Math.random() - 0.5) * 2 * sp;
       const vx = dx / d + ex, vy = dy / d + ey, vz = dz / d + ez, vl = Math.hypot(vx, vy, vz);
-      this.bolts.push({ x: m.x, y: m.y, z: m.z, vx: (vx / vl) * ws.speed, vy: (vy / vl) * ws.speed, vz: (vz / vl) * ws.speed, life: ws.range / ws.speed, dmg: ws.damage * dmgMul, team: 0, splash: ws.splash, pierce: ws.pierce, hex: hex(ws.color), kind: ws.id === "boom" ? ROCKET : BOLT, len: ws.id === "boom" ? 0.7 : ws.pellets > 1 ? 0.5 : 1.1, w: ws.id === "boom" ? 0.24 : 0.12, g: 0, owner: p.id, hit: 0, from: p });
+      this.bolts.push({ x: m.x, y: m.y, z: m.z, vx: (vx / vl) * ws.speed, vy: (vy / vl) * ws.speed, vz: (vz / vl) * ws.speed, life: ws.range / ws.speed, dmg: ws.damage * dmgMul, team: 0, splash: ws.splash, pierce: ws.pierce, hex: hex(ws.color), kind, len: kind === ROCKET ? 0.7 : kind === ORB ? 0.6 : ws.pellets > 1 ? 0.5 : 1.1, w: kind === ROCKET ? 0.24 : kind === ORB ? (ws.id === "nova" ? 0.9 : 0.6) : 0.12, g: 0, owner: p.id, hit: 0, from: p, home });
     }
   }
   /** rail: a piercing beam; arc: lightning that jumps from robot to robot */
@@ -494,7 +576,22 @@ export class Game {
     const a = this.arena;
     let end = ws.range;
     for (let t = 0.4; t < ws.range; t += 0.4) if (y + dy * t < solidAt(a, x + dx * t, z + dz * t)) { end = t; break; }
-    if (ws.id === "rail") {
+    if (ws.mode === "beam") {
+      // the laser: the first robot along the beam burns
+      let hit: Unit | null = null, ht = end;
+      for (const r of this.robots) {
+        if (!r.alive || r.spawnT > 0) continue;
+        const cx = r.x - x, cy = r.y + r.height * 0.5 - y, cz = r.z - z, t = cx * dx + cy * dy + cz * dz;
+        if (t < 0 || t > ht) continue;
+        const px = cx - dx * t, py = cy - dy * t, pz = cz - dz * t;
+        if (px * px + py * py + pz * pz < (r.radius + 0.3) * (r.radius + 0.3) * (r.spec!.boss ? 3 : 1.5)) { ht = t; hit = r; }
+      }
+      if (hit) this.hurtRobot(hit, ws.damage * mul, x + dx * ht, y + dy * ht, z + dz * ht);
+      this.beams.push({ x0: x, y0: y, z0: z, x1: x + dx * ht, y1: y + dy * ht, z1: z + dz * ht, life: 0.07, max: 0.07, hex: hex(ws.color), w: 0.09, jag: 0 });
+      if (Math.random() < 0.5) this.fx.spawn(SPARK, x + dx * ht, y + dy * ht, z + dz * ht, (Math.random() - 0.5) * 4, 2, (Math.random() - 0.5) * 4, 0.25, 0.06, hex(ws.glow));
+      return;
+    }
+    if (ws.mode === "rail") {
       for (const r of this.robots) {
         if (!r.alive || r.spawnT > 0) continue;
         const cx = r.x - x, cy = r.y + r.height * 0.5 - y, cz = r.z - z, t = cx * dx + cy * dy + cz * dz;
@@ -530,6 +627,127 @@ export class Game {
       for (const r of this.robots) { if (!r.alive || hitSet.includes(r) || r.spawnT > 0) continue; const d = Math.hypot(r.x - tx, r.z - tz); if (d < nd) { nd = d; next = r; } }
       if (next) hitSet.push(next);
       cur = next;
+    }
+  }
+  private nearestRobot(x: number, z: number, max: number) {
+    let best: Unit | null = null, bd = max;
+    for (const r of this.robots) { if (!r.alive || r.spawnT > 0) continue; const d = Math.hypot(r.x - x, r.z - z); if (d < bd) { bd = d; best = r; } }
+    return best;
+  }
+
+  // ---------------------------------------------------------------- bombs
+  /** throw the bomb that's ready (the next kind you have if it ran out) */
+  throwBomb() {
+    if (this.mode !== "play" || !this.player.alive || this.bombT > 0) return;
+    let id = this.bombType;
+    if ((this.bombs[id] ?? 0) <= 0) {
+      const next = BOMBS.find((b) => (this.bombs[b.id] ?? 0) > 0);
+      if (!next) { this.opts.onEvent({ k: "noBombs" }); this.bombT = 0.6; return; }
+      id = next.id; this.bombType = id;
+    }
+    this.bombs[id] = (this.bombs[id] ?? 0) - 1;
+    this.opts.onBombs({ ...this.bombs }, this.bombType);
+    this.bombT = 0.45;
+    const spec = bombOf(id), p = this.player;
+    const m = this.firstPerson ? this.viewMuzzle() : muzzleOf(p);
+    const f = this.fwd, sp = id === "mega" ? 12 : 15;
+    this.bolts.push({ x: m.x, y: m.y + 0.1, z: m.z, vx: f.x * sp, vy: f.y * sp + 4.5, vz: f.z * sp, life: 12, dmg: spec.damage * this.pow * (this.power.damage > 0 ? 2 : 1), team: 0, splash: spec.radius, pierce: false, hex: hex(spec.color), kind: BOMB, len: 0, w: id === "mega" ? 0.5 : 0.3, g: 20, owner: p.id, hit: 0, from: p, bomb: id, fuse: spec.fuse, stuck: false, stuckTo: null });
+    p.recoil = 1;
+    sfx("throw");
+    this.opts.onEvent({ k: "bomb", id });
+  }
+  /** the next kind of bomb (only kinds you have) */
+  nextBomb() {
+    const have = BOMBS.filter((b) => (this.bombs[b.id] ?? 0) > 0);
+    const list = have.length ? have : BOMBS.slice(0, 1);
+    const at = list.findIndex((b) => b.id === this.bombType);
+    this.bombType = list[(at + 1) % list.length].id;
+    this.opts.onBombs({ ...this.bombs }, this.bombType);
+    sfx("swap", { gain: 0.6, rate: 1.3 });
+    this.opts.onEvent({ k: "bombType", id: this.bombType });
+  }
+  setBomb(id: BombId) { this.bombType = id; this.opts.onBombs({ ...this.bombs }, id); }
+  /** a bomb in flight: bounce off the blocks (or stick), tick down the fuse */
+  private stepBomb(b: Bolt, dt: number) {
+    const a = this.arena;
+    b.fuse = (b.fuse ?? 1) - dt;
+    if (b.stuckTo) { const r = b.stuckTo; if (r.alive) { b.x = r.x + (b.ox ?? 0); b.y = r.y + (b.oy ?? 1); b.z = r.z + (b.oz ?? 0); } else b.stuckTo = null; }
+    else if (!b.stuck) {
+      b.vy -= b.g * dt;
+      const nx = b.x + b.vx * dt, ny = b.y + b.vy * dt, nz = b.z + b.vz * dt;
+      const floorNow = solidAt(a, b.x, b.z), floorNew = solidAt(a, nx, nz);
+      if (ny < floorNew) {
+        if (b.bomb === "sticky") { b.stuck = true; b.vx = b.vy = b.vz = 0; b.y = Math.max(b.y, floorNew + 0.15); sfx("land", { gain: 0.3, rate: 1.6 }); return; }
+        if (b.y >= floorNew - 0.05 && floorNew <= floorNow + 0.6) { b.vy = Math.abs(b.vy) * 0.35; b.vx *= 0.7; b.vz *= 0.7; b.y = floorNew + 0.01; b.x = nx; b.z = nz; if (Math.abs(b.vy) > 1.5) sfx("land", { gain: 0.25, rate: 1.8 }); }
+        else { b.vx *= -0.45; b.vz *= -0.45; }
+      } else { b.x = nx; b.y = ny; b.z = nz; }
+      if (b.bomb === "sticky") for (const r of this.robots) { if (!r.alive || r.spawnT > 0) continue; if (Math.hypot(r.x - b.x, r.z - b.z) < r.radius + 0.4 && Math.abs(b.y - (r.y + r.height * 0.5)) < r.height * 0.6) { b.stuckTo = r; b.ox = b.x - r.x; b.oy = b.y - r.y; b.oz = b.z - r.z; sfx("land", { gain: 0.3, rate: 1.6 }); break; } }
+    }
+    if (Math.random() < 0.5) this.fx.spawn(SPARK, b.x, b.y + 0.2, b.z, (Math.random() - 0.5) * 2, 2, (Math.random() - 0.5) * 2, 0.2, 0.05, b.fuse! < 0.5 ? 0xff3a3a : 0xffd27a);
+  }
+  /** a bomb goes off: each kind its own way */
+  private detonate(b: Bolt) {
+    const id = b.bomb ?? "frag", x = b.x, y = b.y + 0.3, z = b.z, r = b.splash, dmg = b.dmg;
+    switch (id) {
+      case "emp":
+        this.blast(x, y, z, r * 0.5, dmg, 0x9af0ff);
+        for (const u of this.robots) if (u.alive && Math.hypot(u.x - x, u.z - z) < r) { u.stun = Math.max(u.stun, 4); u.flash = 1; }
+        this.fx.spawn(RING, x, y, z, 0, 0, 0, 0.7, r * 2.2, 0x9af0ff); this.fx.burst(SPARK, x, y + 1, z, 30, 10, 0.6, 0.08, 0x9af0ff, 2);
+        sfx("emp", { pan: this.pan(x, z) });
+        break;
+      case "fire":
+        this.blast(x, y, z, r * 0.6, dmg, 0xff6a2a);
+        this.burns.push({ x, y: b.y, z, r, t: 5, dps: dmg * 0.9, tick: 0 });
+        sfx("fireBomb", { pan: this.pan(x, z) });
+        break;
+      case "gravity":
+        this.wells.push({ x, y, z, r, t: 1.4, dmg });
+        sfx("gravity", { pan: this.pan(x, z) });
+        break;
+      case "cluster":
+        this.blast(x, y, z, r, dmg, 0xff8a2a);
+        if (!b.mini) for (let k = 0; k < 6; k++) { const a2 = (k / 6) * Math.PI * 2; this.bolts.push({ x, y: y + 0.4, z, vx: Math.cos(a2) * 5, vy: 6 + Math.random() * 2, vz: Math.sin(a2) * 5, life: 6, dmg: dmg * 0.6, team: 0, splash: r * 0.7, pierce: false, hex: 0xff8a2a, kind: BOMB, len: 0, w: 0.18, g: 20, owner: b.owner, hit: 0, from: b.from, bomb: "cluster", fuse: 0.7 + Math.random() * 0.4, mini: true }); }
+        break;
+      case "mega":
+        this.blast(x, y, z, r, dmg, 0xffd23f);
+        for (let k = 0; k < 8; k++) { const a2 = (k / 8) * Math.PI * 2; this.fx.explode(x + Math.cos(a2) * r * 0.5, y, z + Math.sin(a2) * r * 0.5, 2.2, [0xffd23f, 0xff8a2a, 0x3a3e4e], this.quality === "low" ? 0.5 : 1); }
+        this.fx.spawn(RING, x, y, z, 0, 0, 0, 1, r * 2.6, 0xffd23f);
+        if (!this.reduced) this.slowT = Math.max(this.slowT, 1.1);
+        this.shake = 1.2; sfx("bossDown");
+        break;
+      default: this.blast(x, y, z, r, dmg, id === "sticky" ? 0x5ab8ff : 0xffb03a);
+    }
+  }
+  /** an explosion of yours: hurts robots only (your bombs never hurt the squad) */
+  private blast(x: number, y: number, z: number, r: number, dmg: number, col: number) {
+    if (this.nearCam(x, z, 70)) { this.fx.explode(x, y, z, Math.min(3, r * 0.45), [0x5a5e6e, 0x3a3e4e, col], this.quality === "low" ? 0.5 : 1); sfx("boom", { pan: this.pan(x, z), gain: clamp(1.1 - this.distCam(x, z) / 60, 0.3, 1) }); }
+    this.shake = Math.max(this.shake, clamp(0.7 - this.distCam(x, z) / 40, 0.05, 0.7));
+    for (const u of this.robots) {
+      if (!u.alive) continue;
+      const d = Math.hypot(u.x - x, u.y + u.height * 0.4 - y, u.z - z);
+      if (d > r) continue;
+      this.hurtRobot(u, dmg * (1 - (d / r) * 0.6), u.x, u.y + u.height * 0.5, u.z);
+    }
+  }
+  /** fire pools burn, gravity wells pull and then crush */
+  private updateZones(dt: number) {
+    for (let i = this.burns.length - 1; i >= 0; i--) {
+      const f = this.burns[i];
+      f.t -= dt; f.tick -= dt;
+      if (Math.random() < 0.7) { const a2 = Math.random() * Math.PI * 2, rr = Math.random() * f.r; this.fx.spawn(FIRE, f.x + Math.cos(a2) * rr, f.y + 0.2, f.z + Math.sin(a2) * rr, 0, 1.5 + Math.random(), 0, 0.6, 0.4 + Math.random() * 0.3, 0xff7a2a); }
+      if (f.tick <= 0) { f.tick = 0.25; for (const u of this.robots) if (u.alive && Math.hypot(u.x - f.x, u.z - f.z) < f.r) this.hurtRobot(u, f.dps * 0.25, u.x, u.y + u.height * 0.5, u.z); }
+      if (f.t <= 0) this.burns.splice(i, 1);
+    }
+    for (let i = this.wells.length - 1; i >= 0; i--) {
+      const g = this.wells[i];
+      g.t -= dt;
+      for (const u of this.robots) {
+        if (!u.alive || u.spec!.boss) continue;
+        const d = Math.hypot(u.x - g.x, u.z - g.z);
+        if (d < g.r && d > 0.6) { const k = Math.min(1, dt * 3); u.x += (g.x - u.x) * k; u.z += (g.z - u.z) * k; u.stun = Math.max(u.stun, 0.3); }
+      }
+      for (let k = 0; k < 3; k++) { const a2 = Math.random() * Math.PI * 2; this.fx.spawn(GLINT, g.x + Math.cos(a2) * g.r * 0.8, g.y + Math.random() * 2, g.z + Math.sin(a2) * g.r * 0.8, -Math.cos(a2) * g.r * 1.2, 0, -Math.sin(a2) * g.r * 1.2, 0.6, 0.12, 0xc87cff); }
+      if (g.t <= 0) { this.blast(g.x, g.y, g.z, g.r * 0.6, g.dmg, 0xc87cff); this.fx.spawn(RING, g.x, g.y, g.z, 0, 0, 0, 0.6, g.r * 1.6, 0xc87cff); this.wells.splice(i, 1); }
     }
   }
   private viewMuzzle() {
@@ -572,8 +790,20 @@ export class Game {
 
   private updateBolts(dt: number) {
     const a = this.arena;
+    this.updateZones(dt);
     for (let i = this.bolts.length - 1; i >= 0; i--) {
       const b = this.bolts[i];
+      if (b.kind === BOMB) { this.stepBomb(b, dt); if ((b.fuse ?? 0) <= 0) { this.detonate(b); this.bolts.splice(i, 1); } else if (b.y < -20) this.bolts.splice(i, 1); continue; }
+      // homing rockets turn toward their robot
+      if (b.home) {
+        const t = b.home;
+        if (!t.alive) b.home = this.nearestRobot(b.x, b.z, 25);
+        else {
+          const sp = Math.hypot(b.vx, b.vy, b.vz), dx = t.x - b.x, dy = t.y + t.height * 0.5 - b.y, dz = t.z - b.z, dl = Math.hypot(dx, dy, dz) || 1, k = Math.min(1, dt * 5);
+          b.vx += ((dx / dl) * sp - b.vx) * k; b.vy += ((dy / dl) * sp - b.vy) * k; b.vz += ((dz / dl) * sp - b.vz) * k;
+        }
+      }
+      if (b.kind === FLAME && Math.random() < 0.8) this.fx.spawn(FIRE, b.x, b.y, b.z, b.vx * 0.2, 0.8, b.vz * 0.2, 0.3, 0.25 + Math.random() * 0.25, Math.random() < 0.5 ? 0xff7a2a : 0xffd23f);
       b.life -= dt;
       const steps = Math.max(1, Math.ceil((Math.hypot(b.vx, b.vy, b.vz) * dt) / 0.5));
       const h = dt / steps;
@@ -581,7 +811,8 @@ export class Game {
       for (let s = 0; s < steps && !dead; s++) {
         b.vy -= b.g * h;
         b.x += b.vx * h; b.y += b.vy * h; b.z += b.vz * h;
-        if (b.kind === ROCKET || b.kind === MISSILE) if (Math.random() < 0.4) this.fx.spawn(SMOKE, b.x, b.y, b.z, 0, 0.3, 0, 0.5, 0.22, 0x8a8a92);
+        if (b.kind === ROCKET || b.kind === MISSILE) { if (Math.random() < 0.4) this.fx.spawn(SMOKE, b.x, b.y, b.z, 0, 0.3, 0, 0.5, 0.22, 0x8a8a92); }
+        else if (b.kind === ORB && Math.random() < 0.3) this.fx.spawn(GLINT, b.x, b.y, b.z, 0, 0, 0, 0.3, b.w * 0.5, b.hex);
         // blocks
         if (b.y < solidAt(a, b.x, b.z)) { dead = true; this.impact(b, true); break; }
         // units
@@ -648,6 +879,11 @@ export class Game {
     // loot: coins always, now and then a heart, an oil can or a power cube
     const coins = Math.round(spec.coins * (1 + this.stage / 200) * (r.elite ? 2 : 1) * (this.plan.twist === "coins" ? 2 : 1));
     const pieces = spec.boss ? 14 : Math.min(5, 1 + Math.floor(coins / 6));
+    // ammo, bombs and (now and then) a gun crate; elites and bosses drop more
+    const lucky = spec.boss ? 1 : r.elite ? 0.4 : 0.12;
+    if (Math.random() < lucky) this.drop("ammo", r.x, y, r.z, 1);
+    if (Math.random() < lucky * 0.5) this.drop("bombs", r.x, y, r.z, 1);
+    if (spec.boss || Math.random() < (r.elite ? 0.07 : 0.008)) this.drop("gun", r.x, y, r.z, 1);
     for (let k = 0; k < pieces; k++) this.drop(k % 7 === 6 ? "gem" : "coin", r.x, y, r.z, k % 7 === 6 ? Math.ceil(coins / pieces) * 3 : Math.ceil(coins / pieces));
     const hpLow = this.player.hp / this.player.maxHp < 0.45;
     const roll = Math.random();
@@ -758,14 +994,14 @@ export class Game {
     // robots keep teleporting in from the gates for as long as the phase runs
     let alive = 0;
     for (const r of this.robots) if (r.alive && r.kind !== "tower") alive++;
-    const cap = Math.min(ph.cap, this.quality === "low" ? 11 : this.quality === "medium" ? 15 : 19);
+    const cap = Math.min(ph.cap, this.quality === "low" ? 13 : this.quality === "medium" ? 18 : 24);
     const more = ph.kind === "assault" || ph.kind === "elite" ? this.phaseKills + alive < ph.count : true;
     this.spawnT -= dt;
     if (more && alive < cap && this.spawnT <= 0) {
       const gate = this.arena.gates[Math.floor(Math.random() * this.arena.gates.length)];
       this.spawnRobot(this.pickKind(), Math.random() < ph.elite, gate.x + (Math.random() - 0.5) * 2, gate.z + (Math.random() - 0.5) * 2);
-      // they pour in when a phase opens, then come at the phase's pace
-      this.spawnT = (this.phaseT < 8 ? 0.4 : ph.every) * (0.7 + Math.random() * 0.6);
+      // they arrive in a steady stream (a little quicker as the phase opens)
+      this.spawnT = (this.phaseT < 10 ? Math.max(0.9, ph.every * 0.8) : ph.every) * (0.7 + Math.random() * 0.6);
     }
     switch (ph.kind) {
       case "assault": case "elite": if (this.phaseKills >= ph.count) this.completePhase(); break;
@@ -838,8 +1074,10 @@ export class Game {
       }
     }
     // supplies dropped for the new phase: a heart, an oil can and now and then a power cube
-    const sp = this.spread(3);
+    const sp = this.spread(5);
     this.place("heart", sp[0].x + 1, sp[0].z, 1); this.place("oil", sp[1].x - 1, sp[1].z, 1);
+    this.place("ammo", sp[3].x, sp[3].z - 1, 1); this.place("bombs", sp[4].x + 1, sp[4].z + 1, 1);
+    if (this.phaseNo % 3 === 0 || ph.kind === "boss") this.place("gun", sp[2].x - 1, sp[2].z - 1, 1);
     if (Math.random() < 0.6) this.place((["rapid", "damage", "shield", "magnet", "speed"] as PickupKind[])[Math.floor(Math.random() * 5)], sp[2].x, sp[2].z + 1, 1);
     this.spawnT = 1;
     sfx("wave");
@@ -982,6 +1220,10 @@ export class Game {
     for (let k = 0; k < 2 && spots.length; k++) { const s = take(); this.place("heart", s.x, s.z, 1); }
     for (let k = 0; k < 3 && spots.length; k++) { const s = take(); this.place("oil", s.x, s.z, 1); }
     for (let k = 0; k < 2 && spots.length; k++) { const s = take(); this.place((["rapid", "damage", "shield", "magnet", "speed"] as PickupKind[])[Math.floor(r() * 5)], s.x, s.z, 1); }
+    // ammo crates, a bomb crate and, sometimes, a gun crate around the sector
+    for (let k = 0; k < 3 && spots.length; k++) { const s = take(); this.place("ammo", s.x, s.z, 1); }
+    for (let k = 0; k < 2 && spots.length; k++) { const s = take(); this.place("bombs", s.x, s.z, 1); }
+    if (spots.length && r() < 0.45) { const s = take(); this.place("gun", s.x, s.z, 1); }
     if (spots.length) { const s = take(); this.place("gem", s.x, s.z, 25); }
   }
   private place(kind: PickupKind, x: number, z: number, value: number) {
@@ -1033,6 +1275,36 @@ export class Game {
         else { this.lives = Math.min(5, this.lives + 1); this.opts.onLives(this.lives); }
         sfx("heart"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 10, 3, 0.6, 0.14, 0xff5a8a); break;
       case "oil": this.fuel = 1; this.lowFuelWarned = false; sfx("oil"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 8, 3, 0.5, 0.12, 0xff8a3a); break;
+      case "ammo": {
+        // spare ammo for every gun you carry (and a top-up for the mission gun)
+        for (let i = 0; i < this.spec.length; i++) if (this.reserve[i] >= 0) this.reserve[i] = Math.min(this.spec[i].mag * 10, this.reserve[i] + this.spec[i].mag * 3);
+        if (this.mission) this.mission.ammo = Math.min(this.mission.spec.mag, this.mission.ammo + Math.round(this.mission.spec.mag * 0.25));
+        sfx("ammo"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 8, 3, 0.5, 0.12, 0xffd23f);
+        this.opts.onEvent({ k: "pickup", what: "ammo", name: "Ammo +" });
+        return;
+      }
+      case "bombs": {
+        // two bombs: mostly the common kinds, now and then a mega bomb
+        const got: string[] = [];
+        for (let k = 0; k < 2; k++) {
+          const roll = Math.random(), b = roll < 0.04 ? bombOf("mega") : BOMBS[Math.floor(Math.random() * 6)];
+          this.bombs[b.id] = Math.min(b.max, (this.bombs[b.id] ?? 0) + 1); got.push(b.name);
+        }
+        this.opts.onBombs({ ...this.bombs }, this.bombType);
+        sfx("bombPick"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 10, 3, 0.5, 0.12, 0xff5a3a);
+        this.opts.onEvent({ k: "pickup", what: "bombs", name: [...new Set(got)].join(" + ") });
+        return;
+      }
+      case "gun": {
+        // a mission gun: straight into your hands
+        const w = MISSION_GUNS[Math.floor(Math.random() * MISSION_GUNS.length)];
+        this.mission = { spec: { ...w }, ammo: w.mag };
+        if (this.slot !== 4) this.lastSlot = this.slot;
+        this.slot = 4; this.reloadT = 0; this.setGun();
+        sfx("gunPick"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 18, 5, 0.7, 0.14, 0x9af0ff, 2);
+        this.opts.onEvent({ k: "mission", gun: w.id });
+        return;
+      }
       default: {
         const id = pk.kind as PowerId;
         this.power[id] = POWER_SECS[id];
@@ -1197,7 +1469,12 @@ export class Game {
     if (this.backdrop) { this.backdrop.clouds.rotation.y += dt * 0.004; this.backdrop.weather?.update(dt, this.time, this.camera.position.x, this.camera.position.y, this.camera.position.z); }
     // bolts and beams as glowing bars, on top of the particles
     this.fx.begin();
-    for (const b of this.bolts) this.fx.bar(b.x, b.y, b.z, b.vx, b.vy, b.vz, b.len, b.w, b.hex, b.kind === BOLT ? 1.6 : 1.3);
+    for (const b of this.bolts) {
+      if (b.kind === FLAME) continue;
+      if (b.kind === BOMB) { const blink = (b.fuse ?? 1) < 0.6 && Math.floor(this.time * 14) % 2 === 0; this.fx.cube(b.x, b.y, b.z, b.w, blink ? 0xffffff : b.hex, blink ? 2 : 1.2); continue; }
+      if (b.kind === ORB) { this.fx.cube(b.x, b.y, b.z, b.w, b.hex, 1.6); this.fx.cube(b.x, b.y, b.z, b.w * 0.55, 0xffffff, 1.4); continue; }
+      this.fx.bar(b.x, b.y, b.z, b.vx, b.vy, b.vz, b.len, b.w, b.hex, b.kind === BOLT ? 1.6 : 1.3);
+    }
     for (const bm of this.beams) {
       const k = bm.life / bm.max;
       if (bm.jag > 0) {
@@ -1361,11 +1638,17 @@ export class Game {
     const down = e.type === "keydown";
     const code = e.code;
     if (down) this.keys.add(code); else this.keys.delete(code);
-    if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(code)) e.preventDefault();
+    if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].includes(code)) e.preventDefault();
     // Space is the game's while a stage runs: the player shell's Space-to-pause never sees it (Esc still pauses)
     if (code === "Space" && this.running && this.mode !== "attract") e.stopPropagation();
     if (!down || e.repeat) return;
-    if (code === "KeyQ" || code === "Digit1" || code === "Digit2") { if (code === "KeyQ" || (code === "Digit1" ? 0 : 1) !== this.slot) this.swap(); }
+    // guns: 1–4, 5 or T for the mission gun, Q back to the last gun; bombs: G throws, B (or Tab) picks the kind
+    if (code.startsWith("Digit")) { const n = Number(code.slice(5)); if (n >= 1 && n <= 4) this.selectSlot(n - 1); if (n === 5) this.selectSlot(4); }
+    if (code === "KeyT") this.selectSlot(4);
+    if (code === "KeyQ") this.swap();
+    if (code === "KeyE") this.nextGun(1);
+    if (code === "KeyG") this.throwBomb();
+    if (code === "KeyB" || code === "Tab") { e.preventDefault(); this.nextBomb(); }
     if (code === "KeyV" || code === "KeyP") { const f = this.toggleView(); this.opts.onEvent({ k: "view", first: f }); }
   }
   private mouse(e: MouseEvent) {
@@ -1374,7 +1657,7 @@ export class Game {
       if (this.mode !== "play") return;
       if (document.pointerLockElement !== this.renderer.domElement) { this.renderer.domElement.requestPointerLock?.(); return; }
       if (e.button === 0) this.setFire(true);
-      if (e.button === 2) this.swap();
+      if (e.button === 2) this.throwBomb();
     } else if (e.type === "mouseup" && e.button === 0) this.setFire(false);
   }
 
@@ -1386,6 +1669,8 @@ export class Game {
     window.removeEventListener("keydown", this.onKey, true); window.removeEventListener("keyup", this.onKey, true);
     window.removeEventListener("mousemove", this.onMouse); window.removeEventListener("mouseup", this.onMouse);
     this.renderer.domElement.removeEventListener("mousedown", this.onMouse);
+    this.renderer.domElement.removeEventListener("wheel", this.onWheel);
+    this.renderer.domElement.removeEventListener("contextmenu", this.onContext);
     if (document.pointerLockElement === this.renderer.domElement) document.exitPointerLock?.();
     this.clearStage();
     this.fx.dispose();
@@ -1398,7 +1683,7 @@ export class Game {
   // ---------------------------------------------------------------- HUD
   private pushHud() {
     const p = this.player, plan = this.plan, ph = this.phase;
-    const ws = this.spec[this.slot];
+    const ws = this.cur();
     let obj: Hud["obj"] = null;
     if (ph) {
       let line = "", prog = 0;
@@ -1415,8 +1700,9 @@ export class Game {
     }
     const h: Hud = {
       stage: this.stage, codename: this.op.codename, sector: this.sectorI + 1, sectors: this.op.sectors.length, sectorName: this.sector.name, phase: this.phaseNo, phases: phasesIn(this.op), obj,
-      hp: Math.max(0, p.hp), maxHp: p.maxHp, lives: this.lives, fuel: this.fuel, ammo: this.ammo[this.slot], mag: ws.mag, reload: this.reloadT > 0 ? 1 - this.reloadT / ws.reload : -1,
-      weapon: ws.id, slot: this.slot, weapons: this.opts.weapons, coins: this.coins,
+      hp: Math.max(0, p.hp), maxHp: p.maxHp, lives: this.lives, fuel: this.fuel, ammo: this.slot === 4 && this.mission ? this.mission.ammo : this.ammo[this.slot] ?? 0, mag: ws.mag, reserve: this.slot === 4 ? 0 : this.reserve[this.slot] ?? 0, reload: this.reloadT > 0 ? 1 - this.reloadT / ws.reload : -1,
+      weapon: ws.id, slot: this.slot, guns: this.spec.map((s, i) => ({ id: s.id, ammo: this.ammo[i], mag: s.mag, reserve: this.reserve[i] })), mission: this.mission ? { id: this.mission.spec.id, ammo: this.mission.ammo, mag: this.mission.spec.mag } : null,
+      bomb: this.bombType, bombs: BOMBS.map((b) => ({ id: b.id, n: this.bombs[b.id] ?? 0 })), power: this.pow, coins: this.coins,
       powers: (Object.keys(this.power) as PowerId[]).filter((k) => this.power[k] > 0).map((id) => ({ id, left: this.power[id], secs: POWER_SECS[id] })),
       mode: this.mode, boss: this.boss ? { name: ROBOTS[this.boss.kind as "titan"].name, hp: this.boss.hp / this.boss.maxHp } : null,
       allies: this.allies.map((u) => ({ name: u.kind === "juno" ? SQUAD.juno.name : SQUAD.brick.name, color: u.kind === "juno" ? SQUAD.juno.color : SQUAD.brick.color, hp: u.hp / u.maxHp, down: u.down > 0 })),

@@ -11,6 +11,8 @@ export const VANGUARD_SFX = [
   "boom", "bossDown", "bossRoar", "hit", "hurt", "shieldHit", "jet", "jump", "land", "step", "reload", "reloaded", "swap",
   "coin", "gem", "heart", "oil", "power", "lowFuel", "teleport", "wave", "waveClear", "stageClear", "warp", "start",
   "lifeLost", "downed", "revive", "tap", "open", "buy", "upgrade", "equip",
+  "fire_twin", "fire_minigun", "fire_laser", "fire_plasma", "fire_swarm", "fire_omega", "fire_nova", "fire_storm", "fire_inferno",
+  "throw", "emp", "fireBomb", "gravity", "ammo", "bombPick", "gunPick",
 ] as const;
 export type VanguardSfx = (typeof VANGUARD_SFX)[number];
 export const AMBIENT_SFX: Record<Ambient, string[]> = {

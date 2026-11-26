@@ -132,7 +132,9 @@ export type ArcadeSfx =
   | "vanguard_lifeLost" | "vanguard_downed" | "vanguard_revive" | "vanguard_tap" | "vanguard_open" | "vanguard_buy" | "vanguard_upgrade"
   | "vanguard_equip" | "vanguard_birdA" | "vanguard_birdB" | "vanguard_gust" | "vanguard_cricket" | "vanguard_owl" | "vanguard_horn"
   | "vanguard_parrot" | "vanguard_drip" | "vanguard_machine" | "vanguard_lava" | "vanguard_wave2" | "vanguard_gull" | "vanguard_chime"
-  | "vanguard_radio" | "vanguard_hum"
+  | "vanguard_radio" | "vanguard_hum" | "vanguard_fire_twin" | "vanguard_fire_minigun" | "vanguard_fire_laser" | "vanguard_fire_plasma"
+  | "vanguard_fire_swarm" | "vanguard_fire_omega" | "vanguard_fire_nova" | "vanguard_fire_storm" | "vanguard_fire_inferno" | "vanguard_throw"
+  | "vanguard_emp" | "vanguard_fireBomb" | "vanguard_gravity" | "vanguard_ammo" | "vanguard_bombPick" | "vanguard_gunPick"
   // Crumble Crew (scripts/gen_crumble_audio.py)
   | "crumble_alarm" | "crumble_ammo" | "crumble_beeps" | "crumble_bell" | "crumble_birdA" | "crumble_birdB" | "crumble_blaster" | "crumble_boom"
   | "crumble_boom_big" | "crumble_bounce" | "crumble_buy" | "crumble_cash" | "crumble_chime" | "crumble_clank" | "crumble_coin" | "crumble_collapse"
@@ -144,6 +146,9 @@ export type ArcadeSfx =
   | "crumble_smash_metal" | "crumble_smash_stone" | "crumble_smash_wood" | "crumble_spray" | "crumble_start" | "crumble_step" | "crumble_surf"
   | "crumble_swing" | "crumble_tap" | "crumble_throw" | "crumble_traffic" | "crumble_turret_shot" | "crumble_upgrade" | "crumble_van_door"
   | "crumble_van_engine" | "crumble_van_horn" | "crumble_vault" | "crumble_warden" | "crumble_warp"
+  | "crumble_fire_smg" | "crumble_fire_scatter" | "crumble_fire_laser" | "crumble_fire_plasma" | "crumble_fire_minigun" | "crumble_fire_swarm"
+  | "crumble_fire_omega" | "crumble_fire_wrecker" | "crumble_fire_storm" | "crumble_reload" | "crumble_reloaded" | "crumble_emp"
+  | "crumble_fireBomb" | "crumble_gravity" | "crumble_bombPick" | "crumble_gunPick"
   // Rumble Rally (scripts/gen_rumble_audio.py)
   | "rumble_coin" | "rumble_coinBig" | "rumble_gem" | "rumble_fuel" | "rumble_heart" | "rumble_power" | "rumble_nitro" | "rumble_shield" | "rumble_magnet"
   | "rumble_rocketPick" | "rumble_launch" | "rumble_blast" | "rumble_hit" | "rumble_ram" | "rumble_shieldHit" | "rumble_land" | "rumble_landHard"

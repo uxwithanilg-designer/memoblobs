@@ -5,7 +5,7 @@
 import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { MAX_LEVEL, OUTFITS, WEAPONS, suitCost, weaponOf, weaponUpgradeCost, type OutfitId, type SuitId, type WeaponId } from "./gear";
+import { MAX_LEVEL, OUTFITS, SLOTS, WEAPONS, bombOf, suitCost, weaponOf, weaponUpgradeCost, type BombId, type OutfitId, type SuitId, type WeaponId } from "./gear";
 
 interface VanguardSave {
   /** the operation */
@@ -16,8 +16,12 @@ interface VanguardSave {
   lives: number;
   owned: WeaponId[];
   levels: Partial<Record<WeaponId, number>>;
-  /** the two blasters you carry (swap between them in a fight) */
-  loadout: [WeaponId, WeaponId];
+  /** the guns you carry (up to four; 1–4 or the gun bar switches between them) */
+  loadout: WeaponId[];
+  /** bombs in your pouch, and the kind ready to throw */
+  bombs: Partial<Record<BombId, number>>; bomb: BombId;
+  /** the controls tutorial has been shown */
+  tutorial: boolean;
   suit: Record<SuitId, number>;
   outfits: OutfitId[];
   outfit: OutfitId;
@@ -36,7 +40,10 @@ interface VanguardStore extends VanguardSave {
   checkpoint: (stage: number, sector: number, phase: number, kills: number) => void;
   buyWeapon: (w: WeaponId) => boolean;
   upgradeWeapon: (w: WeaponId) => boolean;
-  equip: (slot: 0 | 1, w: WeaponId) => void;
+  equip: (slot: number, w: WeaponId) => void;
+  setBombs: (b: Partial<Record<BombId, number>>, current: BombId) => void;
+  buyBombs: (b: BombId) => boolean;
+  sawTutorial: () => void;
   upgradeSuit: (s: SuitId) => boolean;
   buyOutfit: (o: OutfitId) => boolean;
   wear: (o: OutfitId) => void;
@@ -45,7 +52,7 @@ interface VanguardStore extends VanguardSave {
 }
 export const START_LIVES = 3, MAX_LIVES = 5, SUIT_MAX = 6;
 const FRESH: VanguardSave = {
-  stage: 1, sector: 0, phase: 0, coins: 0, lives: START_LIVES, owned: ["zapper"], levels: {}, loadout: ["zapper", "zapper"],
+  stage: 1, sector: 0, phase: 0, coins: 0, lives: START_LIVES, owned: ["zapper"], levels: {}, loadout: ["zapper"], bombs: { frag: 4, sticky: 2, emp: 1 }, bomb: "frag", tutorial: false,
   suit: { armor: 0, jet: 0, boots: 0 }, outfits: ["ranger"], outfit: "ranger", firstPerson: false, cleared: 0, kills: 0, bosses: 0, seenHelp: false,
 };
 
@@ -60,8 +67,8 @@ export const useVanguard = create<VanguardStore>()(
       buyWeapon: (w) => {
         const s = get(), price = weaponOf(w).price;
         if (s.owned.includes(w) || s.coins < price) return false;
-        // a new blaster goes straight into the second slot (or the first while both slots hold the same one)
-        const loadout: [WeaponId, WeaponId] = s.loadout[0] === s.loadout[1] ? [s.loadout[0], w] : [s.loadout[1], w];
+        // a new gun goes into a free slot (or takes the place of the first one when all four are full)
+        const loadout = s.loadout.length < SLOTS ? [...s.loadout, w] : [...s.loadout.slice(1), w];
         set({ coins: s.coins - price, owned: [...s.owned, w], loadout });
         return true;
       },
@@ -73,7 +80,21 @@ export const useVanguard = create<VanguardStore>()(
         set({ coins: s.coins - cost, levels: { ...s.levels, [w]: lv + 1 } });
         return true;
       },
-      equip: (slot, w) => { const s = get(); if (!s.owned.includes(w)) return; const l: [WeaponId, WeaponId] = [...s.loadout]; l[slot] = w; set({ loadout: l }); },
+      equip: (slot, w) => {
+        const s = get();
+        if (!s.owned.includes(w)) return;
+        const l = s.loadout.filter((x) => x !== w);
+        l.splice(Math.min(slot, l.length), 0, w);
+        set({ loadout: l.slice(0, SLOTS) });
+      },
+      setBombs: (b, current) => set({ bombs: { ...b }, bomb: current }),
+      buyBombs: (id) => {
+        const s = get(), b = bombOf(id), have = s.bombs[id] ?? 0;
+        if (!b.pack || s.coins < b.price || have >= b.max) return false;
+        set({ coins: s.coins - b.price, bombs: { ...s.bombs, [id]: Math.min(b.max, have + b.pack) } });
+        return true;
+      },
+      sawTutorial: () => set({ tutorial: true }),
       upgradeSuit: (id) => {
         const s = get(), lv = s.suit[id];
         if (lv >= SUIT_MAX) return false;
@@ -92,7 +113,15 @@ export const useVanguard = create<VanguardStore>()(
       setView: (firstPerson) => set({ firstPerson }),
       sawHelp: () => set({ seenHelp: true }),
     }),
-    { name: "momoblobs-voxelvanguard", version: 2, storage: createJSONStorage(() => localStorage), migrate: (old) => ({ ...FRESH, ...(old as Partial<VanguardSave>), sector: 0, phase: 0 }) as VanguardStore },
+    {
+      name: "momoblobs-voxelvanguard", version: 3, storage: createJSONStorage(() => localStorage),
+      migrate: (old, version) => {
+        const o = old as Partial<VanguardSave>;
+        // two slots (maybe the same gun twice) become up to four different guns
+        const loadout = [...new Set([...(o.loadout ?? []), ...(o.owned ?? [])])].slice(0, SLOTS);
+        return { ...FRESH, ...o, loadout: loadout.length ? loadout : ["zapper"], bombs: o.bombs ?? FRESH.bombs, ...(version < 2 ? { sector: 0, phase: 0 } : {}) } as VanguardStore;
+      },
+    },
   ),
 );
 export const levelOf = (s: { levels: Partial<Record<WeaponId, number>> }, w: WeaponId) => s.levels[w] ?? 0;

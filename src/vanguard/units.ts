@@ -41,6 +41,8 @@ export interface Unit {
   dead: number;
   /** seconds a robot has been walking into a wall (it hops, then teleports back in) */
   stuck: number;
+  /** stunned by an EMP: no moving, no shooting */
+  stun: number;
 }
 
 let NEXT_ID = 1;
@@ -64,7 +66,7 @@ function base(rig: Rig, team: 0 | 1, kind: UnitKind, spec: RobotSpec | null, x: 
   return {
     id: NEXT_ID++, team, kind, rig, spec, x, y, z, vx: 0, vy: 0, vz: 0, yaw: 0, aimPitch: 0, hp, maxHp: hp, alive: true, down: 0,
     grounded: true, jetting: false, fireT: 1 + Math.random(), burst: 0, charge: 0, target: null, thinkT: 0, strafe: 1, strafeT: 0, walk: 0, speed: 0,
-    flash: 0, elite: false, spawnT: 0, shield: 0, radius, height, special: 4 + Math.random() * 3, summon: 8, recoil: 0, dead: 0, stuck: 0,
+    flash: 0, elite: false, spawnT: 0, shield: 0, radius, height, special: 4 + Math.random() * 3, summon: 8, recoil: 0, dead: 0, stuck: 0, stun: 0,
   };
 }
 
@@ -184,6 +186,7 @@ const DIST: Record<string, [number, number]> = { tower: [0, 999], scout: [7, 13]
 export function robotThink(w: World3, u: Unit, dt: number, fire: (s: Shot) => void, explode: (u: Unit) => void, summon: (u: Unit, kind: RobotKind, n: number) => void) {
   const a = w.arena, spec = u.spec!;
   if (u.spawnT > 0) { u.spawnT = Math.max(0, u.spawnT - dt); u.speed = 0; return; }
+  if (u.stun > 0) { u.stun = Math.max(0, u.stun - dt); u.speed = 0; u.charge = 0; if (!spec.flying) fall(w.arena, u, dt, w.g); return; }
   // pick a target now and then: the nearest of the squad (you count as nearer)
   u.thinkT -= dt;
   if (u.thinkT <= 0 || !u.target || !u.target.alive || u.target.down > 0) {

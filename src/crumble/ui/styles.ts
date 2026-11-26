@@ -1,7 +1,7 @@
 // Crumble Crew's interface: a 2026 pixel-heist look — panels with stepped pixel corners and hard offset shadows, a
 // blocky extruded logo in orange and teal, segmented pixel health bars, accents in the district's colour, solid dark
 // capsules (no blur, so phones stay smooth), big round thumb buttons (USE with its tool, JUMP), a tool bar along the
-// bottom with ammo counts, the loot meter, a flashing ALARM badge, a floating move stick, banners that slide in for
+// bottom with ammo counts (a column on the right on phones), the BOMB button with its kind arrow, the controls tutorial, the loot meter, a flashing ALARM badge, a floating move stick, banners that slide in for
 // "… Job started!", each goal, site and the boss with no pages in between, and safe areas on every edge.
 // Animations are transform / opacity only.
 export const CRUMBLE_CSS = `
@@ -97,9 +97,21 @@ export const CRUMBLE_CSS = `
 .cc-act small{position:absolute;bottom:-16px;font-weight:900;font-size:10px;letter-spacing:.12em;white-space:nowrap;text-shadow:0 1px 3px #000}
 .cc-fire{right:0;bottom:0;width:98px;height:98px;--b1:#FFB05A;--b2:#E0541A}
 .cc-jet{right:106px;bottom:4px;width:70px;height:70px;--b1:#7CE0FF;--b2:#1E7AD8}
-.cc-swap{right:12px;bottom:120px;width:60px;height:60px;--b1:#FFE07A;--b2:#D8A020;color:#2a1a00}
-.cc-view{right:88px;bottom:100px;width:46px;height:46px;--b1:#B8B8D8;--b2:#5A5A7A}
-.cc-ammo{position:absolute;right:calc(var(--safe-right) + 118px);bottom:calc(var(--safe-bottom) + 92px);font-family:var(--font-lilita),sans-serif;font-size:18px;text-shadow:0 2px 0 #000}
+.cc-swap{right:138px;bottom:96px;width:54px;height:54px;--b1:#FFE07A;--b2:#D8A020;color:#2a1a00}
+.cc-view{right:84px;bottom:100px;width:44px;height:44px;--b1:#B8B8D8;--b2:#5A5A7A}
+/* bombs: the throw button (its colour is the bomb's), the count, the little arrow that changes the kind */
+.cc-bomb{right:8px;bottom:116px;width:62px;height:62px;--b2:#2A2D3A}
+.cc-bomb .cc-cnt{position:absolute;right:-4px;top:-4px;min-width:22px;height:22px;padding:0 5px;display:grid;place-items:center;border-radius:11px;background:#14102a;border:2px solid #fff;font-size:12px;font-weight:900}
+.cc-bombnext{position:absolute;right:64px;bottom:166px;width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:#FFD23F;color:#2a1a00;display:grid;place-items:center;pointer-events:auto;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+.cc-bombnext:active{transform:translateY(2px)}
+/* the ammo count (tap to reload) */
+.cc-ammo{position:absolute;right:calc(var(--safe-right) + 118px);bottom:calc(var(--safe-bottom) + 170px);display:flex;flex-direction:column;align-items:center;border:0;background:transparent;color:#fff;font-family:var(--font-lilita),sans-serif;font-size:18px;line-height:1;text-shadow:0 2px 0 #000;pointer-events:auto;cursor:pointer;padding:2px 4px;min-width:54px}
+.cc-ammo i{font-style:normal;font-family:var(--font-fredoka),sans-serif;font-weight:900;font-size:8.5px;letter-spacing:.14em;opacity:.75;margin-top:2px}
+.cc-ammo i.gold{color:#FFD23F;opacity:1}
+.cc-swap small{color:#fff}
+.cc-ammo i.r{display:block;width:50px;height:6px;background:rgba(255,255,255,.2);margin:6px 0 2px;opacity:1}
+.cc-ammo i.r span{display:block;height:100%;background:#FFD23F}
+.cc-pwr{padding:3px 8px;font-weight:900;font-size:11px;color:#FFD23F;letter-spacing:.06em}
 @media (hover:hover) and (pointer:fine){
   .cc-acts{transform:scale(.82);transform-origin:bottom right}
 }
@@ -107,10 +119,16 @@ export const CRUMBLE_CSS = `
 .cc-aimhint{position:absolute;left:50%;top:58%;transform:translateX(-50%);font-weight:900;font-size:14px;padding:8px 14px;white-space:nowrap}
 /* the tool bar, the loot meter, the alarm */
 .cc-tools{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-bottom) + 10px);display:flex;gap:5px;pointer-events:auto;padding:5px;background:rgba(10,12,28,.8)}
-.cc-tool{position:relative;width:44px;height:44px;display:grid;place-items:center;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);cursor:pointer;color:#fff}
+.cc-tool{position:relative;width:50px;height:44px;display:grid;place-items:center;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);cursor:pointer;color:#fff;padding:0}
 .cc-tool.on{border-color:var(--acc);background:rgba(255,255,255,.18);transform:translateY(-3px)}
 .cc-tool b{position:absolute;right:2px;bottom:0;font-size:10px;font-weight:900;text-shadow:0 1px 0 #000}
+.cc-tool .k,.cc-tool .k2{position:absolute;left:2px;top:1px;font-size:9px;font-weight:900;color:var(--acc)}
+.cc-tool .k2{left:auto;right:2px}
 .cc-tool.empty{opacity:.45}
+.cc-tool.mission{border-color:#FFD23F;animation:cc-gold 1.2s ease-in-out infinite}
+@keyframes cc-gold{0%,100%{background:rgba(255,210,63,.1)}50%{background:rgba(255,210,63,.32)}}
+.cc-tool.bombslot{border-color:var(--bc);cursor:default}
+@media (hover:hover) and (pointer:fine){.cc-tools{bottom:calc(var(--safe-bottom) + 52px)}}
 .cc-alarm{padding:4px 10px;font-weight:900;font-size:12px;letter-spacing:.16em;color:#fff;background:#D8203A;animation:cc-blink 1s steps(2) infinite}
 @keyframes cc-blink{0%{opacity:1}100%{opacity:.55}}
 .cc-loot{display:flex;align-items:center;gap:6px;padding:4px 8px;font-weight:900;font-size:12px}
@@ -119,7 +137,7 @@ export const CRUMBLE_CSS = `
 .cc-oil{width:86px;height:6px;background:rgba(255,255,255,.14)}
 .cc-oil i{display:block;height:100%;background:#FF8A3A}
 .cc-radio{position:absolute;left:calc(var(--safe-left) + 10px);bottom:calc(var(--safe-bottom) + 150px);max-width:min(70vw,300px);padding:7px 10px;font-weight:800;font-size:13px;z-index:11;pointer-events:none;display:flex;gap:8px;align-items:center}
-@media (max-width:520px){.cc-tool{width:40px;height:40px}.cc-tools{flex-direction:column;gap:3px;padding:4px;top:calc(var(--safe-top) + 150px);bottom:auto;left:calc(var(--safe-left) + 6px);transform:none}.cc-tool.on{transform:translateX(3px)}}
+@media (max-width:520px){.cc-tool{width:44px;height:36px}.cc-tools{flex-direction:column-reverse;gap:3px;padding:4px;bottom:calc(var(--safe-bottom) + 258px);left:auto;right:calc(var(--safe-right) + 8px);transform:none}.cc-tool.on{transform:translateX(-4px)}}
 /* banners */
 .cc-banner{position:absolute;left:0;right:0;top:24%;display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:none;padding:0 12px;z-index:9}
 .cc-big{font-family:var(--font-lilita),sans-serif;font-size:clamp(34px,10vw,72px);line-height:.95;color:var(--c,#fff);text-shadow:3px 3px 0 #0a0818,6px 6px 0 rgba(0,0,0,.35)}
@@ -144,6 +162,30 @@ export const CRUMBLE_CSS = `
 .cc-dots{display:flex;gap:3px;margin-top:4px}
 .cc-dots i{width:12px;height:6px;background:rgba(255,255,255,.18)}
 .cc-dots i.on{background:var(--acc)}
+.cc-item.mission{border-color:rgba(255,210,63,.5)}
+.cc-slotbtn{display:inline-grid;place-items:center;width:26px;height:22px;font-size:11px;font-weight:900;color:#fff;background:rgba(255,255,255,.12);border:0;cursor:pointer}
+.cc-slotbtn.on{background:var(--acc);color:#0d0b1e}
+/* the controls tutorial */
+.cc-tut{position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:calc(var(--safe-top) + 12px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px);background:rgba(4,5,14,.78)}
+.cc-tutcard{width:min(520px,100%);max-height:100%;overflow-y:auto;padding:16px 16px 14px;background:#141834;border:2px solid var(--acc);color:#fff}
+.cc-tutbody{margin-top:8px;font-size:15px;line-height:1.45}
+.cc-tutbody p{margin-top:10px}
+.cc-demo{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;padding:14px 8px;background:rgba(255,255,255,.05);margin-top:6px}
+.cc-key{display:inline-grid;place-items:center;min-width:40px;height:40px;padding:0 9px;border-radius:7px;background:linear-gradient(180deg,#F4F6FC,#C8CCDA);color:#141426;font-weight:900;font-size:15px;box-shadow:0 4px 0 #6A7088,inset 0 -2px 0 rgba(0,0,0,.12)}
+.cc-key.wide{min-width:74px;font-size:13px}
+.cc-plus{font-weight:900;opacity:.7}
+.cc-pad{display:inline-flex;flex-direction:column;align-items:center;gap:6px}
+.cc-pad .dot{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 50% 35%,var(--b1),color-mix(in srgb,var(--b1) 55%,#000));box-shadow:0 5px 0 rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.35);animation:cc-tap 1.4s ease-in-out infinite}
+.cc-pad small{font-weight:900;font-size:10px;letter-spacing:.12em}
+@keyframes cc-tap{0%,70%,100%{transform:none}80%{transform:translateY(4px) scale(.94)}}
+.cc-gunrow{display:flex;gap:4px}
+.cc-gunmock{width:48px;height:36px;display:grid;place-items:center;border:2px solid rgba(255,255,255,.2);background:rgba(10,12,28,.8)}
+.cc-gunmock.gold{border-color:#FFD23F;box-shadow:0 0 12px rgba(255,210,63,.6)}
+.cc-bombrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:10px;font-size:12.5px;font-weight:800}
+.cc-bombrow span{display:flex;align-items:center;gap:6px;padding:4px 6px;background:rgba(255,255,255,.06)}
+.cc-dotsrow{display:flex;justify-content:center;gap:6px;margin-top:12px}
+.cc-dotsrow i{width:9px;height:9px;background:rgba(255,255,255,.2)}
+.cc-dotsrow i.on{background:var(--acc)}
 .cc-slot{display:inline-grid;place-items:center;min-width:26px;height:22px;padding:0 6px;font-size:11px;font-weight:900;background:var(--acc);color:#0d0b1e}
 .cc-worlds{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .cc-world{position:relative;aspect-ratio:16/11;overflow:hidden;background:#222}
@@ -160,6 +202,10 @@ export const CRUMBLE_CSS = `
   .cc-home .cc-sectors,.cc-home .cc-bots{display:none}
   .cc-logo .l1{font-size:clamp(34px,10vh,60px)}.cc-logo .l2{font-size:clamp(30px,9vh,54px)}
   .cc-acts{transform:scale(.8);transform-origin:bottom right}
+  .cc-tools{flex-direction:row;top:auto;right:auto;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-bottom) + 6px)}
+  .cc-tool{width:46px;height:38px}
+  .cc-tool.on{transform:translateY(-3px)}
+  .cc-ammo{bottom:calc(var(--safe-bottom) + 140px)}
   .cc-banner{top:16%}
   .cc-toast{top:calc(var(--safe-top) + 64px)}
 }

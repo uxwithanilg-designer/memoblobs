@@ -19,25 +19,29 @@ import { VoxelWorld, VS, type Hit } from "./voxels";
 import { buildSite, LOT, type SiteLayout } from "./build";
 import { paintAtlas } from "./art/atlas";
 import { buildBackdrop, lookFor, type Backdrop, type Look } from "./art/backdrop";
-import { roccoRig, vanRig, toolGeometry, drillBit, pickupGeometry, sharedMat, type PickupKind, type Rig } from "./art/rigs";
+import { roccoRig, vanRig, toolGeometry, drillBit, pickupGeometry, bombGeometry, dynamiteGeometry, sharedMat, type PickupKind, type Rig } from "./art/rigs";
 import { Fx, DEBRIS, FIRE, FLASH, GLINT, SMOKE, SPARK } from "./fx";
 import { botThink, makeBot, poseBot, type Bot, type Shot } from "./bots";
 import { fallBody, moveBody, unstick, type Body } from "./physics";
-import { TOOLS, magnetR, maxHealth, oilMax, outfitOf, runSpeed, toolOf, tuned, type SuitId, type ToolId, type ToolSpec } from "./gear";
-import { AIR, GLASS, GOLD, MAT, SAFE, VAULT, canBreak } from "./materials";
+import { BOMBS, GUN_SLOTS, MISSION_GUNS, bombOf, gunPower, isGun, magnetR, maxHealth, oilMax, outfitOf, runSpeed, toolOf, tuned, type BombId, type SuitId, type ToolId, type ToolSpec } from "./gear";
+import { AIR, CARPET, CRATE, FENCE, GLASS, GOLD, LEAF, MAT, PAINT, SAFE, TRUNK, VAULT, WOOD, canBreak } from "./materials";
 import { CrumbleAudio, sfx, type CrumbleSfx } from "./sound";
 import { angDiff, clamp, hex, lerp, makeRng, rgb } from "./util";
 
 export type Mode = "attract" | "intro" | "play" | "clear" | "warp" | "dead";
-export type PowerId = "mega" | "shield" | "magnet" | "speed" | "xray" | "double";
-const POWER_SECS: Record<PowerId, number> = { mega: 14, shield: 10, magnet: 16, speed: 12, xray: 15, double: 15 };
-const POWERS: PowerId[] = ["mega", "shield", "magnet", "speed", "xray", "double"];
+export type PowerId = "mega" | "shield" | "magnet" | "speed" | "xray" | "double" | "rapid" | "rage" | "boom" | "freeze";
+const POWER_SECS: Record<PowerId, number> = { mega: 14, shield: 10, magnet: 16, speed: 12, xray: 15, double: 15, rapid: 12, rage: 12, boom: 12, freeze: 6 };
+const POWERS: PowerId[] = ["mega", "shield", "magnet", "speed", "xray", "double", "rapid", "rage", "boom", "freeze"];
+const FLAMMABLE = new Set([WOOD, LEAF, CARPET, CRATE, FENCE, TRUNK, PAINT]);
 
 export interface Hud {
   heist: number; codename: string; site: number; sites: number; siteName: string; goalNo: number; goals: number;
   obj: { kind: GoalPlan["kind"]; title: string; line: string; prog: number; done: boolean } | null;
   hp: number; maxHp: number; lives: number; oil: number; coins: number; loot: number; lootGoal: number;
-  tool: ToolId; tools: { id: ToolId; ammo: number }[];
+  /** the tool or gun in hand, the bar (tools, your four guns, a gold mission gun), its ammo (-1 = never runs out) */
+  tool: ToolId; tools: { id: ToolId; ammo: number; mission: boolean }[];
+  ammo: number; reserve: number; reload: number;
+  bomb: BombId; bombs: { id: BombId; n: number }[]; power: number;
   powers: { id: PowerId; left: number; secs: number }[];
   alarm: boolean; mode: Mode; boss: { name: string; hp: number } | null; firstPerson: boolean; remix: boolean; accent: string;
 }
@@ -48,19 +52,28 @@ export type GameEvent =
   | { k: "siteClear"; name: string; coins: number } | { k: "fail"; why: string }
   | { k: "clear"; heist: number; loot: number; time: number }
   | { k: "pickup"; what: PickupKind | PowerId; value: number } | { k: "hurt" } | { k: "down"; livesLeft: number }
-  | { k: "collapse"; blocks: number } | { k: "lowOil" } | { k: "noAmmo"; tool: ToolId } | { k: "view"; first: boolean } | { k: "radio"; text: string };
+  | { k: "collapse"; blocks: number } | { k: "lowOil" } | { k: "noAmmo"; tool: ToolId } | { k: "view"; first: boolean } | { k: "radio"; text: string }
+  | { k: "mission"; tool: ToolId } | { k: "missionEmpty"; tool: ToolId } | { k: "noBombs" } | { k: "bombType"; id: BombId } | { k: "bombsGot"; names: string };
 
 export interface GameOptions {
-  owned: ToolId[]; levels: Partial<Record<ToolId, number>>; ammo: Partial<Record<ToolId, number>>;
+  owned: ToolId[]; levels: Partial<Record<ToolId, number>>; loadout: ToolId[];
+  bombs: Partial<Record<BombId, number>>; bomb: BombId;
   suit: Record<SuitId, number>; outfit: string; lives: number; coins: number; firstPerson: boolean;
   onHud: (h: Hud) => void; onEvent: (e: GameEvent) => void;
-  onCoins: (n: number) => void; onLives: (n: number) => void; onAmmo: (a: Partial<Record<ToolId, number>>) => void;
+  onCoins: (n: number) => void; onLives: (n: number) => void; onBombs: (b: Partial<Record<BombId, number>>, current: BombId) => void;
   onCheckpoint: (heist: number, site: number, goal: number, totals: { loot: number; blocks: number; bots: number }) => void;
   onDone: (next: number, totals: { loot: number; blocks: number; bots: number }) => void;
 }
 
-const BOLT = 0, ROCKET = 1, GRENADE = 2, DYNAMITE = 3, CANNON = 4;
-interface Bolt { x: number; y: number; z: number; vx: number; vy: number; vz: number; life: number; dmg: number; team: 0 | 1; power: number; radius: number; kind: number; hex: number; from: Bot | null; stuck: boolean; mesh: THREE.Mesh | null }
+const BOLT = 0, ROCKET = 1, GRENADE = 2, DYNAMITE = 3, CANNON = 4, ORB = 5;
+interface Bolt {
+  x: number; y: number; z: number; vx: number; vy: number; vz: number; life: number; dmg: number; team: 0 | 1; power: number; radius: number; kind: number; hex: number; from: Bot | null; stuck: boolean; mesh: THREE.Mesh | null;
+  /** a bomb (bounces like a ball or sticks like dynamite); homing rockets' robot; explosive rounds; cluster bomblets */
+  bomb?: BombId; home?: Bot | null; ex?: boolean; mini?: boolean; stuckTo?: Bot | null; ox?: number; oy?: number; oz?: number;
+}
+interface Beam { x0: number; y0: number; z0: number; x1: number; y1: number; z1: number; life: number; hex: number; w: number; jag: number }
+interface Burn { x: number; y: number; z: number; r: number; t: number; dps: number; tick: number; cells: number[] }
+interface Well { x: number; y: number; z: number; r: number; t: number; dmg: number; power: number }
 interface Pickup { kind: PickupKind; sub: string; x: number; y: number; z: number; vx: number; vy: number; vz: number; mesh: THREE.Mesh; t: number; value: number; settled: boolean }
 interface Num { x: number; y: number; z: number; v: number; life: number; col: string }
 const GEM_COLS = ["#5BF0FF", "#FF5AC8", "#5CF08A", "#C87CFF", "#FFD23F"];
@@ -94,7 +107,14 @@ export class Game {
   alarm = false; private goal: GoalPlan | null = null; goalT = 0; private goalWait = 0; goalDone = false; private spawnT = 0;
   blocksBroken = 0; vaultBroken = 0; private bossUp = false; private siteT = 0;
   private totals = { loot: 0, blocks: 0, bots: 0 }; private banked = { loot: 0, blocks: 0, bots: 0 };
-  private power: Record<PowerId, number> = { mega: 0, shield: 0, magnet: 0, speed: 0, xray: 0, double: 0 };
+  private power: Record<PowerId, number> = { mega: 0, shield: 0, magnet: 0, speed: 0, xray: 0, double: 0, rapid: 0, rage: 0, boom: 0, freeze: 0 };
+  /** guns: rounds in the magazine and spare (-1 = never runs out); a mission gun from a crate; bombs */
+  private mag: Partial<Record<ToolId, number>> = {}; private spare: Partial<Record<ToolId, number>> = {}; private reloadT = 0;
+  private mission: { id: ToolId; ammo: number } | null = null;
+  private bombs: Partial<Record<BombId, number>> = {}; bombType: BombId = "dynamite"; private bombT = 0;
+  private burns: Burn[] = []; private wells: Well[] = []; private beams: Beam[] = []; private beamTick = 0;
+  /** gun power for this heist (× on every hit on a robot) */
+  pow = 1;
   oil = 30; private oilMax = 30; private lowOilWarned = false;
   // tools
   tool: ToolId = "hammer"; private useT = 0; private swing = 0; private using = false; private paintCol = 0;
@@ -112,6 +132,8 @@ export class Game {
   private broken: number[] = []; private fallen: number[] = [];
   private v1 = new THREE.Vector3(); private v2 = new THREE.Vector3(); private v3 = new THREE.Vector3(); private fwd = new THREE.Vector3(); private proj = new THREE.Vector3();
   private onKey = (e: KeyboardEvent) => this.key(e); private onMouse = (e: MouseEvent) => this.mouse(e); private onResize = () => this.resize();
+  private onWheel = (e: WheelEvent) => { if (this.mode === "play" && Math.abs(e.deltaY) > 2) this.cycleTool(e.deltaY > 0 ? 1 : -1); };
+  private onContext = (e: Event) => e.preventDefault();
 
   constructor(host: HTMLElement, opts: GameOptions) {
     this.host = host; this.opts = opts;
@@ -132,6 +154,7 @@ export class Game {
     this.sunL.castShadow = this.renderer.shadowMap.enabled;
     if (this.sunL.castShadow) { this.sunL.shadow.mapSize.set(1024, 1024); const s = this.sunL.shadow.camera; s.left = -30; s.right = 30; s.top = 30; s.bottom = -30; s.near = 1; s.far = 160; this.sunL.shadow.bias = -0.0015; }
     this.lives = opts.lives; this.coins = opts.coins; this.firstPerson = opts.firstPerson;
+    this.bombs = { ...opts.bombs }; this.bombType = opts.bomb;
     // the tool in your hands (first person) and in Rocco's paw (third person)
     this.viewTool = new THREE.Mesh(toolGeometry("hammer"), sharedMat); this.viewBit = new THREE.Mesh(drillBit(), sharedMat);
     this.viewTool.scale.setScalar(0.62);
@@ -145,6 +168,7 @@ export class Game {
     window.addEventListener("resize", this.onResize);
     window.addEventListener("keydown", this.onKey, true); window.addEventListener("keyup", this.onKey, true);
     window.addEventListener("mousemove", this.onMouse); this.renderer.domElement.addEventListener("mousedown", this.onMouse); window.addEventListener("mouseup", this.onMouse);
+    this.renderer.domElement.addEventListener("wheel", this.onWheel, { passive: true }); this.renderer.domElement.addEventListener("contextmenu", this.onContext);
     // QA and the art script (scripts/art/crumble_art.py) look at the game through this
     (window as unknown as { __crumble?: Game }).__crumble = this;
   }
@@ -165,9 +189,10 @@ export class Game {
     this.viewTool.position.set(portrait ? 0.2 : 0.3, -0.34, -0.62);
   }
   private spec(id: ToolId): ToolSpec { return tuned(toolOf(id), this.opts.levels[id] ?? 0); }
-  setGear(o: Pick<GameOptions, "owned" | "levels" | "ammo" | "suit" | "outfit">) {
+  setGear(o: Pick<GameOptions, "owned" | "levels" | "loadout" | "bombs" | "suit" | "outfit">) {
     Object.assign(this.opts, o);
-    if (!this.opts.owned.includes(this.tool)) this.tool = "hammer";
+    this.bombs = { ...o.bombs };
+    if (!this.bar().includes(this.tool)) this.tool = "hammer";
     if (this.plan) this.load(this.heist, this.mode === "attract" ? "attract" : "intro", false, { site: this.siteI, goal: this.goalI });
   }
 
@@ -212,9 +237,14 @@ export class Game {
     p.maxHp = maxHealth(this.opts.suit.armor); p.hp = p.maxHp; p.alive = true; p.shield = 0;
     this.camYaw = 0; this.camPitch = -0.05;
     this.oilMax = oilMax(this.opts.suit.tank); this.oil = this.oilMax;
-    this.power = { mega: 0, shield: 0, magnet: 0, speed: 0, xray: 0, double: 0 };
-    if (!this.opts.owned.includes(this.tool)) this.tool = "hammer";
-    this.setTool(this.tool);
+    this.power = { mega: 0, shield: 0, magnet: 0, speed: 0, xray: 0, double: 0, rapid: 0, rage: 0, boom: 0, freeze: 0 };
+    this.pow = gunPower(heist);
+    // every gun full, with spare ammo (the Zap Blaster never runs dry)
+    this.mag = {}; this.spare = {}; this.reloadT = 0; this.burns = []; this.wells = []; this.beams = [];
+    for (const id of this.opts.loadout) { const g = this.spec(id).gun; if (g) { this.mag[id] = g.mag; this.spare[id] = id === "blaster" ? -1 : g.mag * 6; } }
+    if (mode === "attract") this.mission = null;
+    if (!this.bar().includes(this.tool)) this.tool = "hammer";
+    this.setTool(this.tool, true);
     // the loot
     // the loot quota counts what's outside the vaults (the vaults' gold is a bonus for cracking them)
     const inVault = (x: number, z: number) => { const i = w.ci(x), k = w.ck(z); return this.layout.vaults.some((v) => i >= v.i0 && i <= v.i1 && k >= v.k0 && k <= v.k1); };
@@ -310,6 +340,10 @@ export class Game {
     const g = this.district.gravity * (this.site.twist === "lowgrav" ? 0.55 : 1);
     this.hurtT = Math.max(0, this.hurtT - realDt); this.hitMark = Math.max(0, this.hitMark - realDt);
     for (const k of POWERS) if (this.power[k] > 0) this.power[k] = Math.max(0, this.power[k] - dt);
+    this.bombT -= dt;
+    if (this.reloadT > 0) { this.reloadT -= dt; if (this.reloadT <= 0) this.finishReload(); }
+    if (this.keys.has("KeyR")) this.reload();
+    if (this.power.freeze > 0) for (const b of this.bots) if (b.alive) b.stun = Math.max(b.stun, 0.2);
     if (m === "play") { this.siteT += dt; this.controlPlayer(dt, g); this.goals(dt); }
     else if (m === "dead") { p.speed = 0; fallBody(w, p, dt, g); }
     // robots
@@ -398,36 +432,53 @@ export class Game {
     this.outline.visible = near && this.mode === "play";
     if (near) this.outline.position.set(this.world.wx(this.aimHit.i), this.world.wy(this.aimHit.j), this.world.wz(this.aimHit.k));
   }
-  setTool(id: ToolId) {
-    if (!this.opts.owned.includes(id)) return;
-    this.tool = id;
+  /** what's in the tool bar: the mallet, the drill, your four guns, a mission gun, the paint sprayer */
+  bar(): ToolId[] {
+    const o = this.opts.owned, out: ToolId[] = ["hammer"];
+    if (o.includes("drill")) out.push("drill");
+    for (const g of this.opts.loadout.slice(0, GUN_SLOTS)) if (o.includes(g)) out.push(g);
+    if (this.mission) out.push(this.mission.id);
+    if (o.includes("paint")) out.push("paint");
+    return out;
+  }
+  setTool(id: ToolId, quiet = false) {
+    if (!this.bar().includes(id)) return;
+    this.tool = id; this.reloadT = 0;
     const g = toolGeometry(id);
     this.viewTool.geometry = g; this.handTool.geometry = g;
     this.viewBit.visible = id === "drill";
     this.viewTool.rotation.set(id === "hammer" ? -0.4 : 0, id === "hammer" ? 0.3 : Math.PI, 0);
     if (id === "hammer") this.viewTool.rotation.set(-0.5, 0.2, 0.3);
-    sfx("equip", { gain: 0.4 });
+    if (!quiet) sfx("equip", { gain: 0.4 });
   }
   cycleTool(dir = 1) {
-    const own = TOOLS.map((t) => t.id).filter((id) => this.opts.owned.includes(id));
+    const own = this.bar();
     const i = own.indexOf(this.tool);
     this.setTool(own[(i + dir + own.length) % own.length]);
   }
-  private ammoOf(id: ToolId) { return this.opts.ammo[id] ?? 0; }
-  private spend(id: ToolId) {
-    const n = this.ammoOf(id);
-    if (n <= 0) { this.opts.onEvent({ k: "noAmmo", tool: id }); this.useT = 0.6; return false; }
-    this.opts.ammo[id] = n - 1; this.opts.onAmmo({ [id]: n - 1 });
-    return true;
+  /** the number key / bar position */
+  pick(n: number) { const b = this.bar(); if (n >= 0 && n < b.length) this.setTool(b[n]); }
+  reload() {
+    const s = this.spec(this.tool), g = s.gun;
+    if (!g || s.mission || this.reloadT > 0 || (this.mag[this.tool] ?? 0) >= g.mag || this.spare[this.tool] === 0) return;
+    this.reloadT = g.reload; sfx("reload");
+  }
+  private finishReload() {
+    const s = this.spec(this.tool), g = s.gun;
+    if (!g) return;
+    const need = g.mag - (this.mag[this.tool] ?? 0), r = this.spare[this.tool] ?? 0, take = r < 0 ? need : Math.min(need, r);
+    this.mag[this.tool] = (this.mag[this.tool] ?? 0) + take; if (r >= 0) this.spare[this.tool] = r - take;
+    sfx("reloaded", { gain: 0.6 });
   }
   private useTool() {
-    const s = this.spec(this.tool), cam = this.camera.position, f = this.fwd;
+    const s = this.spec(this.tool);
     const mega = this.power.mega > 0;
-    this.useT = 1 / s.rate;
+    this.useT = 1 / (s.rate * (this.power.rapid > 0 ? 1.8 : 1));
+    if (s.gun) { this.fireGun(s); return; }
     switch (this.tool) {
       case "hammer": {
         this.swing = 1; sfx("swing", { gain: 0.5, rate: 0.9 + Math.random() * 0.2 });
-        if (this.aimBot && Math.hypot(this.aimBot.x - this.player.x, this.aimBot.z - this.player.z) < 3.2) { this.hurtBot(this.aimBot, s.damage * (mega ? 1.8 : 1), this.aimBot.x, this.aimBot.y + this.aimBot.h * 0.6, this.aimBot.z); this.shake = Math.max(this.shake, 0.12); break; }
+        if (this.aimBot && Math.hypot(this.aimBot.x - this.player.x, this.aimBot.z - this.player.z) < 3.2) { this.hurtBot(this.aimBot, s.damage * this.dmgK() * (mega ? 1.8 : 1), this.aimBot.x, this.aimBot.y + this.aimBot.h * 0.6, this.aimBot.z); this.shake = Math.max(this.shake, 0.12); break; }
         if (!this.aimOk) break;
         const h = this.aimHit, cx = this.world.wx(h.i) - h.nx * 0.15, cy = this.world.wy(h.j) - h.ny * 0.15, cz = this.world.wz(h.k) - h.nz * 0.15;
         const power = s.power + (mega ? 1 : 0), r = s.radius * (mega ? 1.7 : 1);
@@ -436,42 +487,17 @@ export class Game {
         this.shake = Math.max(this.shake, 0.16);
         break;
       }
-      case "blaster": {
-        const t = this.aimBot ? this.v1.set(this.aimBot.x, this.aimBot.y + this.aimBot.h * 0.55, this.aimBot.z) : this.v1.set(cam.x + f.x * 40, cam.y + f.y * 40, cam.z + f.z * 40);
-        const m = this.v2.set(0.25, -0.2, -0.6).applyMatrix4(this.camera.matrixWorld);
-        const dx = t.x - m.x, dy = t.y - m.y, dz = t.z - m.z, d = Math.hypot(dx, dy, dz) || 1, sp = 70;
-        this.bolts.push({ x: m.x, y: m.y, z: m.z, vx: (dx / d) * sp, vy: (dy / d) * sp, vz: (dz / d) * sp, life: 1, dmg: s.damage, team: 0, power: s.power, radius: s.radius, kind: BOLT, hex: 0x5bf0ff, from: null, stuck: false, mesh: null });
-        this.fx.spawn(FLASH, m.x, m.y, m.z, 0, 0, 0, 0.05, 0.3, 0x9af0ff);
-        sfx("blaster", { gain: 0.45, rate: 0.95 + Math.random() * 0.1 });
-        this.swing = 0.3;
-        break;
-      }
       case "drill": {
         if (this.oil <= 0) { this.opts.onEvent({ k: "lowOil" }); this.useT = 0.8; this.audio?.drill(false); break; }
         this.oil = Math.max(0, this.oil - 1 / s.rate);
         const metal = this.aimOk && MAT[this.aimHit.m].sound === "metal";
         this.audio?.drill(true, metal);
-        if (this.aimBot && Math.hypot(this.aimBot.x - this.player.x, this.aimBot.z - this.player.z) < 3) this.hurtBot(this.aimBot, s.damage / s.rate * 1.2, this.aimBot.x, this.aimBot.y + this.aimBot.h * 0.5, this.aimBot.z);
+        if (this.aimBot && Math.hypot(this.aimBot.x - this.player.x, this.aimBot.z - this.player.z) < 3) this.hurtBot(this.aimBot, s.damage / s.rate * 1.2 * this.dmgK(), this.aimBot.x, this.aimBot.y + this.aimBot.h * 0.5, this.aimBot.z);
         if (this.aimOk) {
           const h = this.aimHit, cx = this.world.wx(h.i), cy = this.world.wy(h.j), cz = this.world.wz(h.k);
           this.fx.burst(SPARK, cx + h.nx * 0.28, cy + h.ny * 0.28, cz + h.nz * 0.28, 3, 5, 0.25, 0.05, metal ? 0xffe07a : 0xd8c8a8, 1);
           if (canBreak(h.m, s.power)) this.smash(cx, cy, cz, s.radius, s.power, h.nx, h.ny, h.nz, 1, true);
         }
-        break;
-      }
-      case "grenade": case "dynamite": case "rocket": {
-        if (!this.spend(this.tool)) break;
-        const m = this.v2.set(0.2, -0.15, -0.5).applyMatrix4(this.camera.matrixWorld);
-        if (this.tool === "rocket") {
-          const sp = 32;
-          this.bolts.push({ x: m.x, y: m.y, z: m.z, vx: f.x * sp, vy: f.y * sp, vz: f.z * sp, life: 4, dmg: s.damage, team: 0, power: s.power, radius: s.radius, kind: ROCKET, hex: 0xff8a3a, from: null, stuck: false, mesh: this.projMesh("rocket") });
-          sfx("rocket"); this.shake = Math.max(this.shake, 0.2);
-        } else {
-          const sp = this.tool === "grenade" ? 15 : 9;
-          this.bolts.push({ x: m.x, y: m.y, z: m.z, vx: f.x * sp, vy: f.y * sp + 3, vz: f.z * sp, life: this.tool === "grenade" ? 1.7 : 3, dmg: s.damage, team: 0, power: s.power, radius: s.radius, kind: this.tool === "grenade" ? GRENADE : DYNAMITE, hex: 0xff3a3a, from: null, stuck: false, mesh: this.projMesh(this.tool) });
-          sfx("throw"); if (this.tool === "dynamite") sfx("fuse", { delay: 0.2 });
-        }
-        this.swing = 1;
         break;
       }
       case "paint": {
@@ -489,9 +515,191 @@ export class Game {
   cyclePaint() { this.paintCol = (this.paintCol + 1) % 8; return this.paintCol; }
   private projMesh(id: ToolId) {
     const m = new THREE.Mesh(toolGeometry(id), sharedMat);
-    if (id === "rocket") m.scale.setScalar(0.6);
+    m.scale.setScalar(id === "rocket" || id === "swarm" || id === "wrecker" ? 0.6 : 1);
     this.scene.add(m);
     return m;
+  }
+  /** damage × for your hits on robots: gun power, and double with rage */
+  private dmgK() { return this.pow * (this.power.rage > 0 ? 2 : 1); }
+
+  // ---------------------------------------------------------------- guns
+  private fireGun(s: ToolSpec) {
+    const g = s.gun!, id = s.id, cam = this.camera.position, f = this.fwd;
+    if (s.mission) {
+      if (!this.mission || this.mission.ammo <= 0) { if (this.mission) this.opts.onEvent({ k: "missionEmpty", tool: this.mission.id }); this.mission = null; this.setTool(this.opts.loadout[0] ?? "hammer"); return; }
+      this.mission.ammo--;
+    } else {
+      if (this.reloadT > 0) return;
+      if ((this.mag[id] ?? 0) <= 0) {
+        if (this.spare[id] !== 0) this.reload();
+        else { this.opts.onEvent({ k: "noAmmo", tool: id }); this.useT = 0.6; }
+        return;
+      }
+      this.mag[id] = (this.mag[id] ?? 0) - 1;
+    }
+    const dmg = s.damage * this.dmgK();
+    const m = this.v2.set(0.25, -0.2, -0.6).applyMatrix4(this.camera.matrixWorld);
+    const mx = m.x, my = m.y, mz = m.z;
+    this.swing = Math.max(this.swing, g.mode === "rocket" || g.mode === "orb" ? 1 : 0.3);
+    sfx(id === "blaster" || id === "rocket" ? id : (`fire_${id}` as CrumbleSfx), { gain: s.rate > 12 ? 0.35 : 0.5, rate: 0.95 + Math.random() * 0.1 });
+    if (g.mode === "beam" || g.mode === "arc") { this.hitscan(s, mx, my, mz, dmg); return; }
+    // where it's going: the locked robot, or straight ahead
+    const t = this.aimBot ? this.v1.set(this.aimBot.x, this.aimBot.y + this.aimBot.h * 0.55, this.aimBot.z) : this.v1.set(cam.x + f.x * 40, cam.y + f.y * 40, cam.z + f.z * 40);
+    let dx = t.x - mx, dy = t.y - my, dz = t.z - mz;
+    const d = Math.hypot(dx, dy, dz) || 1; dx /= d; dy /= d; dz /= d;
+    if (g.mode === "orb") dy += 0.18;
+    const home = g.mode === "homing" ? this.aimBot ?? this.nearestBot(t.x, t.z, 30) : null;
+    for (let k = 0; k < g.pellets; k++) {
+      const ex = (Math.random() - 0.5) * 2 * g.spread, ey = (Math.random() - 0.5) * 2 * g.spread, ez = (Math.random() - 0.5) * 2 * g.spread;
+      const vx = dx + ex, vy = dy + ey, vz = dz + ez, vl = Math.hypot(vx, vy, vz);
+      const kind = g.mode === "rocket" || g.mode === "homing" ? ROCKET : g.mode === "orb" ? ORB : BOLT;
+      this.bolts.push({ x: mx, y: my, z: mz, vx: (vx / vl) * g.speed, vy: (vy / vl) * g.speed, vz: (vz / vl) * g.speed, life: kind === BOLT ? 1.1 : 4, dmg, team: 0, power: s.power, radius: kind === BOLT ? s.radius : g.splash, kind, hex: hex(s.color), from: null, stuck: false, mesh: kind === ROCKET ? this.projMesh(id === "wrecker" ? "wrecker" : "rocket") : null, home, ex: kind === BOLT && this.power.boom > 0 && k === 0 && (s.rate <= 8 || Math.random() < 0.35) });
+    }
+    this.fx.spawn(FLASH, mx, my, mz, 0, 0, 0, 0.05, g.mode === "bolt" ? 0.3 : 0.6, hex(s.color));
+    if (g.mode === "rocket" || g.mode === "orb") this.shake = Math.max(this.shake, id === "wrecker" ? 0.4 : 0.2);
+  }
+  /** the laser cutter (a beam that also cuts blocks) and the storm arc (lightning that jumps between robots) */
+  private hitscan(s: ToolSpec, x: number, y: number, z: number, dmg: number) {
+    const f = this.fwd, cam = this.camera.position;
+    if (s.gun!.mode === "beam") {
+      const reach = 16;
+      const blockHit = this.world.raycast(cam.x, cam.y, cam.z, f.x, f.y, f.z, reach, this.camHit, true);
+      let end = blockHit ? this.camHit.t : reach, hit: Bot | null = null;
+      for (const b of this.bots) {
+        if (!b.alive || b.spawnT > 0) continue;
+        const cx = b.x - cam.x, cy = b.y + b.h * 0.5 - cam.y, cz = b.z - cam.z, t = cx * f.x + cy * f.y + cz * f.z;
+        if (t < 0 || t > end) continue;
+        const px = cx - f.x * t, py = cy - f.y * t, pz = cz - f.z * t;
+        if (px * px + py * py + pz * pz < (b.hw + 0.3) * (b.hw + 0.3) * 2) { end = t; hit = b; }
+      }
+      const ex = cam.x + f.x * end, ey = cam.y + f.y * end, ez = cam.z + f.z * end;
+      if (hit) this.hurtBot(hit, dmg, ex, ey, ez);
+      else if (blockHit && ++this.beamTick % 4 === 0 && canBreak(this.camHit.m, s.power)) this.smash(this.world.wx(this.camHit.i), this.world.wy(this.camHit.j), this.world.wz(this.camHit.k), s.radius, s.power, this.camHit.nx, this.camHit.ny, this.camHit.nz, 1, true);
+      this.beams.push({ x0: x, y0: y, z0: z, x1: ex, y1: ey, z1: ez, life: 0.07, hex: hex(s.color), w: 0.08, jag: 0 });
+      if (Math.random() < 0.6) this.fx.spawn(SPARK, ex, ey, ez, (Math.random() - 0.5) * 4, 2, (Math.random() - 0.5) * 4, 0.25, 0.06, 0xffc0d0);
+      return;
+    }
+    // the arc: the locked robot (or the one nearest the crosshair), then two more close by
+    let cur = this.aimBot ?? this.nearestBot(cam.x + f.x * 12, cam.z + f.z * 12, 16);
+    if (!cur) { this.beams.push({ x0: x, y0: y, z0: z, x1: x + f.x * 10, y1: y + f.y * 10, z1: z + f.z * 10, life: 0.08, hex: hex(s.color), w: 0.06, jag: 0.4 }); return; }
+    let fx = x, fy = y, fz = z, d = dmg;
+    const done: Bot[] = [];
+    for (let k = 0; k < 3 && cur; k++) {
+      const tx = cur.x, ty = cur.y + cur.h * 0.5, tz = cur.z;
+      this.beams.push({ x0: fx, y0: fy, z0: fz, x1: tx, y1: ty, z1: tz, life: 0.1, hex: hex(s.color), w: 0.08, jag: 0.5 });
+      this.hurtBot(cur, d, tx, ty, tz);
+      done.push(cur); fx = tx; fy = ty; fz = tz; d *= 0.75;
+      let next: Bot | null = null, nd = 7;
+      for (const b of this.bots) { if (!b.alive || done.includes(b)) continue; const dd = Math.hypot(b.x - tx, b.z - tz); if (dd < nd) { nd = dd; next = b; } }
+      cur = next;
+    }
+  }
+  private nearestBot(x: number, z: number, max: number) {
+    let best: Bot | null = null, bd = max;
+    for (const b of this.bots) { if (!b.alive || b.spawnT > 0 || (b.kind === "turret" && !this.alarm)) continue; const d = Math.hypot(b.x - x, b.z - z); if (d < bd) { bd = d; best = b; } }
+    return best;
+  }
+
+  // ---------------------------------------------------------------- bombs
+  throwBomb() {
+    if (this.mode !== "play" || !this.player.alive || this.bombT > 0) return;
+    let id = this.bombType;
+    if ((this.bombs[id] ?? 0) <= 0) {
+      const next = BOMBS.find((b) => (this.bombs[b.id] ?? 0) > 0);
+      if (!next) { this.opts.onEvent({ k: "noBombs" }); this.bombT = 0.6; return; }
+      id = next.id; this.bombType = id;
+    }
+    this.bombs[id] = (this.bombs[id] ?? 0) - 1;
+    this.opts.onBombs({ ...this.bombs }, this.bombType);
+    this.bombT = 0.45;
+    const b = bombOf(id), f = this.fwd;
+    const m = this.v2.set(0.2, -0.15, -0.5).applyMatrix4(this.camera.matrixWorld);
+    const sticky = id === "dynamite" || id === "sticky", sp = id === "dynamite" ? 9 : id === "mega" ? 10 : 15;
+    const mesh = new THREE.Mesh(id === "dynamite" ? dynamiteGeometry() : bombGeometry(b.color, id === "mega"), sharedMat);
+    this.scene.add(mesh);
+    this.bolts.push({ x: m.x, y: m.y, z: m.z, vx: f.x * sp, vy: f.y * sp + 3, vz: f.z * sp, life: b.fuse, dmg: b.damage * this.dmgK(), team: 0, power: b.power, radius: b.radius, kind: sticky ? DYNAMITE : GRENADE, hex: hex(b.color), from: null, stuck: false, mesh, bomb: id, stuckTo: null });
+    sfx("throw"); if (id === "dynamite" || id === "mega") sfx("fuse", { delay: 0.2 });
+    this.swing = 1;
+  }
+  nextBomb() {
+    const have = BOMBS.filter((b) => (this.bombs[b.id] ?? 0) > 0);
+    const list = have.length ? have : BOMBS.slice(0, 1);
+    const at = list.findIndex((b) => b.id === this.bombType);
+    this.bombType = list[(at + 1) % list.length].id;
+    this.opts.onBombs({ ...this.bombs }, this.bombType);
+    sfx("equip", { gain: 0.5, rate: 1.3 });
+    this.opts.onEvent({ k: "bombType", id: this.bombType });
+  }
+  /** a bomb goes off — each kind its own way */
+  private detonate(b: Bolt) {
+    const id = b.bomb!, x = b.x, y = b.y, z = b.z, r = b.radius;
+    switch (id) {
+      case "emp":
+        for (const u of this.bots) if (u.alive && Math.hypot(u.x - x, u.z - z) < r) { u.stun = Math.max(u.stun, 4); u.flash = 1; this.hurtBot(u, b.dmg, u.x, u.y + u.h * 0.5, u.z); }
+        this.ringOf(x, y, z, r, 0x9af0ff); this.fx.burst(SPARK, x, y + 1, z, 30, 10, 0.6, 0.08, 0x9af0ff, 2);
+        sfx("emp", { pan: this.pan(x, z) });
+        break;
+      case "fire": {
+        this.explode(x, y, z, 1, 1, b.dmg, 0);
+        // everything that burns, nearby, goes up a few blocks at a time
+        const w = this.world, cells: number[] = [];
+        const i0 = w.ci(x - r), i1 = w.ci(x + r), j0 = Math.max(0, w.cj(y - 1.5)), j1 = w.cj(y + 3), k0 = w.ck(z - r), k1 = w.ck(z + r);
+        for (let j = j0; j <= j1; j++) for (let k = k0; k <= k1; k++) for (let i = i0; i <= i1; i++) if (FLAMMABLE.has(w.get(i, j, k)) && Math.hypot(w.wx(i) - x, w.wz(k) - z) < r) cells.push(i, j, k);
+        this.burns.push({ x, y, z, r, t: 5, dps: b.dmg, tick: 0, cells });
+        sfx("fireBomb", { pan: this.pan(x, z) });
+        break;
+      }
+      case "gravity": this.wells.push({ x, y: y + 0.5, z, r, t: 1.5, dmg: b.dmg, power: b.power }); sfx("gravity", { pan: this.pan(x, z) }); break;
+      case "cluster":
+        this.explode(x, y, z, r, b.power, b.dmg, 0);
+        if (!b.mini) for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; const mesh = new THREE.Mesh(bombGeometry("#FF8A2A"), sharedMat); mesh.scale.setScalar(0.6); this.scene.add(mesh); this.bolts.push({ x, y: y + 0.5, z, vx: Math.cos(a) * 4.5, vy: 6 + Math.random() * 2, vz: Math.sin(a) * 4.5, life: 0.7 + Math.random() * 0.4, dmg: b.dmg * 0.6, team: 0, power: b.power, radius: r * 0.75, kind: GRENADE, hex: 0xff8a2a, from: null, stuck: false, mesh, bomb: "cluster", mini: true }); }
+        break;
+      case "mega":
+        this.explode(x, y, z, r, b.power, b.dmg, 0);
+        for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; this.fx.explode(x + Math.cos(a) * r * 0.6, y + 1, z + Math.sin(a) * r * 0.6, 1.6, [0xffd23f, 0xff8a2a, 0x5a5048], this.quality === "low" ? 0.5 : 1); }
+        this.ringOf(x, y, z, r * 1.4, 0xffd23f);
+        if (!this.reduced) this.slowT = Math.max(this.slowT, 1);
+        this.shake = 1.3;
+        break;
+      default: this.explode(x, y, z, r, b.power, b.dmg, 0);
+    }
+  }
+  /** a shock ring of sparks racing out to radius r (a big flat slab would cut through the view up close) */
+  private ringOf(x: number, y: number, z: number, r: number, hex: number) {
+    const n = this.quality === "low" ? 18 : 30;
+    for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2; this.fx.spawn(SPARK, x, y + 0.3, z, Math.cos(a) * r * 2.4, 0.6, Math.sin(a) * r * 2.4, 0.42, 0.22, hex); }
+  }
+  /** fire pools burn robots and wood; gravity wells pull robots and loot in, then crush them */
+  private updateZones(dt: number) {
+    const w = this.world;
+    for (let i = this.burns.length - 1; i >= 0; i--) {
+      const f = this.burns[i];
+      f.t -= dt; f.tick -= dt;
+      if (Math.random() < 0.8) { const a = Math.random() * Math.PI * 2, rr = Math.random() * f.r; this.fx.spawn(FIRE, f.x + Math.cos(a) * rr, f.y + 0.2, f.z + Math.sin(a) * rr, 0, 1.6 + Math.random(), 0, 0.6, 0.35 + Math.random() * 0.3, 0xff7a2a); }
+      if (f.tick <= 0) {
+        f.tick = 0.3;
+        for (const u of this.bots) if (u.alive && Math.hypot(u.x - f.x, u.z - f.z) < f.r) this.hurtBot(u, f.dps * 0.3, u.x, u.y + u.h * 0.5, u.z);
+        // a few of the burning blocks go
+        for (let k = 0; k < 3 && f.cells.length; k++) {
+          const q = Math.floor(Math.random() * (f.cells.length / 3)) * 3, ci = f.cells[q], cj = f.cells[q + 1], ck = f.cells[q + 2];
+          f.cells.splice(q, 3);
+          if (!FLAMMABLE.has(w.get(ci, cj, ck))) continue;
+          this.smash(w.wx(ci), w.wy(cj), w.wz(ck), 0.3, 1, 0, 1, 0, 1, true);
+          this.fx.spawn(FIRE, w.wx(ci), w.wy(cj), w.wz(ck), 0, 2, 0, 0.8, 0.6, 0xffb03a);
+        }
+      }
+      if (f.t <= 0) this.burns.splice(i, 1);
+    }
+    for (let i = this.wells.length - 1; i >= 0; i--) {
+      const g = this.wells[i];
+      g.t -= dt;
+      const k = Math.min(1, dt * 3);
+      for (const u of this.bots) { if (!u.alive || u.kind === "warden" || u.kind === "turret") continue; const d = Math.hypot(u.x - g.x, u.z - g.z); if (d < g.r && d > 0.6) { u.x += (g.x - u.x) * k; u.z += (g.z - u.z) * k; u.stun = Math.max(u.stun, 0.3); } }
+      for (const pk of this.pickups) { const d = Math.hypot(pk.x - g.x, pk.z - g.z); if (d < g.r && d > 0.4) { pk.x += (g.x - pk.x) * k; pk.z += (g.z - pk.z) * k; pk.settled = false; } }
+      for (let q = 0; q < 3; q++) { const a = Math.random() * Math.PI * 2; this.fx.spawn(GLINT, g.x + Math.cos(a) * g.r * 0.8, g.y + Math.random() * 2, g.z + Math.sin(a) * g.r * 0.8, -Math.cos(a) * g.r * 1.2, 0, -Math.sin(a) * g.r * 1.2, 0.6, 0.12, 0xc87cff); }
+      if (g.t <= 0) { this.explode(g.x, g.y, g.z, 2.6, g.power, g.dmg, 0); this.ringOf(g.x, g.y - 0.4, g.z, g.r * 0.8, 0xc87cff); this.wells.splice(i, 1); }
+    }
+    for (let i = this.beams.length - 1; i >= 0; i--) { this.beams[i].life -= dt; if (this.beams[i].life <= 0) this.beams.splice(i, 1); }
   }
 
   // ---------------------------------------------------------------- breaking things
@@ -581,7 +789,7 @@ export class Game {
       if (d < r * 1.6) this.hurtBot(b, dmg * (1 - d / (r * 1.6)) * (team === 1 ? 0.3 : 1), b.x, b.y + b.h * 0.6, b.z);
     }
     const p = this.player, d = Math.hypot(p.x - x, p.y + 1 - y, p.z - z);
-    if (d < r * 1.5) this.damagePlayer(dmg * (1 - d / (r * 1.5)) * (team === 0 ? 0.14 : 0.6), null, team === 0);
+    if (d < r * 1.5) this.damagePlayer(dmg * (1 - d / (r * 1.5)) * (team === 0 ? 0.14 / this.dmgK() : 0.6), null, team === 0);
   }
   /** the alarm trips the first time the building is touched */
   private trip() {
@@ -605,10 +813,20 @@ export class Game {
   }
   private updateBolts(dt: number) {
     const w = this.world, p = this.player;
+    this.updateZones(dt);
     for (let i = this.bolts.length - 1; i >= 0; i--) {
       const b = this.bolts[i];
+      if (b.home) {
+        const t = b.home;
+        if (!t.alive) b.home = this.nearestBot(b.x, b.z, 25);
+        else { const sp = Math.hypot(b.vx, b.vy, b.vz), dx = t.x - b.x, dy = t.y + t.h * 0.5 - b.y, dz = t.z - b.z, dl = Math.hypot(dx, dy, dz) || 1, k = Math.min(1, dt * 5); b.vx += ((dx / dl) * sp - b.vx) * k; b.vy += ((dy / dl) * sp - b.vy) * k; b.vz += ((dz / dl) * sp - b.vz) * k; }
+      }
+      if (b.kind === ORB) b.vy -= 9 * dt;
+      // a sticky bomb rides the robot it stuck to
+      if (b.stuckTo) { const r = b.stuckTo; if (r.alive) { b.x = r.x + (b.ox ?? 0); b.y = r.y + (b.oy ?? 1); b.z = r.z + (b.oz ?? 0); } else { b.stuckTo = null; b.stuck = false; } }
+      if (b.bomb === "sticky" && !b.stuck && !b.stuckTo) for (const r of this.bots) { if (!r.alive || r.spawnT > 0) continue; if (Math.hypot(r.x - b.x, r.z - b.z) < r.hw + 0.4 && Math.abs(b.y - (r.y + r.h * 0.5)) < r.h * 0.6) { b.stuckTo = r; b.stuck = true; b.ox = b.x - r.x; b.oy = b.y - r.y; b.oz = b.z - r.z; sfx("bounce", { gain: 0.3 }); break; } }
       b.life -= dt;
-      let boom = b.life <= 0 && (b.kind === GRENADE || b.kind === DYNAMITE || b.kind === ROCKET);
+      let boom = b.life <= 0 && (b.kind === GRENADE || b.kind === DYNAMITE || b.kind === ROCKET || b.kind === ORB);
       if (b.life <= 0 && !boom) { this.dropBolt(i); continue; }
       if (!b.stuck && !boom) {
         if (b.kind === GRENADE || b.kind === DYNAMITE) b.vy -= 20 * dt;
@@ -625,9 +843,10 @@ export class Game {
               break;
             }
             if (b.kind === DYNAMITE) { b.stuck = true; b.vx = b.vy = b.vz = 0; break; }
-            if (b.kind === ROCKET || b.kind === CANNON) { boom = true; b.x = nx; b.y = ny; b.z = nz; break; }
-            // a bolt: chips weak blocks
-            if (canBreak(m, b.power)) this.smash(nx, ny, nz, b.radius, b.power, -b.vx / 70, -b.vy / 70, -b.vz / 70, 1, true);
+            if (b.kind === ROCKET || b.kind === CANNON || b.kind === ORB) { boom = true; b.x = nx; b.y = ny; b.z = nz; break; }
+            // a bolt: chips weak blocks (explosive rounds blow a small hole)
+            if (b.ex) this.explode(nx, ny, nz, 1, 3, b.dmg * 0.5, 0);
+            else if (canBreak(m, b.power)) this.smash(nx, ny, nz, b.radius, b.power, -b.vx / 70, -b.vy / 70, -b.vz / 70, 1, true);
             else this.fx.burst(SPARK, b.x, b.y, b.z, 3, 3, 0.2, 0.05, b.hex, 0);
             boom = false; b.life = -1; break;
           }
@@ -638,10 +857,10 @@ export class Game {
               if (!r.alive || r.spawnT > 0) continue;
               const dx = b.x - r.x, dy = b.y - (r.y + r.h * 0.5), dz = b.z - r.z, rr = r.hw + (b.kind === BOLT ? 0.25 : 0.4);
               if (dx * dx + dz * dz < rr * rr && Math.abs(dy) < r.h * 0.6) {
-                if (b.kind !== BOLT) { boom = true; break; }
+                if (b.kind !== BOLT) { if (b.kind === GRENADE || b.kind === DYNAMITE) continue; boom = true; break; }
                 // a riot bot's shield stops shots from the front
                 if (r.kind === "shield" && Math.abs(angDiff(r.yaw, Math.atan2(-b.vx, -b.vz))) < 0.9) { this.fx.burst(SPARK, b.x, b.y, b.z, 5, 4, 0.2, 0.05, 0x9af0ff, 0); sfx("clank", { gain: 0.35 }); }
-                else this.hurtBot(r, b.dmg, b.x, b.y, b.z);
+                else { this.hurtBot(r, b.dmg, b.x, b.y, b.z); if (b.ex) this.explode(b.x, b.y, b.z, 1, 3, b.dmg * 0.5, 0); }
                 b.life = -1; break;
               }
             }
@@ -653,13 +872,15 @@ export class Game {
         }
         if (b.life < 0 && !boom) { this.dropBolt(i); continue; }
       }
-      if (b.kind === DYNAMITE && Math.random() < 0.6) this.fx.spawn(SPARK, b.x, b.y + 0.2, b.z, (Math.random() - 0.5) * 2, 2, (Math.random() - 0.5) * 2, 0.25, 0.06, 0xffd27a);
+      if ((b.kind === DYNAMITE || b.bomb) && Math.random() < 0.6) this.fx.spawn(SPARK, b.x, b.y + 0.2, b.z, (Math.random() - 0.5) * 2, 2, (Math.random() - 0.5) * 2, 0.25, 0.06, b.life < 0.5 ? 0xff3a3a : 0xffd27a);
+      if (b.kind === ORB && Math.random() < 0.5) this.fx.spawn(GLINT, b.x, b.y, b.z, 0, 0, 0, 0.3, 0.3, b.hex);
       if (b.kind === ROCKET && Math.random() < 0.8) this.fx.spawn(SMOKE, b.x, b.y, b.z, 0, 0.4, 0, 0.7, 0.25, 0x8a8a90);
       if (b.mesh) { b.mesh.position.set(b.x, b.y, b.z); if (b.kind === ROCKET) b.mesh.lookAt(b.x + b.vx, b.y + b.vy, b.z + b.vz); else b.mesh.rotation.x += dt * 8; }
       if (boom) {
         const big = b.kind === DYNAMITE;
         const mega = this.power.mega > 0 && b.team === 0;
-        this.explode(b.x, b.y, b.z, b.radius * (mega ? 1.3 : 1), b.power, b.dmg, b.team);
+        if (b.bomb) this.detonate(b);
+        else this.explode(b.x, b.y, b.z, b.radius * (mega ? 1.3 : 1), b.power, b.dmg, b.team);
         if (big) this.fx.spawn(FIRE, b.x, b.y + 1, b.z, 0, 2, 0, 0.8, 3, 0xffb03a);
         this.dropBolt(i);
       }
@@ -730,7 +951,10 @@ export class Game {
     if (roll < (lowHp ? 0.16 : 0.07)) this.drop("heart", b.x, y, b.z, 1);
     else if (roll < 0.14) this.drop("oil", b.x, y, b.z, 1);
     else if (roll < 0.2) this.drop("ammo", b.x, y, b.z, 1);
-    else if (roll < 0.25 || big) this.drop("power", b.x, y, b.z, 1);
+    else if (roll < 0.24) this.drop("bombs", b.x, y, b.z, 1);
+    else if (roll < 0.29 || big) this.drop("power", b.x, y, b.z, 1);
+    if (big || Math.random() < (b.elite ? 0.07 : 0.01)) this.drop("gun", b.x, y, b.z, 1);
+    if (big) { this.drop("bombs", b.x, y, b.z, 1); this.drop("ammo", b.x, y, b.z, 1); }
     if (b === this.boss) { this.boss = null; if (!this.reduced) this.slowT = 1.4; this.audio?.alarm(true); }
   }
 
@@ -765,8 +989,8 @@ export class Game {
   private toVan() { const p = this.player, sp = this.layout.spawn; p.x = sp.x; p.z = sp.z; p.y = VS + 0.2; p.vy = 0; unstick(this.world, p); }
 
   // ---------------------------------------------------------------- loot and pickups
-  private place(kind: PickupKind, x: number, y: number, z: number, value: number) {
-    const sub = kind === "gem" ? GEM_COLS[Math.floor(Math.random() * GEM_COLS.length)] : kind === "art" ? ART_COLS[Math.floor(Math.random() * ART_COLS.length)] : "";
+  private place(kind: PickupKind, x: number, y: number, z: number, value: number, given = "") {
+    const sub = given ? given : kind === "gem" ? GEM_COLS[Math.floor(Math.random() * GEM_COLS.length)] : kind === "art" ? ART_COLS[Math.floor(Math.random() * ART_COLS.length)] : "";
     const mesh = new THREE.Mesh(pickupGeometry(kind, sub), sharedMat);
     mesh.position.set(x, y + 0.2, z);
     this.pickGroup.add(mesh);
@@ -821,13 +1045,33 @@ export class Game {
         sfx("heart"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 10, 3, 0.6, 0.14, 0xff5a8a, 1); break;
       case "oil": this.oil = this.oilMax; sfx("oil"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 8, 3, 0.5, 0.12, 0xff8a3a, 1); break;
       case "ammo": {
-        const a: Partial<Record<ToolId, number>> = {};
-        for (const id of ["grenade", "dynamite", "rocket"] as ToolId[]) if (this.opts.owned.includes(id)) { const t = toolOf(id); a[id] = Math.min(t.ammo * 4, this.ammoOf(id) + Math.max(1, Math.round(t.pack / 2))); this.opts.ammo[id] = a[id]; }
-        this.opts.onAmmo(a); sfx("ammo"); break;
+        // spare ammo for every gun you carry (and a top-up for the mission gun)
+        for (const id of this.opts.loadout) { const g = this.spec(id).gun; if (g && (this.spare[id] ?? 0) >= 0) this.spare[id] = Math.min(g.mag * 10, (this.spare[id] ?? 0) + g.mag * 3); }
+        if (this.mission) { const g = toolOf(this.mission.id).gun!; this.mission.ammo = Math.min(g.mag, this.mission.ammo + Math.round(g.mag * 0.25)); }
+        sfx("ammo"); break;
+      }
+      case "bombs": {
+        const got: string[] = [];
+        if (pk.sub) { const b = bombOf(pk.sub as BombId); this.bombs[b.id] = Math.min(b.max, (this.bombs[b.id] ?? 0) + 2); got.push(`${b.name} ×2`); }
+        else for (let k = 0; k < 2; k++) { const b = Math.random() < 0.05 ? bombOf("mega") : BOMBS[Math.floor(Math.random() * 7)]; this.bombs[b.id] = Math.min(b.max, (this.bombs[b.id] ?? 0) + 1); got.push(b.name); }
+        this.opts.onBombs({ ...this.bombs }, this.bombType);
+        sfx("bombPick"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 10, 3, 0.5, 0.12, 0xff5a3a, 1);
+        this.opts.onEvent({ k: "bombsGot", names: [...new Set(got)].join(" + ") });
+        return;
+      }
+      case "gun": {
+        // a mission gun, straight into your hands
+        const w = MISSION_GUNS[Math.floor(Math.random() * MISSION_GUNS.length)];
+        this.mission = { id: w.id, ammo: w.gun!.mag };
+        this.setTool(w.id, true);
+        sfx("gunPick"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 18, 5, 0.7, 0.14, 0x9af0ff, 2);
+        this.opts.onEvent({ k: "mission", tool: w.id });
+        return;
       }
       case "power": {
         const id = (pk.sub || "mega") as PowerId;
         this.power[id] = POWER_SECS[id];
+        if (id === "freeze") for (const b of this.bots) if (b.alive) { b.stun = Math.max(b.stun, POWER_SECS.freeze); b.flash = 1; }
         sfx("power"); this.fx.burst(GLINT, pk.x, pk.y, pk.z, 12, 4, 0.6, 0.14, 0xffd23f, 1);
         this.opts.onEvent({ k: "pickup", what: id, value: 0 });
         return;
@@ -897,7 +1141,10 @@ export class Game {
     if (g.kind !== "breach") {
       const s1 = this.spotNear(3, 7, false); this.place("heart", s1.x, s1.y, s1.z, 1);
       const s2 = this.spotNear(3, 7, false); this.place("oil", s2.x, s2.y, s2.z, 1);
-      if (g.kind === "vault" || Math.random() < 0.6) { const s3 = this.spotNear(3, 8, false); this.place("ammo", s3.x, s3.y, s3.z, 1); }
+      { const s3 = this.spotNear(3, 8, false); this.place("ammo", s3.x, s3.y, s3.z, 1); }
+      // a bomb crate (dynamite for a vault), and now and then a gold gun crate
+      { const s4 = this.spotNear(3, 8, false); this.place("bombs", s4.x, s4.y, s4.z, 1, g.kind === "vault" ? "dynamite" : ""); }
+      if (g.kind === "hold" || g.kind === "boss" || Math.random() < 0.3) { const s5 = this.spotNear(4, 9, false); this.place("gun", s5.x, s5.y, s5.z, 1); }
     }
     this.opts.onEvent({ k: "goal", no: this.goalNo, of: goalsIn(this.plan), title: g.title, hint: g.hint, kind: g.kind, again });
     sfx("radio", { gain: 0.6 });
@@ -1062,7 +1309,21 @@ export class Game {
   private render(dt: number) {
     if (this.backdrop) { this.backdrop.clouds.rotation.y += dt * 0.004; this.backdrop.weather?.update(dt, this.time, this.camera.position.x, this.camera.position.y, this.camera.position.z); }
     this.fx.begin();
-    for (const b of this.bolts) if (b.kind === BOLT || b.kind === CANNON) this.fx.bar(b.x, b.y, b.z, b.vx, b.vy, b.vz, b.kind === CANNON ? 0.8 : 0.6, b.kind === CANNON ? 0.16 : 0.08, b.hex, 1.6);
+    for (const b of this.bolts) {
+      if (b.kind === BOLT || b.kind === CANNON) this.fx.bar(b.x, b.y, b.z, b.vx, b.vy, b.vz, b.kind === CANNON ? 0.8 : 0.6, b.kind === CANNON ? 0.16 : b.ex ? 0.12 : 0.08, b.ex ? 0xff8a3a : b.hex, 1.6);
+      else if (b.kind === ORB) { this.fx.cube(b.x, b.y, b.z, 0.45, b.hex, 1.6); this.fx.cube(b.x, b.y, b.z, 0.25, 0xffffff, 1.4); }
+    }
+    for (const bm of this.beams) {
+      if (bm.jag > 0) {
+        let px = bm.x0, py = bm.y0, pz = bm.z0;
+        for (let k = 1; k <= 3; k++) {
+          const u = k / 3, j = k < 3 ? bm.jag : 0;
+          const nx = bm.x0 + (bm.x1 - bm.x0) * u + (Math.random() - 0.5) * j, ny = bm.y0 + (bm.y1 - bm.y0) * u + (Math.random() - 0.5) * j, nz = bm.z0 + (bm.z1 - bm.z0) * u + (Math.random() - 0.5) * j;
+          this.fx.bar(nx, ny, nz, nx - px, ny - py, nz - pz, Math.hypot(nx - px, ny - py, nz - pz), bm.w, bm.hex, 1.8);
+          px = nx; py = ny; pz = nz;
+        }
+      } else this.fx.bar(bm.x1, bm.y1, bm.z1, bm.x1 - bm.x0, bm.y1 - bm.y0, bm.z1 - bm.z0, Math.hypot(bm.x1 - bm.x0, bm.y1 - bm.y0, bm.z1 - bm.z0), bm.w, bm.hex, 1.6);
+    }
     const p = this.player;
     if ((p.shield > 0 || this.power.shield > 0) && this.mode === "play" && !this.firstPerson) for (let k = 0; k < 6; k++) { const a2 = this.time * 2 + k * 1.05; this.fx.cube(p.x + Math.cos(a2) * 0.9, p.y + 0.4 + (k % 3) * 0.5, p.z + Math.sin(a2) * 0.9, 0.12, 0x5ab8ff, 1.2); }
     // sparkles over the loot so you can spot it
@@ -1196,14 +1457,16 @@ export class Game {
   private key(e: KeyboardEvent) {
     const down = e.type === "keydown", code = e.code;
     if (down) this.keys.add(code); else this.keys.delete(code);
-    if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(code)) e.preventDefault();
+    if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].includes(code)) e.preventDefault();
     // Space is the game's while a stage runs: the player shell's Space-to-pause never sees it (Esc still pauses)
     if (code === "Space" && this.running && this.mode !== "attract") e.stopPropagation();
     if (!down || e.repeat) return;
     const n = Number(code.replace("Digit", ""));
-    if (code.startsWith("Digit") && n >= 1 && n <= 7) { const id = TOOLS[n - 1].id; if (this.opts.owned.includes(id)) this.setTool(id); }
+    if (code.startsWith("Digit") && n >= 1 && n <= 9) this.pick(n - 1);
     if (code === "KeyQ") this.cycleTool(-1);
     if (code === "KeyE") this.cycleTool(1);
+    if (code === "KeyG") this.throwBomb();
+    if (code === "KeyB" || code === "Tab") { e.preventDefault(); this.nextBomb(); }
     if (code === "KeyC") this.cyclePaint();
     if (code === "KeyV") { const f = this.toggleView(); this.opts.onEvent({ k: "view", first: f }); }
   }
@@ -1213,7 +1476,7 @@ export class Game {
       if (this.mode !== "play") return;
       if (document.pointerLockElement !== this.renderer.domElement) { this.renderer.domElement.requestPointerLock?.(); return; }
       if (e.button === 0) this.setUse(true);
-      if (e.button === 2) this.cycleTool(1);
+      if (e.button === 2) this.throwBomb();
     } else if (e.type === "mouseup" && e.button === 0) this.setUse(false);
   }
 
@@ -1225,6 +1488,7 @@ export class Game {
     window.removeEventListener("keydown", this.onKey, true); window.removeEventListener("keyup", this.onKey, true);
     window.removeEventListener("mousemove", this.onMouse); window.removeEventListener("mouseup", this.onMouse);
     this.renderer.domElement.removeEventListener("mousedown", this.onMouse);
+    this.renderer.domElement.removeEventListener("wheel", this.onWheel); this.renderer.domElement.removeEventListener("contextmenu", this.onContext);
     if (document.pointerLockElement === this.renderer.domElement) document.exitPointerLock?.();
     this.clearSite();
     this.fx.dispose(); this.gov.dispose();
@@ -1256,7 +1520,9 @@ export class Game {
     const h: Hud = {
       heist: this.heist, codename: this.plan.codename, site: this.siteI + 1, sites: this.plan.sites.length, siteName: this.site.name, goalNo: this.goalNo, goals: goalsIn(this.plan), obj,
       hp: Math.max(0, p.hp), maxHp: p.maxHp, lives: this.lives, oil: this.oil / this.oilMax, coins: this.coins, loot: this.siteLoot, lootGoal: this.lootTotal,
-      tool: this.tool, tools: TOOLS.filter((t) => this.opts.owned.includes(t.id)).map((t) => ({ id: t.id, ammo: t.ammo ? this.ammoOf(t.id) : -1 })),
+      tool: this.tool, tools: this.bar().map((id) => ({ id, ammo: this.mission && this.mission.id === id ? this.mission.ammo : isGun(id) ? (this.spare[id] ?? 0) < 0 ? -1 : (this.mag[id] ?? 0) + (this.spare[id] ?? 0) : -1, mission: !!this.mission && this.mission.id === id })),
+      ammo: this.mission && this.mission.id === this.tool ? this.mission.ammo : this.mag[this.tool] ?? -1, reserve: this.spare[this.tool] ?? 0, reload: this.reloadT > 0 ? 1 - this.reloadT / (this.spec(this.tool).gun?.reload ?? 1) : -1,
+      bomb: this.bombType, bombs: BOMBS.map((b) => ({ id: b.id, n: this.bombs[b.id] ?? 0 })), power: this.pow,
       powers: POWERS.filter((k) => this.power[k] > 0).map((id) => ({ id, left: this.power[id], secs: POWER_SECS[id] })),
       alarm: this.alarm, mode: this.mode, boss: this.boss ? { name: "Vault Warden", hp: this.boss.hp / this.boss.maxHp } : null, firstPerson: this.firstPerson, remix: this.plan.remix > 0, accent: this.district.accent,
     };
@@ -1267,3 +1533,4 @@ export class Game {
 const BLOCK_HEX: Record<number, number> = { 3: 0xc89060, 4: 0xb8e8ff, 7: 0x9a9aa0, 9: 0xd8d0c0, 10: 0x8a2a3a, 11: 0x8a92a6, 12: 0x5a6070, 13: 0xf2b830, 15: 0x6a4426, 16: 0xf2f2ea, 17: 0xeeeae4, 18: 0xff4fd8, 19: 0xe8e0d0, 20: 0xa8703e, 21: 0x3a4a5a, 22: 0x8a5a36, 23: 0x6a7080, 24: 0xf4f4f4 };
 const mixHex = (a: string, b: string, t: number) => { const x = rgb(a), y = rgb(b); return `#${[0, 1, 2].map((i) => Math.round(x[i] + (y[i] - x[i]) * t).toString(16).padStart(2, "0")).join("")}`; };
 void makeRng; void DEBRIS;
+

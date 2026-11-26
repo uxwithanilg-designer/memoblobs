@@ -1,14 +1,15 @@
 "use client";
 // Crumble Crew: the screens around the 3D heist — the home screen over the lot (the heist's card: its codename,
 // district, sites, how long it runs, the security coming, where you left off), the HUD (health, lives, oil, heist /
-// site / goal, the goal with its progress, the ALARM badge, the boss bar, coins and the loot meter, power timers; the
+// site / goal, the goal with its progress, the ALARM badge, the boss bar, coins, gun power (PWR), power timers; the
 // crosshair, markers and radar are drawn by the game), the thumb controls (a floating move stick on the left, drag on
-// the right to look, USE (hold), JUMP, NEXT TOOL, VIEW) and the tool bar, the banners that say "… Job started!", each
-// goal, site and the boss with no pages in between, Pip on the radio, and the Shop (tools, ammo, suit, hoodies), the
-// district map and help.
+// the right to look, USE (hold), JUMP, BOMB with its kind arrow, NEXT TOOL, VIEW, the ammo count that reloads) and the
+// tool bar (tools, four guns, a gold mission gun), the banners that say "… Job started!", each goal, site and the boss
+// with no pages in between, Pip on the radio, the Shop (tools, guns, bombs, suit, hoodies), the district map, help,
+// and a controls tutorial for phones and computers.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Map as MapIcon, Play, HelpCircle, X, Lock, Check, Eye, Repeat2, Hammer, Shield, Magnet, Zap, Gauge, ShoppingBag, ArrowUp, Clock, Flag, Radio, Siren, Coins as CoinsIcon, ScanEye, Flame } from "lucide-react";
+import { Map as MapIcon, Play, HelpCircle, X, Lock, Check, Eye, Repeat2, Hammer, Shield, Magnet, Zap, Gauge, ShoppingBag, ArrowUp, Clock, Flag, Radio, Siren, Coins as CoinsIcon, ScanEye, Flame, Snowflake, Sparkles, Crosshair, Keyboard } from "lucide-react";
 import { usePlayer } from "@/components/player/PlayerContext";
 import { audio } from "@/lib/audio";
 import { track } from "@/lib/analytics";
@@ -16,7 +17,7 @@ import { useProfile } from "@/lib/store";
 import { Game, type GameEvent, type Hud, type PowerId } from "../game";
 import { goalsIn, heistPlan, whereOf, type HeistPlan } from "../heists";
 import { DESIGNED_HEISTS, DISTRICTS, HEISTS_PER_DISTRICT, districtOf, type BotKind } from "../districts";
-import { BOTS, MAX_LEVEL, OUTFITS, SUIT, SUIT_MAX, TOOLS, suitCost, toolOf, upgradeCost, type ToolId } from "../gear";
+import { BOMBS, BOTS, GUNS, GUN_SLOTS, MAX_LEVEL, MISSION_GUNS, OUTFITS, SUIT, SUIT_MAX, TOOLS, bombOf, isGun, suitCost, toolOf, upgradeCost, type BombId, type ToolId, type ToolSpec } from "../gear";
 import { useCrumble, useCrumbleHydrated, START_LIVES, MAX_LIVES } from "../save";
 import { CRUMBLE_SOUNDS, UI_SOUNDS, sfx } from "../sound";
 import { CrumbleMusic } from "../music";
@@ -38,13 +39,34 @@ const TOOL_ROWS: Record<ToolId, string[]> = {
   hammer: ["mmmmmm..", "mmmmmm..", "mlmmml..", "..hh....", "..hh....", "..hh....", "..dd....", "..hh...."],
   blaster: ["........", ".ccccccl", "cccccccl", "ooc.....", ".dd.....", ".dd....."],
   drill: ["..yyyy..", ".yyyyyss", "yyyyyyss", ".dd.....", ".dd.....", ".oo....."],
-  grenade: ["...mm...", "..gggg..", ".gggggg.", ".gyyyyg.", ".gggggg.", "..gggg.."],
-  dynamite: ["....w...", "...w....", ".rrrrrr.", ".rrrrrr.", ".dddddd.", ".rrrrrr.", ".rrrrrr."],
+  smg: ["........", "kkkkkkkd", "kvvvvkkd", "kkkkkkk.", ".dd.dd..", ".dd....."],
+  scatter: [".........", "kkkkkkkkd", "bbbkkkkkd", "bb.aa....", "b........"],
   rocket: ["........", "dggggggo", "gggggggo", "dggggggo", ".dd.....", "........"],
+  laser: ["........", "kkkkkkpp", "kppppkkd", "kkkkkkk.", ".dd.....", ".dd....."],
+  plasma: ["......ee", "kkkkkeew", "keeekeew", "kkkkkee.", ".dd.....", ".dd....."],
+  minigun: ["kkkkk.....", "kkkkkyllll", "kkkkky....", "kkkkkyllll", ".dd.......", ".dd......."],
+  swarm: ["nnnnnnnn", "nnrnnrnn", "nnnnnnnn", "nnrnnrnn", "hhhhhhhh", ".dd....."],
+  omega: ["GGGGG.....", "GGGGGwyyyy", "GGGGGw....", "GGGGGwyyyy", ".dd.......", ".dd......."],
+  wrecker: ["yyyyyy....", "ffffffffoo", "fffffffffo", "ffffffffoo", "..dd......", "..dd......"],
+  storm: ["......u.", "kkkuuu.u", "kkkuuuuu", "kkkuu..u", ".dd..u..", ".dd....."],
   paint: ["..dd....", ".dwwd...", ".wwww...", ".wrrw...", ".wrrw...", ".wwww..."],
 };
+const TOOL_PAL = { m: "#8A92A6", l: "#B8BCCB", h: "#FF8A3A", d: "#2A2D3A", c: "#2AB8B0", o: "#FF8A3A", y: "#FFD23F", s: "#B8BCCB", g: "#3E9A5A", w: "#F2F2EA", r: "#D8302A", k: "#5A5E6E", v: "#7CFF6A", p: "#FF3A6A", e: "#5CF08A", n: "#4A5A3A", b: "#8A5A36", G: "#E8B030", u: "#B48CFF", f: "#5A3A2A", a: "#FFB23A" };
 function ToolIcon({ id, size = 3.4 }: { id: ToolId; size?: number }) {
-  return <PixelArt rows={TOOL_ROWS[id]} pal={{ m: "#8A92A6", l: "#B8BCCB", h: "#FF8A3A", d: "#2A2D3A", c: "#2AB8B0", o: "#FF8A3A", y: "#FFD23F", s: "#B8BCCB", g: "#3E9A5A", w: "#F2F2EA", r: "#D8302A" }} size={size} />;
+  return <PixelArt rows={TOOL_ROWS[id]} pal={TOOL_PAL} size={size} />;
+}
+const BOMB_ROWS: Record<BombId, string[]> = {
+  ball: ["...ll...", "..gggg..", ".gGggGg.", ".gggggg.", ".gGggGg.", "..gggg.."],
+  dynamite: ["....y...", "...d....", ".RRRRRR.", ".RRRRRR.", ".wwwwww.", ".RRRRRR.", ".RRRRRR."],
+  sticky: ["..llll..", ".bbbbbb.", "bbwbbwbb", "bbbbbbbb", ".bbbbbb.", "..b..b.."],
+  cluster: [".oo..oo.", "oooooooo", ".oooooo.", "oooooooo", ".oo..oo."],
+  emp: ["...ll...", "..cccc..", ".cwccwc.", ".cccccc.", ".cwccwc.", "..cccc.."],
+  fire: ["...yy...", "..yrry..", ".rrrrrr.", ".rryyrr.", ".rrrrrr.", "..rrrr.."],
+  gravity: ["..pppp..", ".pkkkkp.", "pkkwwkkp", "pkkwwkkp", ".pkkkkp.", "..pppp.."],
+  mega: ["...yy...", "..yyyy..", ".yykkyy.", "yykyykyy", ".yykkyy.", "..yyyy.."],
+};
+function BombIcon({ id, size = 3.4 }: { id: BombId; size?: number }) {
+  return <PixelArt rows={BOMB_ROWS[id]} pal={{ l: "#F2F2F2", g: "#3E9A5A", G: "#2A6A3A", b: "#5AB8FF", w: "#FFFFFF", o: "#FF8A2A", c: "#9AF0FF", y: "#FFD23F", r: "#FF4A2A", R: "#D8302A", p: "#C87CFF", k: "#2A1A3A", d: "#2A2D3A" }} size={size} />;
 }
 function RoccoHead({ hoodie = "#FF8A3A", size = 3 }: { hoodie?: string; size?: number }) {
   return <PixelArt rows={[".e....e.", "eggggggee", "gggggggg", "kkwkkwkk", "gggwwggg", "ggwwnwwg", "hhhhhhhh"]} pal={{ e: "#5A5E6A", g: "#8A8E9A", k: "#1E1E26", w: "#F2F2EA", n: "#1E1E26", h: hoodie }} size={size} />;
@@ -69,9 +91,10 @@ const Hearts = ({ n, of }: { n: number; of: number }) => (
 const POWER_ICON: Record<PowerId, React.ReactNode> = {
   mega: <Hammer className="size-4" stroke="#FF8A3A" strokeWidth={2.6} />, shield: <Shield className="size-4" fill="#5AB8FF" stroke="none" />, magnet: <Magnet className="size-4" stroke="#FF5AC8" strokeWidth={2.6} />,
   speed: <Gauge className="size-4" stroke="#5CE07A" strokeWidth={2.6} />, xray: <ScanEye className="size-4" stroke="#C87CFF" strokeWidth={2.6} />, double: <CoinsIcon className="size-4" stroke="#FFD23F" strokeWidth={2.6} />,
+  rapid: <Zap className="size-4" fill="#FFE07A" stroke="none" />, rage: <Flame className="size-4" fill="#FF3A3A" stroke="none" />, boom: <Sparkles className="size-4" stroke="#FF6A2A" strokeWidth={2.6} />, freeze: <Snowflake className="size-4" stroke="#9AF0FF" strokeWidth={2.6} />,
 };
-const POWER_COL: Record<PowerId, string> = { mega: "#FF8A3A", shield: "#5AB8FF", magnet: "#FF5AC8", speed: "#5CE07A", xray: "#C87CFF", double: "#FFD23F" };
-const POWER_NAME: Record<string, string> = { mega: "Mega mallet!", shield: "Shield up!", magnet: "Loot magnet!", speed: "Speed boost!", xray: "X-ray eyes — see the loot!", double: "Double loot!", heart: "Health up!", oil: "Drill oil full!", ammo: "Explosives restocked!", gold: "Gold bar!", gem: "A gem!", art: "A painting!" };
+const POWER_COL: Record<PowerId, string> = { mega: "#FF8A3A", shield: "#5AB8FF", magnet: "#FF5AC8", speed: "#5CE07A", xray: "#C87CFF", double: "#FFD23F", rapid: "#FFE07A", rage: "#FF3A3A", boom: "#FF6A2A", freeze: "#9AF0FF" };
+const POWER_NAME: Record<string, string> = { mega: "Mega mallet!", shield: "Shield up!", magnet: "Loot magnet!", speed: "Speed boost!", xray: "X-ray eyes — see the loot!", double: "Double loot!", rapid: "Rapid fire!", rage: "Rage — double damage!", boom: "Explosive rounds!", freeze: "Freeze — every robot stops!", heart: "Health up!", oil: "Drill oil full!", ammo: "Ammo for every gun!", gold: "Gold bar!", gem: "A gem!", art: "A painting!" };
 const GOAL_COL: Record<string, string> = { breach: "#FFD23F", loot: "#5CE07A", vault: "#FFD23F", hold: "#FF5A6A", wreck: "#FF8A3A", boss: "#FF5A7A", escape: "#5BF0FF" };
 
 export default function CrumbleApp({ slug }: { slug: string; title: string }) {
@@ -93,6 +116,8 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
   const coinsRef = useRef(0);
   const [touchDevice] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
   const [gameReady, setGameReady] = useState(false);
+  /** the controls tutorial: before the first heist, or from Help / the menu */
+  const [tut, setTut] = useState<"" | "first" | "help">("");
 
   const say = useCallback((big: string, sub?: string, color?: string, ms = 1600) => {
     const id = Math.random();
@@ -137,7 +162,7 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
         const sub = fresh ? `${whereOf(heistPlan(e.heist))} · ${e.sites} sites · about ${e.minutes} min` : `${e.codename} · site ${e.site + 1} of ${e.sites}`;
         setTimeout(() => say(big, sub, fresh ? "#FFB05A" : "#FFFFFF", 2800), 250);
         sfx("start", { delay: 0.2 });
-        if (!useCrumble.getState().seenHelp) { setTimeout(() => toastIt(touchDevice ? "Left: move · Right: look · Hold USE" : "Click to look · WASD · Click to use · 1–7 tools", "#FFD23F"), 3600); useCrumble.getState().sawHelp(); }
+        if (!useCrumble.getState().seenHelp) { setTimeout(() => toastIt(touchDevice ? "Left: move · Right: look · Hold USE · BOMB throws" : "Click to look · WASD · Click to use · G bomb", "#FFD23F"), 3600); useCrumble.getState().sawHelp(); }
         break;
       }
       case "goal": if (e.kind !== "boss") say(e.again ? `Goal ${e.no} — again` : `Goal ${e.no}: ${e.title}`, e.hint, GOAL_COL[e.kind], 2800); if (e.kind === "escape") tune(2); break;
@@ -160,7 +185,12 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
       case "down": say("You're down!", e.livesLeft > 0 ? `${e.livesLeft} ${e.livesLeft === 1 ? "life" : "lives"} left` : "No lives left · the goal starts over", "#FF5A6A", 2000); break;
       case "collapse": if (e.blocks > 150) toastIt(`CRASH! ${e.blocks} blocks came down`, "#FF8A3A"); break;
       case "lowOil": toastIt("Drill oil low — grab an oil can!", "#FF8A3A"); break;
-      case "noAmmo": toastIt(`No ${toolOf(e.tool).name} left — buy more in the Shop`, "#FF8A3A"); break;
+      case "noAmmo": toastIt(`${toolOf(e.tool).name} is out of ammo — grab an ammo crate`, "#FF8A3A"); break;
+      case "mission": say(toolOf(e.tool).name, "Gold mission gun — until its ammo runs out", "#FFD23F", 2000); break;
+      case "missionEmpty": toastIt(`${toolOf(e.tool).name} is empty`, "#FF8A3A"); break;
+      case "noBombs": toastIt("No bombs — grab a bomb crate or buy some in the Shop", "#FF8A3A"); break;
+      case "bombType": toastIt(`${bombOf(e.id).name} ready`, bombOf(e.id).color); break;
+      case "bombsGot": toastIt(`Bombs: ${e.names}`, "#FF8A5A"); break;
       case "view": useCrumble.getState().setView(e.first); break;
       case "radio": radioIt(e.text); break;
     }
@@ -174,12 +204,12 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
     coinsRef.current = s.coins;
     let flush: ReturnType<typeof setTimeout> | null = null;
     const g = new Game(host.current, {
-      owned: [...s.owned], levels: { ...s.levels }, ammo: { ...s.ammo }, suit: { ...s.suit }, outfit: s.outfit, lives: s.lives || START_LIVES, coins: s.coins, firstPerson: s.firstPerson,
+      owned: [...s.owned], levels: { ...s.levels }, loadout: [...s.loadout], bombs: { ...s.bombs }, bomb: s.bomb, suit: { ...s.suit }, outfit: s.outfit, lives: s.lives || START_LIVES, coins: s.coins, firstPerson: s.firstPerson,
       onHud: (h) => setHud(h),
       onEvent: (e) => onEventRef.current(e),
       onCoins: (n) => { coinsRef.current = n; if (!flush) flush = setTimeout(() => { flush = null; useCrumble.getState().setCoins(coinsRef.current); }, 900); },
       onLives: (n) => useCrumble.getState().setLives(n),
-      onAmmo: (a) => useCrumble.getState().setAmmo(a),
+      onBombs: (b, cur) => useCrumble.getState().setBombs(b, cur),
       onCheckpoint: (heist, site, goal, t) => useCrumble.getState().checkpoint(heist, site, goal, t),
       onDone: (next, t) => useCrumble.getState().done(next, t),
     });
@@ -198,18 +228,30 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
   useEffect(() => {
     const g = gameRef.current;
     if (!g) return;
-    if (paused) { g.stop(); g.setUse(false); music.current?.pause(); if (document.pointerLockElement) document.exitPointerLock?.(); } else { g.start(); music.current?.resume(); }
-  }, [paused]);
+    if (paused || tut) { g.stop(); g.setUse(false); if (paused) music.current?.pause(); if (document.pointerLockElement) document.exitPointerLock?.(); } else { g.start(); music.current?.resume(); }
+  }, [paused, tut]);
   useEffect(() => { setInRound(screen === "play"); setImmersive(screen === "play"); }, [screen, setInRound, setImmersive]);
   useEffect(() => () => { setInRound(false); setImmersive(false); setMenu([]); }, [setInRound, setImmersive, setMenu]);
 
   // ---------------------------------------------------------------- flow
-  const play = useCallback(() => {
+  const go = useCallback(() => {
     const g = gameRef.current;
     if (!g) return;
-    sfx("tap"); setSheet(""); setScreen("play");
+    setSheet(""); setScreen("play");
     g.play();
   }, []);
+  const play = useCallback(() => {
+    sfx("tap");
+    // the first time: how to play on this device, then the heist
+    if (!useCrumble.getState().tutorial) { setSheet(""); setTut("first"); return; }
+    go();
+  }, [go]);
+  const tutDone = useCallback(() => {
+    const first = tut === "first";
+    useCrumble.getState().sawTutorial();
+    setTut("");
+    if (first) go();
+  }, [tut, go]);
   const home = useCallback(() => {
     const g = gameRef.current;
     setScreen("home");
@@ -219,11 +261,12 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
   }, []);
   const refreshGear = useCallback(() => {
     const s = useCrumble.getState();
-    gameRef.current?.setGear({ owned: [...s.owned], levels: { ...s.levels }, ammo: { ...s.ammo }, suit: { ...s.suit }, outfit: s.outfit });
+    gameRef.current?.setGear({ owned: [...s.owned], levels: { ...s.levels }, loadout: [...s.loadout], bombs: { ...s.bombs }, suit: { ...s.suit }, outfit: s.outfit });
   }, []);
   useEffect(() => {
     setMenu(screen === "play" ? [
       { id: "restart", label: "Restart this goal", onSelect: () => { const g = gameRef.current; if (g) g.load(g.heist, "intro", true, { site: g.siteI, goal: g.goalI }); } },
+      { id: "controls", label: "Controls", onSelect: () => setTut("help") },
       { id: "shop", label: "Shop", onSelect: () => { home(); setSheet("shop"); } },
       { id: "home", label: "Main menu", onSelect: home },
     ] : []);
@@ -352,15 +395,31 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
           </div>
           <div className="cc-tr flex flex-col items-end gap-1.5">
             <span className="cc-pill cc-cap cc-px"><CoinIcon />{hud.coins.toLocaleString()}</span>
+            <span className="cc-pwr cc-cap cc-px" title="Gun power grows every heist">PWR ×{hud.power.toFixed(1)}</span>
           </div>
+          {/* the tool bar: mallet, drill, your four guns, a gold mission gun, the sprayer (and on computers the bomb) */}
           <div className="cc-tools cc-px">
-            {hud.tools.map((t) => (
-              <button type="button" key={t.id} aria-label={toolOf(t.id).name} className={`cc-tool cc-px ${hud.tool === t.id ? "on" : ""} ${t.ammo === 0 ? "empty" : ""}`} onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.setTool(t.id); }}>
-                <ToolIcon id={t.id} size={touchDevice ? 3.6 : 3.8} />
+            {hud.tools.map((t, i) => (
+              <button type="button" key={t.id} aria-label={toolOf(t.id).name} className={`cc-tool cc-px ${hud.tool === t.id ? "on" : ""} ${t.ammo === 0 ? "empty" : ""} ${t.mission ? "mission" : ""}`} onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.setTool(t.id); }}>
+                <ToolIcon id={t.id} size={touchDevice ? 3 : 3.4} />
+                {!touchDevice && i < 9 && <span className="k">{i + 1}</span>}
                 {t.ammo >= 0 && <b>{t.ammo}</b>}
               </button>
             ))}
+            {!touchDevice && (
+              <div className="cc-tool cc-px bombslot" style={{ ["--bc" as string]: bombOf(hud.bomb).color }}>
+                <BombIcon id={hud.bomb} size={3} />
+                <span className="k">G</span><span className="k2">B</span>
+                <b>{hud.bombs.find((b) => b.id === hud.bomb)?.n ?? 0}</b>
+              </div>
+            )}
           </div>
+          {isGun(hud.tool) && hud.ammo >= 0 && (
+            <button type="button" aria-label="Reload" className="cc-ammo" onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.reload(); }}>
+              {hud.reload >= 0 ? <i className="r"><span style={{ width: `${hud.reload * 100}%` }} /></i> : <>{hud.ammo}{!hud.tools.find((t) => t.id === hud.tool)?.mission && <span className="text-sm opacity-70">/{hud.reserve < 0 ? "∞" : hud.reserve}</span>}</>}
+              {hud.tools.find((t) => t.id === hud.tool)?.mission ? <i className="gold">MISSION</i> : <i>RELOAD</i>}
+            </button>
+          )}
           <div className="cc-acts">
             <button type="button" aria-label="Use" className={`cc-act cc-fire ${btn.use ? "on" : ""}`} onPointerDown={down("use")} onPointerMove={moveP} onPointerUp={up} onPointerCancel={up}>
               <ToolIcon id={hud.tool} size={5} />
@@ -370,6 +429,12 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
               <ArrowUp className="size-8" strokeWidth={3} />
               <small>JUMP</small>
             </button>
+            <button type="button" aria-label="Throw bomb" className={`cc-act cc-bomb ${hud.bombs.some((b) => b.n > 0) ? "" : "off"}`} style={{ ["--b1" as string]: bombOf(hud.bomb).color }} onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.throwBomb(); }}>
+              <BombIcon id={hud.bomb} size={3.6} />
+              <b className="cc-cnt">{hud.bombs.find((b) => b.id === hud.bomb)?.n ?? 0}</b>
+              <small>BOMB</small>
+            </button>
+            <button type="button" aria-label="Change bomb" className="cc-bombnext" onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.nextBomb(); }}><Repeat2 className="size-4" strokeWidth={3} /></button>
             <button type="button" aria-label="Next tool" className="cc-act cc-swap" onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (hud.tool === "paint") { gameRef.current?.cyclePaint(); sfx("tap"); } else gameRef.current?.cycleTool(1); }}>
               <Repeat2 className="size-6" strokeWidth={2.6} />
               <small>{hud.tool === "paint" ? "COLOUR" : "TOOL"}</small>
@@ -379,7 +444,7 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
             </button>
           </div>
           {!touchDevice && playing && !locked && <div className="cc-aimhint cc-cap cc-px">Click to look · Esc to let go</div>}
-          {!touchDevice && playing && <div className="cc-keys cc-cap cc-px">WASD move · Mouse look · Click use · Space jump · 1–7 / Q E tools · C paint colour · V view</div>}
+          {!touchDevice && playing && <div className="cc-keys cc-cap cc-px">WASD move · Click use · 1–9 / wheel / Q E tools · R reload · G or right-click bomb · B bomb kind · Space jump · C colour · V view</div>}
         </div>
       )}
 
@@ -410,12 +475,13 @@ export default function CrumbleApp({ slug }: { slug: string; title: string }) {
               <div className="cc-scroll">
                 {sheet === "shop" && <Shop onChange={refreshGear} />}
                 {sheet === "districts" && <Districts heist={save.heist} />}
-                {sheet === "help" && <Help onPlay={play} />}
+                {sheet === "help" && <Help onPlay={play} onControls={() => { setSheet(""); setTut("help"); }} />}
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
+      <AnimatePresence>{tut && <Tutorial key="tut" touch={touchDevice} first={tut === "first"} onDone={tutDone} />}</AnimatePresence>
     </div>
   );
 }
@@ -454,36 +520,70 @@ function HeistCard({ plan, site, goal }: { plan: HeistPlan; site: number; goal: 
 // ---------------------------------------------------------------- the shop
 function Shop({ onChange }: { onChange: () => void }) {
   const s = useCrumble();
-  const [tab, setTab] = useState<"tools" | "suit" | "hoodie">("tools");
+  const [tab, setTab] = useState<"tools" | "guns" | "bombs" | "suit" | "hoodie">("guns");
+  const row = (t: ToolSpec) => {
+    const owned = s.owned.includes(t.id), lv = s.levels[t.id] ?? 0, cost = upgradeCost(t, lv), slot = s.loadout.indexOf(t.id), gun = isGun(t.id);
+    return (
+      <div key={t.id} className={`cc-item cc-px ${owned && (!gun || slot >= 0) ? "sel" : ""}`}>
+        <div className="grid w-[56px] shrink-0 place-items-center"><ToolIcon id={t.id} size={5} /></div>
+        <div className="min-w-0 flex-1">
+          <p className="font-extrabold">{t.name}</p>
+          <p className="text-xs opacity-70">{t.tagline}</p>
+          {gun && t.gun && <p className="mt-0.5 text-[11px] font-bold opacity-60">{Math.round(t.damage * (t.gun.pellets))} dmg · {t.rate}/s · {t.gun.mag} rounds</p>}
+          {owned && t.id !== "paint" && <div className="cc-dots">{Array.from({ length: MAX_LEVEL }, (_, i) => <i key={i} className={i < lv ? "on" : ""} />)}</div>}
+          {owned && gun && (
+            <div className="mt-1.5 flex items-center gap-1 text-[11px] font-extrabold">
+              <span className="opacity-70">Slot</span>
+              {Array.from({ length: GUN_SLOTS }, (_, k) => <button type="button" key={k} className={`cc-slotbtn cc-px ${slot === k ? "on" : ""}`} onClick={() => { s.equip(k, t.id); sfx("equip"); onChange(); }}>{k + 1}</button>)}
+            </div>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          {owned ? (
+            t.id !== "paint" && <button type="button" disabled={lv >= MAX_LEVEL || s.coins < cost} className="cc-btn cc-ghost cc-px px-2 py-1 text-xs" onClick={() => { if (s.upgradeTool(t.id)) { sfx("upgrade"); onChange(); } }}>{lv >= MAX_LEVEL ? <><Check className="size-3.5" /> Max</> : <><ArrowUp className="size-3.5" /><CoinIcon size={13} />{cost.toLocaleString()}</>}</button>
+          ) : (
+            <button type="button" disabled={s.coins < t.price} className="cc-btn cc-cta cc-px px-3 py-2 text-sm" onClick={() => { if (s.buyTool(t.id)) { sfx("buy"); onChange(); } }}>{s.coins < t.price ? <Lock className="size-4" /> : null}<CoinIcon size={15} />{t.price.toLocaleString()}</button>
+          )}
+        </div>
+      </div>
+    );
+  };
   return (
     <div>
       <div className="cc-tabs">
-        {(["tools", "suit", "hoodie"] as const).map((t) => <button type="button" key={t} className={`cc-tab cc-px ${tab === t ? "on" : ""}`} onClick={() => { sfx("tap"); setTab(t); }}>{t === "tools" ? "Tools" : t === "suit" ? "Suit" : "Hoodies"}</button>)}
+        {(["guns", "bombs", "tools", "suit", "hoodie"] as const).map((t) => <button type="button" key={t} className={`cc-tab cc-px ${tab === t ? "on" : ""}`} onClick={() => { sfx("tap"); setTab(t); }}>{t === "guns" ? "Guns" : t === "bombs" ? "Bombs" : t === "tools" ? "Tools" : t === "suit" ? "Suit" : "Hoodies"}</button>)}
       </div>
-      {tab === "tools" && TOOLS.map((t) => {
-        const owned = s.owned.includes(t.id), lv = s.levels[t.id] ?? 0, cost = upgradeCost(t, lv);
-        return (
-          <div key={t.id} className={`cc-item cc-px ${owned ? "sel" : ""}`}>
-            <div className="grid w-[56px] shrink-0 place-items-center"><ToolIcon id={t.id} size={5.5} /></div>
-            <div className="min-w-0 flex-1">
-              <p className="font-extrabold">{t.name}</p>
-              <p className="text-xs opacity-70">{t.tagline}</p>
-              {owned && <div className="cc-dots">{Array.from({ length: MAX_LEVEL }, (_, i) => <i key={i} className={i < lv ? "on" : ""} />)}</div>}
-              {owned && t.ammo > 0 && <p className="mt-1 text-xs font-bold opacity-80">Carrying {s.ammo[t.id] ?? 0}</p>}
+      {tab === "tools" && TOOLS.map(row)}
+      {tab === "guns" && (
+        <>
+          <p className="text-xs font-bold opacity-75">You carry four guns (slots 1–4 in the tool bar). Buy one and it goes into a free slot; tap a slot number to move it. Every gun hits harder heist by heist (PWR).</p>
+          {GUNS.map(row)}
+          <p className="cc-kicker mt-4">Mission guns · gold gun crates</p>
+          {MISSION_GUNS.map((t) => (
+            <div key={t.id} className="cc-item cc-px mission">
+              <div className="grid w-[56px] shrink-0 place-items-center"><ToolIcon id={t.id} size={5} /></div>
+              <div className="min-w-0 flex-1"><p className="font-extrabold">{t.name}</p><p className="text-xs opacity-70">{t.tagline}</p><p className="mt-0.5 text-[11px] font-bold opacity-60">{t.gun?.mag} rounds · found in gold crates (robots drop them too)</p></div>
             </div>
-            <div className="flex shrink-0 flex-col items-end gap-1.5">
-              {owned ? (
-                <>
-                  {t.id !== "paint" && <button type="button" disabled={lv >= MAX_LEVEL || s.coins < cost} className="cc-btn cc-ghost cc-px px-2 py-1 text-xs" onClick={() => { if (s.upgradeTool(t.id)) { sfx("upgrade"); onChange(); } }}>{lv >= MAX_LEVEL ? <><Check className="size-3.5" /> Max</> : <><ArrowUp className="size-3.5" /><CoinIcon size={13} />{cost.toLocaleString()}</>}</button>}
-                  {t.pack > 0 && <button type="button" disabled={s.coins < t.packPrice} className="cc-btn cc-ghost cc-px px-2 py-1 text-xs" onClick={() => { if (s.buyAmmo(t.id)) { sfx("buy"); onChange(); } }}>+{t.pack} <CoinIcon size={13} />{t.packPrice}</button>}
-                </>
-              ) : (
-                <button type="button" disabled={s.coins < t.price} className="cc-btn cc-cta cc-px px-3 py-2 text-sm" onClick={() => { if (s.buyTool(t.id)) { sfx("buy"); onChange(); } }}>{s.coins < t.price ? <Lock className="size-4" /> : null}<CoinIcon size={15} />{t.price.toLocaleString()}</button>
-              )}
-            </div>
-          </div>
-        );
-      })}
+          ))}
+        </>
+      )}
+      {tab === "bombs" && (
+        <>
+          <p className="text-xs font-bold opacity-75">Throw with BOMB (G or right-click on a computer); the arrow (B) picks the kind. Bomb crates in every site give two more.</p>
+          {BOMBS.map((b) => {
+            const have = s.bombs[b.id] ?? 0;
+            return (
+              <div key={b.id} className={`cc-item cc-px ${s.bomb === b.id ? "sel" : ""}`}>
+                <div className="grid w-[56px] shrink-0 place-items-center"><BombIcon id={b.id} size={5} /></div>
+                <div className="min-w-0 flex-1"><p className="font-extrabold">{b.name}</p><p className="text-xs opacity-70">{b.tagline}</p><p className="mt-1 text-xs font-bold opacity-80">Carrying {have} / {b.max}</p></div>
+                {b.pack > 0 ? (
+                  <button type="button" disabled={s.coins < b.price || have >= b.max} className="cc-btn cc-cta cc-px px-3 py-2 text-sm" onClick={() => { if (s.buyBombs(b.id)) { sfx("buy"); onChange(); } }}>+{b.pack} <CoinIcon size={15} />{b.price}</button>
+                ) : <span className="text-xs font-extrabold opacity-70">Crates only</span>}
+              </div>
+            );
+          })}
+        </>
+      )}
       {tab === "suit" && SUIT.map((u) => {
         const lv = s.suit[u.id], cost = suitCost(lv);
         return (
@@ -563,20 +663,92 @@ function Districts({ heist }: { heist: number }) {
   );
 }
 
-function Help({ onPlay }: { onPlay: () => void }) {
+function Help({ onPlay, onControls }: { onPlay: () => void; onControls: () => void }) {
   return (
     <div className="grid gap-2 text-[15px]">
       {[
-        [<Play key="i" className="size-5" fill="#FFB05A" stroke="none" />, "Phone: move with your left thumb, drag on the right side to look. Hold USE to use the tool in your hands. JUMP climbs; TOOL switches tools (or picks a paint colour)."],
-        [<Hammer key="i" className="size-5" stroke="#FF8A3A" />, "Every block breaks to the right tool: the Mallet smashes wood, glass, plaster and brick; the Drill bores steel (it burns oil); Dynamite, Rockets and Boom Balls blow holes in anything — only dynamite (or a top-level drill or rocket) cracks vault steel."],
-        [<Siren key="i" className="size-5" stroke="#FF4A5A" />, "The first block you break trips the alarm: Bolt Security teleports in and keeps coming. Blast them with the Zap Blaster or the Mallet."],
+        [<Play key="i" className="size-5" fill="#FFB05A" stroke="none" />, "Phone: move with your left thumb, drag on the right side to look. Hold USE to use the tool or gun in your hands. JUMP climbs; tap the tool bar (or TOOL) to switch; BOMB throws, its arrow picks the kind."],
+        [<Hammer key="i" className="size-5" stroke="#FF8A3A" />, "Every block breaks to the right tool: the Mallet smashes wood, glass, plaster and brick; the Drill and the Laser Cutter cut steel; rockets, plasma and bombs blow holes in anything — only dynamite, the Mega TNT, the Wrecking Cannon (or a top-level drill or rocket) crack vault steel."],
+        [<Crosshair key="i" className="size-5" stroke="#5BE8E0" />, "Guns: you carry four (Zap Blaster, Pulse SMG, Scatter Gun, Rocket Tube, Laser Cutter, Plasma Lobber, Vortex Minigun, Swarm Launcher) and reload from spare ammo; ammo crates refill them. Gold gun crates hand you a mission gun — the Omega Minigun, the Wrecking Cannon or the Storm Arc. Gun power (PWR) grows every heist."],
+        [<Sparkles key="i" className="size-5" stroke="#FF6A2A" />, "Bombs: boom balls, dynamite, sticky bombs, cluster bombs, EMP (robots stop dead), fire (burns robots and wood), gravity (pulls everything in, then crushes it) and the Mega TNT. Bomb crates give two."],
+        [<Siren key="i" className="size-5" stroke="#FF4A5A" />, "The first block you break trips the alarm: Bolt Security teleports in and keeps coming. Blast them with your guns, bombs or the Mallet."],
         [<Flag key="i" className="size-5" stroke="#FFD23F" />, "Each heist is several sites, each a run of goals: break in, grab the loot quota, crack the vault, hold off security, bring the building down, beat the Vault Warden, and get back to Pip's van. It runs half an hour and more."],
         [<CoinsIcon key="i" className="size-5" stroke="#FFC93D" />, "Loot — cash, gold bars, gems and paintings — turns into coins. Safes and gold blocks pay out when you break them. Spend coins in the Shop on tools, upgrades, explosives, the suit and hoodies."],
-        [<Zap key="i" className="size-5" fill="#FFD23F" stroke="none" />, "Hearts heal (or give a life when you're healthy), oil cans refill the drill, crates restock explosives, and power cubes give a mega mallet, a shield, a loot magnet, speed, x-ray eyes or double loot."],
+        [<Zap key="i" className="size-5" fill="#FFD23F" stroke="none" />, "Hearts heal (or give a life when you're healthy), oil cans refill the drill, and power cubes give a mega mallet, a shield, a loot magnet, speed, x-ray eyes, double loot, rapid fire, rage (double damage), explosive rounds or a freeze that stops every robot."],
         [<Check key="i" className="size-5" stroke="#5CE07A" />, "Progress is saved after every goal. Run out of lives and only that goal starts over. When a site is done the van takes you to the next one by itself."],
-        [<Eye key="i" className="size-5" stroke="#B8B8D8" />, "VIEW switches between first person and over-the-shoulder. Computer: WASD, mouse to look (click first), click to use, Space to jump, 1–7 or Q/E for tools, C for paint colour, V for the view."],
+        [<Eye key="i" className="size-5" stroke="#B8B8D8" />, "VIEW switches between first person and over-the-shoulder. Computer: WASD, mouse to look (click first), click to use, Space to jump, 1–9 / wheel / Q E for tools, R reload, G or right-click for a bomb, B the bomb kind, C paint colour, V the view."],
       ].map(([i, t], k) => <div key={k} className="cc-px flex items-start gap-3 bg-white/[.06] p-3"><span className="mt-0.5 shrink-0">{i}</span><span>{t}</span></div>)}
-      <button type="button" className="cc-btn cc-cta cc-px mt-2 py-3 text-lg" onClick={onPlay}><Play className="size-5 fill-current" /> Let&apos;s go</button>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <button type="button" className="cc-btn cc-ghost cc-px py-3 text-lg" onClick={onControls}><Keyboard className="size-5" /> Controls</button>
+        <button type="button" className="cc-btn cc-cta cc-px py-3 text-lg" onClick={onPlay}><Play className="size-5 fill-current" /> Let&apos;s go</button>
+      </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- the controls tutorial (phone and computer)
+function Key({ k, wide }: { k: string; wide?: boolean }) { return <span className={`cc-key ${wide ? "wide" : ""}`}>{k}</span>; }
+function Pad({ c, children, label }: { c: string; children: React.ReactNode; label: string }) {
+  return <span className="cc-pad" style={{ ["--b1" as string]: c }}><span className="dot">{children}</span><small>{label}</small></span>;
+}
+const BOMB_LIST = <div className="cc-bombrow">{BOMBS.map((b) => <span key={b.id}><BombIcon id={b.id} size={2.6} />{b.name}</span>)}</div>;
+const PICKUPS = <p>Run over them: <b>ammo crates</b> (spare ammo for every gun), <b>bomb crates</b> (two bombs), gold <b>gun crates</b> (a mission gun), cash, gold and gems, hearts, oil cans and <b>power cubes</b> — rapid fire, rage, explosive rounds, freeze, a shield, a loot magnet and more. Robots drop them too.</p>;
+const STEPS: { title: string; phone: React.ReactNode; web: React.ReactNode }[] = [
+  {
+    title: "Move and look",
+    phone: <><div className="cc-demo"><Pad c="#8A90A6" label="LEFT THUMB"><Gauge className="size-6" /></Pad><Pad c="#5AB8FF" label="DRAG RIGHT"><Eye className="size-6" /></Pad></div><p>Put your left thumb anywhere on the left side and slide to run. Drag anywhere on the right side to look around — the crosshair locks onto the robot nearest it.</p></>,
+    web: <><div className="cc-demo"><Key k="W" /><Key k="A" /><Key k="S" /><Key k="D" /><span className="cc-plus">+</span><Key k="Mouse" wide /></div><p>WASD (or the arrows) to move. Click the game once and the mouse looks around; Esc lets go.</p></>,
+  },
+  {
+    title: "Smash and shoot",
+    phone: <><div className="cc-demo"><Pad c="#FF7A2A" label="USE"><Hammer className="size-6" /></Pad><Pad c="#3A3E52" label="AMMO = RELOAD"><Repeat2 className="size-6" /></Pad></div><p>Hold USE to swing the Mallet, run the drill or fire the gun in your hands — slide your thumb on it to aim while you shoot. Tap the ammo count to reload early.</p></>,
+    web: <><div className="cc-demo"><Key k="Left click" wide /><Key k="R" /></div><p>Hold the left mouse button to use the tool or fire. R reloads. The Zap Blaster never runs dry; other guns use spare ammo from ammo crates.</p></>,
+  },
+  {
+    title: "Jump and climb",
+    phone: <><div className="cc-demo"><Pad c="#1E7AD8" label="JUMP"><ArrowUp className="size-6" /></Pad></div><p>Tap JUMP to hop up onto blocks, ledges and through the holes you smash.</p></>,
+    web: <><div className="cc-demo"><Key k="Space" wide /></div><p>Space jumps.</p></>,
+  },
+  {
+    title: "Switch tools and guns",
+    phone: <><div className="cc-demo"><span className="cc-gunrow">{(["hammer", "blaster", "smg", "rocket"] as ToolId[]).map((g) => <span key={g} className="cc-gunmock"><ToolIcon id={g} size={2.4} /></span>)}<span className="cc-gunmock gold"><ToolIcon id="omega" size={2.4} /></span></span></div><p>The tool bar on the right holds the Mallet, the Drill, your four guns and the paint sprayer — tap one to take it, or tap TOOL for the next. A gold one is a mission gun from a gun crate.</p></>,
+    web: <><div className="cc-demo"><Key k="1" /><Key k="2" /><Key k="3" /><Key k="…9" /><Key k="Wheel" wide /><Key k="Q" /><Key k="E" /></div><p>The number keys pick from the tool bar (the numbers are on it). The mouse wheel or Q / E go to the previous / next.</p></>,
+  },
+  {
+    title: "Bombs",
+    phone: <><div className="cc-demo"><Pad c="#D8302A" label="BOMB"><BombIcon id="dynamite" size={3} /></Pad><Pad c="#FFD23F" label="ARROW = KIND"><Repeat2 className="size-6" /></Pad></div><p>Tap BOMB to throw where you look. Tap the little arrow on it to change the kind.</p>{BOMB_LIST}</>,
+    web: <><div className="cc-demo"><Key k="G" /><Key k="Right click" wide /><Key k="B" /><Key k="Tab" /></div><p>G or a right click throws a bomb; B (or Tab) changes the kind.</p>{BOMB_LIST}</>,
+  },
+  { title: "Pick things up", phone: PICKUPS, web: PICKUPS },
+  {
+    title: "Pull the heist",
+    phone: <><p>Each heist is several sites, each a run of goals — break in, grab the loot, crack the vault, hold off security, bring the building down, beat the boss, get back to the van. Your gun power (<b>PWR</b>) grows every heist. VIEW swaps first person and over-the-shoulder.</p></>,
+    web: <><p>Each heist is several sites, each a run of goals — break in, grab the loot, crack the vault, hold off security, bring the building down, beat the boss, get back to the van. Your gun power (<b>PWR</b>) grows every heist. V swaps first person and over-the-shoulder; C changes the paint colour.</p></>,
+  },
+];
+function Tutorial({ touch, onDone, first }: { touch: boolean; onDone: () => void; first: boolean }) {
+  const [i, setI] = useState(0);
+  const [phone, setPhone] = useState(touch);
+  const st = STEPS[i], last = i === STEPS.length - 1;
+  return (
+    <motion.div className="cc-tut" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <motion.div key={i} className="cc-tutcard cc-px" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 340, damping: 28 }}>
+        <div className="flex items-center justify-between gap-2">
+          <span className="cc-kicker">Controls · {i + 1} / {STEPS.length}</span>
+          <div className="cc-tabs m-0">
+            <button type="button" className={`cc-tab cc-px px-3 ${phone ? "on" : ""}`} onClick={() => setPhone(true)}>Phone</button>
+            <button type="button" className={`cc-tab cc-px px-3 ${!phone ? "on" : ""}`} onClick={() => setPhone(false)}>Computer</button>
+          </div>
+        </div>
+        <p className="cc-display mt-3 text-[26px] leading-tight">{st.title}</p>
+        <div className="cc-tutbody">{phone ? st.phone : st.web}</div>
+        <div className="cc-dotsrow">{STEPS.map((_, k) => <i key={k} className={k === i ? "on" : ""} />)}</div>
+        <div className="mt-3 flex gap-2">
+          {i > 0 && <button type="button" className="cc-btn cc-ghost cc-px flex-1 py-3" onClick={() => { sfx("tap"); setI(i - 1); }}>Back</button>}
+          {!last && <button type="button" className="cc-btn cc-ghost cc-px flex-1 py-3" onClick={() => { sfx("tap"); onDone(); }}>Skip</button>}
+          <button type="button" className="cc-btn cc-cta cc-px flex-[1.4] py-3 text-lg" onClick={() => { sfx("tap"); if (last) onDone(); else setI(i + 1); }}>{last ? (first ? "Start the heist!" : "Got it") : "Next"}</button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

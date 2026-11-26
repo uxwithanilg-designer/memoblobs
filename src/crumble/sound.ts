@@ -7,6 +7,8 @@ import type { Ambient } from "./districts";
 export const CRUMBLE_SFX = [
   "smash_wood", "smash_glass", "smash_brick", "smash_stone", "smash_metal", "clank", "swing", "crumble", "collapse", "drill", "drill_metal", "spray",
   "blaster", "robot_shot", "turret_shot", "throw", "bounce", "fuse", "boom", "boom_big", "rocket",
+  "fire_smg", "fire_scatter", "fire_laser", "fire_plasma", "fire_minigun", "fire_swarm", "fire_omega", "fire_wrecker", "fire_storm",
+  "reload", "reloaded", "emp", "fireBomb", "gravity", "bombPick", "gunPick",
   "cash", "gold", "gem", "coin", "heart", "oil", "power", "ammo",
   "alarm", "bell", "robot_hit", "robot_down", "hound", "drone", "warden", "hurt", "vault", "crack",
   "step", "jump", "land", "van_horn", "van_engine", "van_door", "radio",
@@ -18,7 +20,7 @@ export const sfxName = (k: string): Sound => `a:crumble_${k}` as Sound;
 export const CRUMBLE_SOUNDS: Sound[] = [...CRUMBLE_SFX, ...AMBIENT].map(sfxName);
 export const UI_SOUNDS: Sound[] = (["tap", "open", "buy", "upgrade", "equip", "start", "coin"] as const).map(sfxName);
 
-const GAIN: Partial<Record<CrumbleSfx, number>> = { coin: 0.4, cash: 0.55, step: 0.22, swing: 0.4, robot_hit: 0.45, boom: 0.85, boom_big: 1, collapse: 0.9, alarm: 0.45, heist_clear: 0.95, site_clear: 0.85, tap: 0.4, drill: 0.45, drill_metal: 0.45 };
+const GAIN: Partial<Record<CrumbleSfx, number>> = { coin: 0.4, cash: 0.55, step: 0.22, swing: 0.4, robot_hit: 0.45, boom: 0.85, boom_big: 1, collapse: 0.9, alarm: 0.45, heist_clear: 0.95, site_clear: 0.85, tap: 0.4, drill: 0.45, drill_metal: 0.45, fire_minigun: 0.45, fire_smg: 0.5, fire_laser: 0.4, reload: 0.5 };
 
 export function sfx(k: CrumbleSfx, o: { pan?: number; rate?: number; gain?: number; delay?: number } = {}) {
   const big = k === "heist_clear" || k === "site_clear" || k === "warden" || k === "boom_big" || k === "collapse";

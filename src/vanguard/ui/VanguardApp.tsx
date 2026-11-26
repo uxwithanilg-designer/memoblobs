@@ -8,7 +8,7 @@
 // and boss with no pages in between, the Armory (blasters, suit, outfits) and the world map.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Map as MapIcon, Play, Swords, HelpCircle, X, Lock, Check, Heart, Eye, Repeat2, Crosshair, Flame, Shield, Magnet, Zap, Gauge, Coins as CoinsIcon, Clock, Flag } from "lucide-react";
+import { Map as MapIcon, Play, Swords, HelpCircle, X, Lock, Check, Heart, Eye, Repeat2, Crosshair, Flame, Shield, Magnet, Zap, Gauge, Clock, Flag, Bomb } from "lucide-react";
 import { usePlayer } from "@/components/player/PlayerContext";
 import { audio } from "@/lib/audio";
 import { track } from "@/lib/analytics";
@@ -16,13 +16,14 @@ import { useProfile } from "@/lib/store";
 import { Game, type GameEvent, type Hud, type PowerId } from "../game";
 import { phasesIn, robotsIn, sectorView, stagePlan, whereOf, type Objective, type StagePlan } from "../stages";
 import { DESIGNED_STAGES, STAGES_PER_WORLD, WORLDS, worldOf, type RobotKind } from "../worlds";
-import { MAX_LEVEL, OUTFITS, ROBOTS, SUIT, WEAPONS, suitCost, weaponOf, weaponUpgradeCost, type Outfit, type WeaponId } from "../gear";
+import { BOMBS, MAX_LEVEL, MISSION_GUNS, OUTFITS, ROBOTS, SLOTS, SUIT, WEAPONS, bombOf, gunPower, suitCost, weaponOf, weaponUpgradeCost, type BombId, type Outfit, type WeaponId } from "../gear";
 import { useVanguard, useVanguardHydrated, START_LIVES, MAX_LIVES, SUIT_MAX } from "../save";
 import { VANGUARD_SOUNDS, UI_SOUNDS, sfx } from "../sound";
 import { VanguardMusic } from "../music";
 import { VANGUARD_CSS } from "./styles";
 
 type Sheet = "" | "armory" | "worlds" | "help";
+type TutorialFor = null | "deploy" | "help";
 interface Banner { id: number; big: string; sub?: string; color?: string; ms: number }
 
 // ---------------------------------------------------------------- pixel icons (emoji differ from device to device)
@@ -41,10 +42,31 @@ const GUN_ROWS: Record<WeaponId, string[]> = {
   rail: ["....ddd...........", "mmmmmmmmlllllllll.", "mmmmmmmmccmmmccmml", "mm..dd............", "....dd............"],
   boom: ["...ddd.........", "mmmmmmmmmmmmmc.", "mmmmmmmmmmmmmc.", "mmmmmmmmmmmmmc.", "....dd........."],
   arc: ["...cccc.......", "..mmmmmmmc.c.c", "..mmmmmmmc.c.cl", "...dd.........", "...dd........."],
+  twin: ["..cccc..cccc..", ".mmmmml.mmmmml", ".mmmmmc.mmmmmc", "..dd.....dd...", "..dd.....dd..."],
+  minigun: ["..dddd..........", "mmmmmmllllllllc.", "mmmmmmllllllllc.", "mmmmmmllllllllc.", "...dd..........."],
+  laser: ["...cccccc.......", "dddddddddccccl..", "dddddddddcccccl.", "..dd............", "..dd............"],
+  plasma: ["..cccc........", "mmmmmmmmmcccc.", "mmmmmmmmmcllc.", "mmmmmmmmmcccc.", "...dd........."],
+  swarm: ["..cccccc......", "gggggggggrr...", "gggggggggrr...", "gggggggggrr...", "...dd........."],
+  omega: ["..cccc..........", "yyyyyywwwwwwwwc.", "yyyyyywwwwwwwwc.", "yyyyyywwwwwwwwc.", "...dd..........."],
+  nova: ["..cccc........", "mmmmmmmmmwwww.", "mmmmmmmmmwccw.", "mmmmmmmmmwwww.", "...dd........."],
+  storm: ["....ccc...........", "pppppppplllllllll.", "ppppppppcpcpcpcpcl", "pp..dd............", "....dd............"],
+  inferno: ["..ccc.........", "bbbbbbmmmmmmcc", "bbbbbbmmmmmmcc", "..rr..........", "..rr.........."],
 };
+const BOMB_ROWS: Record<BombId, string[]> = {
+  frag: ["...ll...", "..gggg..", ".gGggGg.", ".gggggg.", ".gGggGg.", "..gggg.."],
+  sticky: ["..llll..", ".bbbbbb.", "bbwbbwbb", "bbbbbbbb", ".bbbbbb.", "..b..b.."],
+  cluster: [".oo..oo.", "oooooooo", ".oooooo.", "oooooooo", ".oo..oo."],
+  emp: ["...ll...", "..cccc..", ".cwccwc.", ".cccccc.", ".cwccwc.", "..cccc.."],
+  fire: ["...yy...", "..yrry..", ".rrrrrr.", ".rryyrr.", ".rrrrrr.", "..rrrr.."],
+  gravity: ["..pppp..", ".pkkkkp.", "pkkwwkkp", "pkkwwkkp", ".pkkkkp.", "..pppp.."],
+  mega: ["...yy...", "..yyyy..", ".yykkyy.", "yykyykyy", ".yykkyy.", "..yyyy.."],
+};
+export function BombIcon({ id, size = 4 }: { id: BombId; size?: number }) {
+  return <PixelArt rows={BOMB_ROWS[id]} pal={{ l: "#F2F2F2", g: "#5A7A4A", G: "#3A5A2A", b: "#5AB8FF", w: "#FFFFFF", o: "#FF8A2A", c: "#9AF0FF", y: "#FFD23F", r: "#FF4A2A", p: "#C87CFF", k: "#2A1A3A" }} size={size} />;
+}
 export function GunIcon({ id, size = 4 }: { id: WeaponId; size?: number }) {
   const w = weaponOf(id);
-  return <PixelArt rows={GUN_ROWS[id]} pal={{ m: "#8A90A6", d: "#2A2D3A", c: w.color, l: w.glow, w: "#8A5A36" }} size={size} />;
+  return <PixelArt rows={GUN_ROWS[id]} pal={{ m: "#8A90A6", d: "#2A2D3A", c: w.color, l: w.glow, w: id === "omega" || id === "nova" ? "#FFFFFF" : "#8A5A36", g: "#4A5A3A", r: "#FF3A3A", y: "#E8B030", p: "#3A2A4A", b: "#5A3A2A" }} size={size} />;
 }
 function AceHead({ o, size = 3 }: { o: Outfit; size?: number }) {
   return <PixelArt rows={["..ssss..", ".ssttss.", "ssssssss", "vvvvvvvv", "vVvvvvvv", "ssffffss", ".ffffff."]} pal={{ s: o.suit, t: o.trim, v: o.visor, V: "#FFFFFF", f: "#E8B48A" }} size={size} />;
@@ -78,7 +100,7 @@ const POWER_ICON: Record<PowerId, React.ReactNode> = {
 };
 const POWER_COL: Record<PowerId, string> = { rapid: "#FFD23F", damage: "#FF4A4A", shield: "#5AB8FF", magnet: "#FF5AC8", speed: "#5CE07A" };
 const OBJ_COL: Record<Objective, string> = { assault: "#FFFFFF", survive: "#FFD23F", defend: "#5BF0FF", sabotage: "#FF5A8A", capture: "#FFD23F", elite: "#FFC93D", boss: "#FF5A7A" };
-const POWER_NAME: Record<string, string> = { rapid: "Rapid fire!", damage: "Double damage!", shield: "Shield up!", magnet: "Coin magnet!", speed: "Speed boost!", heart: "Health up!", oil: "Jet oil full!" };
+const POWER_NAME: Record<string, string> = { rapid: "Rapid fire!", damage: "Double damage!", shield: "Shield up!", magnet: "Coin magnet!", speed: "Speed boost!", heart: "Health up!", oil: "Jet oil full!", ammo: "Ammo crate — spare ammo for every gun!" };
 
 export default function VanguardApp({ slug }: { slug: string; title: string }) {
   const ready = useVanguardHydrated();
@@ -157,7 +179,12 @@ export default function VanguardApp({ slug }: { slug: string; title: string }) {
         track("vanguard_clear", { stage: e.stage, kills: e.kills });
         break;
       }
-      case "pickup": if (e.what !== "coin" && e.what !== "gem") toastIt(POWER_NAME[e.what] ?? "", POWER_COL[e.what as PowerId] ?? (e.what === "heart" ? "#FF5A8A" : "#FF8A3A")); break;
+      case "pickup": {
+        if (e.what === "coin" || e.what === "gem") break;
+        if (e.what === "bombs") { const first = !useVanguard.getState().tutorial; toastIt(`Bombs: ${e.name}${first ? (touchDevice ? " — tap BOMB to throw" : " — G or right-click to throw") : ""}`, "#FF6A4A"); break; }
+        toastIt(POWER_NAME[e.what] ?? "", POWER_COL[e.what as PowerId] ?? (e.what === "heart" ? "#FF5A8A" : e.what === "ammo" ? "#FFD23F" : "#FF8A3A"));
+        break;
+      }
       case "hurt": setHurt((h) => h + 1); break;
       case "down": say("You're down!", e.livesLeft > 0 ? `${e.livesLeft} ${e.livesLeft === 1 ? "life" : "lives"} left` : "No lives left · the phase starts over", "#FF5A6A", 2000); break;
       case "restart": break;
@@ -167,6 +194,17 @@ export default function VanguardApp({ slug }: { slug: string; title: string }) {
       case "fell": toastIt("Fell off! Back to the pad", "#FF8A6A"); break;
       case "view": useVanguard.getState().setView(e.first); break;
       case "reload": break;
+      case "mission": {
+        const w = weaponOf(e.gun);
+        say(w.name, `Mission gun! ${w.mag} shots — ${touchDevice ? "it's in your gun bar (gold)" : "press 5 or T to take it back out"}`, "#FFD23F", 2600);
+        break;
+      }
+      case "missionEmpty": toastIt(`${weaponOf(e.gun).name} is empty — back to your gun`, "#FFB03A"); break;
+      case "noAmmo": toastIt(`${weaponOf(e.gun).name} is out of ammo — grab an ammo crate`, "#FF8A3A"); break;
+      case "noBombs": toastIt("No bombs — grab a bomb crate", "#FF8A3A"); break;
+      case "bombType": toastIt(`${bombOf(e.id).name} ready`, bombOf(e.id).color); break;
+      case "bomb": break;
+      case "gun": break;
     }
   }, [say, toastIt, touchDevice]);
   const onEventRef = useRef(onEvent);
@@ -179,6 +217,7 @@ export default function VanguardApp({ slug }: { slug: string; title: string }) {
     let flush: ReturnType<typeof setTimeout> | null = null;
     const g = new Game(host.current, {
       weapons: s.loadout, levels: s.levels, suit: s.suit, outfit: s.outfit, lives: s.lives || START_LIVES, coins: s.coins, firstPerson: s.firstPerson,
+      bombs: s.bombs, bomb: s.bomb, onBombs: (b, cur) => useVanguard.getState().setBombs(b, cur),
       onHud: (h) => setHud(h),
       onEvent: (e) => onEventRef.current(e),
       onCoins: (n) => { coinsRef.current = n; if (!flush) flush = setTimeout(() => { flush = null; useVanguard.getState().setCoins(coinsRef.current); }, 900); },
@@ -207,14 +246,23 @@ export default function VanguardApp({ slug }: { slug: string; title: string }) {
   useEffect(() => () => { setInRound(false); setImmersive(false); setMenu([]); }, [setInRound, setImmersive, setMenu]);
 
   // ---------------------------------------------------------------- flow
+  const [tutorial, setTutorial] = useState<TutorialFor>(null);
   const play = useCallback(() => {
     const g = gameRef.current;
     if (!g) return;
     sfx("tap");
     setSheet("");
+    if (!useVanguard.getState().tutorial) { setTutorial("deploy"); return; }
     setScreen("play");
     g.play();
   }, []);
+  const tutorialDone = useCallback(() => {
+    const why = tutorial;
+    useVanguard.getState().sawTutorial();
+    setTutorial(null);
+    if (why === "deploy") { const g = gameRef.current; if (g) { setScreen("play"); g.play(); } }
+    else if (why === "help" && screen === "play") gameRef.current?.start();
+  }, [tutorial, screen]);
   const home = useCallback(() => {
     const g = gameRef.current;
     setScreen("home");
@@ -224,11 +272,12 @@ export default function VanguardApp({ slug }: { slug: string; title: string }) {
   }, []);
   const refreshGear = useCallback(() => {
     const s = useVanguard.getState();
-    gameRef.current?.setLoadout(s.loadout, s.levels, s.suit, s.outfit);
+    gameRef.current?.setLoadout(s.loadout, s.levels, s.suit, s.outfit, s.bombs);
   }, []);
   useEffect(() => {
     setMenu(screen === "play" ? [
       { id: "restart", label: "Restart phase", onSelect: () => { const g = gameRef.current; if (g) g.load(g.stage, "intro", true, { sector: g.sectorI, phase: g.phaseI }); } },
+      { id: "controls", label: "Controls", onSelect: () => { gameRef.current?.stop(); gameRef.current?.setFire(false); setTutorial("help"); } },
       { id: "armory", label: "Armory", onSelect: () => { home(); setSheet("armory"); } },
       { id: "home", label: "Main menu", onSelect: home },
     ] : []);
@@ -378,17 +427,47 @@ export default function VanguardApp({ slug }: { slug: string; title: string }) {
               <Flame className="size-7" fill="#fff" stroke="none" />
               <small>JET</small>
             </button>
-            <button type="button" aria-label="Swap blaster" className={`vv-act vv-swap ${hud.weapons[0] === hud.weapons[1] ? "off" : ""}`} onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.swap(); }}>
-              <GunIcon id={hud.weapon} size={2.6} />
-              <small>{hud.weapons[0] === hud.weapons[1] ? weaponOf(hud.weapon).name.toUpperCase() : "SWAP"}</small>
+            <button type="button" aria-label="Throw bomb" className={`vv-act vv-bomb ${(hud.bombs.find((b) => b.id === hud.bomb)?.n ?? 0) === 0 && !hud.bombs.some((b) => b.n > 0) ? "off" : ""}`} style={{ ["--b1" as string]: bombOf(hud.bomb).color }} onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.throwBomb(); }}>
+              <BombIcon id={hud.bomb} size={3.6} />
+              <b className="vv-cnt">{hud.bombs.find((b) => b.id === hud.bomb)?.n ?? 0}</b>
+              <small>BOMB</small>
             </button>
+            <button type="button" aria-label="Change bomb" className="vv-bombnext" onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.nextBomb(); }}><Repeat2 className="size-4" strokeWidth={3} /></button>
             <button type="button" aria-label="Change view" className="vv-act vv-view" onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); const f = gameRef.current?.toggleView(); if (f !== undefined) useVanguard.getState().setView(f); sfx("tap"); }}>
               <Eye className="size-5" />
             </button>
           </div>
-          <div className="vv-ammo">{hud.ammo}<span className="text-sm opacity-70">/{hud.mag}</span></div>
+          <button type="button" aria-label="Reload" className="vv-ammo" onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.reload(); }}>
+            {hud.ammo}<span className="text-sm opacity-70">/{hud.slot === 4 ? hud.mag : hud.reserve < 0 ? "∞" : hud.reserve}</span>
+            {hud.slot !== 4 && <i>RELOAD</i>}
+          </button>
+          {/* the gun bar: your four guns and, gold, a mission gun */}
+          <div className="vv-guns">
+            {hud.guns.map((g, i) => (
+              <button type="button" key={g.id} aria-label={weaponOf(g.id).name} className={`vv-gun vv-px ${hud.slot === i ? "on" : ""} ${g.ammo === 0 && g.reserve === 0 ? "dry" : ""}`} onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.selectSlot(i); }}>
+                <GunIcon id={g.id} size={touchDevice ? 2 : 2.2} />
+                {!touchDevice && <span className="k">{i + 1}</span>}
+                <b>{g.reserve < 0 ? g.ammo : g.ammo + g.reserve}</b>
+              </button>
+            ))}
+            {hud.mission && (
+              <button type="button" aria-label={weaponOf(hud.mission.id).name} className={`vv-gun vv-px mission ${hud.slot === 4 ? "on" : ""}`} onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); gameRef.current?.selectSlot(4); }}>
+                <GunIcon id={hud.mission.id} size={touchDevice ? 2 : 2.2} />
+                {!touchDevice && <span className="k">5</span>}
+                <b>{hud.mission.ammo}</b>
+              </button>
+            )}
+            {!touchDevice && (
+              <div className="vv-gun vv-px bombslot" style={{ ["--bc" as string]: bombOf(hud.bomb).color }}>
+                <BombIcon id={hud.bomb} size={2.6} />
+                <span className="k">G</span><span className="k2">B</span>
+                <b>{hud.bombs.find((b) => b.id === hud.bomb)?.n ?? 0}</b>
+              </div>
+            )}
+          </div>
+          <div className="vv-pwr vv-cap vv-px" title="Gun power grows every operation">PWR ×{hud.power.toFixed(1)}</div>
           {!touchDevice && playing && !locked && <div className="vv-aimhint vv-cap vv-px">Click to aim · Esc to let go</div>}
-          {!touchDevice && playing && <div className="vv-keys vv-cap vv-px">WASD move · Mouse aim · Click fire · Space jet · Shift run · Q swap · R reload · V view</div>}
+          {!touchDevice && playing && <div className="vv-keys vv-cap vv-px">WASD move · Click fire · 1–4 guns · 5 mission gun · Wheel/E next · Q last · G / right-click bomb · B bomb kind · R reload · Space jet · V view</div>}
         </div>
       )}
 
@@ -405,6 +484,9 @@ export default function VanguardApp({ slug }: { slug: string; title: string }) {
       </AnimatePresence>
 
       <AnimatePresence>
+        {tutorial && <Tutorial key="tut" touch={touchDevice} onDone={tutorialDone} first={tutorial === "deploy"} />}
+      </AnimatePresence>
+      <AnimatePresence>
         {sheet && (
           <>
             <motion.div key="veil" className="vv-veil" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSheet("")} />
@@ -416,7 +498,7 @@ export default function VanguardApp({ slug }: { slug: string; title: string }) {
               <div className="vv-scroll">
                 {sheet === "armory" && <Armory onChange={refreshGear} />}
                 {sheet === "worlds" && <Worlds stage={save.stage} />}
-                {sheet === "help" && <Help onPlay={play} />}
+                {sheet === "help" && <Help onPlay={play} onTutorial={() => { setSheet(""); setTutorial("help"); }} />}
               </div>
             </motion.div>
           </>
@@ -460,23 +542,23 @@ function OpCard({ plan, sector, phase }: { plan: StagePlan; sector: number; phas
 // ---------------------------------------------------------------- the armory
 function Armory({ onChange }: { onChange: () => void }) {
   const s = useVanguard();
-  const [tab, setTab] = useState<"guns" | "suit" | "outfit">("guns");
+  const [tab, setTab] = useState<"guns" | "bombs" | "suit" | "outfit">("guns");
   return (
     <div>
       <div className="vv-tabs">
-        {(["guns", "suit", "outfit"] as const).map((t) => <button type="button" key={t} className={`vv-tab vv-px ${tab === t ? "on" : ""}`} onClick={() => { sfx("tap"); setTab(t); }}>{t === "guns" ? "Blasters" : t === "suit" ? "Suit" : "Outfits"}</button>)}
+        {(["guns", "bombs", "suit", "outfit"] as const).map((t) => <button type="button" key={t} className={`vv-tab vv-px ${tab === t ? "on" : ""}`} onClick={() => { sfx("tap"); setTab(t); }}>{t === "guns" ? "Guns" : t === "bombs" ? "Bombs" : t === "suit" ? "Suit" : "Outfits"}</button>)}
       </div>
       {tab === "guns" && (
         <div>
-          <p className="text-sm opacity-80">You carry two blasters. Tap A or B to choose which slot a blaster goes in.</p>
+          <p className="text-sm opacity-80">You carry four guns. Tap 1–4 to put a gun in that slot. Your gun power is <b>×{gunPower(s.stage).toFixed(1)}</b> now and grows every operation.</p>
           {WEAPONS.map((w) => {
             const owned = s.owned.includes(w.id), lv = s.levels[w.id] ?? 0, cost = weaponUpgradeCost(w, lv);
-            const inA = s.loadout[0] === w.id, inB = s.loadout[1] === w.id;
+            const at = s.loadout.indexOf(w.id);
             return (
-              <div key={w.id} className={`vv-item vv-px ${inA || inB ? "sel" : ""}`}>
+              <div key={w.id} className={`vv-item vv-px ${at >= 0 ? "sel" : ""}`}>
                 <div className="grid w-[74px] shrink-0 place-items-center"><GunIcon id={w.id} size={4.4} /></div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-extrabold">{w.name} {inA && <span className="vv-slot">A</span>} {inB && <span className="vv-slot">B</span>}</p>
+                  <p className="font-extrabold">{w.name} {at >= 0 && <span className="vv-slot">{at + 1}</span>}</p>
                   <p className="text-xs opacity-70">{w.tagline}</p>
                   {owned && <div className="vv-dots">{Array.from({ length: MAX_LEVEL }, (_, i) => <i key={i} className={i < lv ? "on" : ""} />)}</div>}
                 </div>
@@ -484,8 +566,7 @@ function Armory({ onChange }: { onChange: () => void }) {
                   {owned ? (
                     <>
                       <div className="flex gap-1">
-                        <button type="button" className={`vv-btn ${inA ? "vv-cta" : "vv-ghost"} vv-px h-8 w-8 p-0 text-sm`} onClick={() => { s.equip(0, w.id); sfx("equip"); onChange(); }}>A</button>
-                        <button type="button" className={`vv-btn ${inB ? "vv-cta" : "vv-ghost"} vv-px h-8 w-8 p-0 text-sm`} onClick={() => { s.equip(1, w.id); sfx("equip"); onChange(); }}>B</button>
+                        {Array.from({ length: SLOTS }, (_, i) => <button type="button" key={i} className={`vv-btn ${at === i ? "vv-cta" : "vv-ghost"} vv-px h-7 w-7 p-0 text-xs`} onClick={() => { s.equip(i, w.id); sfx("equip"); onChange(); }}>{i + 1}</button>)}
                       </div>
                       <button type="button" disabled={lv >= MAX_LEVEL || s.coins < cost} className="vv-btn vv-ghost vv-px px-2 py-1 text-xs" onClick={() => { if (s.upgradeWeapon(w.id)) { sfx("upgrade"); onChange(); } }}>
                         {lv >= MAX_LEVEL ? <><Check className="size-3.5" /> Max</> : <><CoinIcon size={13} />{cost.toLocaleString()}</>}
@@ -497,6 +578,31 @@ function Armory({ onChange }: { onChange: () => void }) {
                     </button>
                   )}
                 </div>
+              </div>
+            );
+          })}
+          <p className="vv-display mt-4 text-lg">Mission guns</p>
+          <p className="text-sm opacity-80">Found in gold gun crates during a fight (elites and bosses drop them too). Huge power, no reload — until the ammo runs out.</p>
+          {MISSION_GUNS.map((w) => (
+            <div key={w.id} className="vv-item vv-px">
+              <div className="grid w-[74px] shrink-0 place-items-center"><GunIcon id={w.id} size={4.4} /></div>
+              <div className="min-w-0 flex-1"><p className="font-extrabold">{w.name}</p><p className="text-xs opacity-70">{w.tagline} · {w.mag} shots</p></div>
+            </div>
+          ))}
+        </div>
+      )}
+      {tab === "bombs" && (
+        <div>
+          <p className="text-sm opacity-80">Throw with BOMB ({"G"} or right-click on a computer); change the kind with the arrow on the bomb button ({"B"} on a computer). Bomb crates in a fight give you more.</p>
+          {BOMBS.map((b) => {
+            const have = s.bombs[b.id] ?? 0;
+            return (
+              <div key={b.id} className={`vv-item vv-px ${s.bomb === b.id ? "sel" : ""}`}>
+                <div className="grid w-[56px] shrink-0 place-items-center"><BombIcon id={b.id} size={5} /></div>
+                <div className="min-w-0 flex-1"><p className="font-extrabold">{b.name} <span className="vv-slot">×{have}</span></p><p className="text-xs opacity-70">{b.tagline}</p></div>
+                {b.pack ? (
+                  <button type="button" disabled={s.coins < b.price || have >= b.max} className="vv-btn vv-cta vv-px px-3 py-2 text-sm" onClick={() => { if (s.buyBombs(b.id)) { sfx("buy"); onChange(); } }}>+{b.pack} <CoinIcon size={15} />{b.price}</button>
+                ) : <span className="text-xs font-bold opacity-70">Crates only</span>}
               </div>
             );
           })}
@@ -581,22 +687,91 @@ function Worlds({ stage }: { stage: number }) {
   );
 }
 
-function Help({ onPlay }: { onPlay: () => void }) {
+function Help({ onPlay, onTutorial }: { onPlay: () => void; onTutorial: () => void }) {
   return (
     <div className="grid gap-2 text-[15px]">
+      <button type="button" className="vv-btn vv-ghost vv-px py-3 text-base" onClick={onTutorial}><HelpCircle className="size-5" /> Controls tutorial — phone and computer</button>
       {[
         [<Play key="i" className="size-5" fill="#5CF08A" stroke="none" />, "Phone: move with your left thumb anywhere on the left. Drag on the right side to look and aim. Hold FIRE — you can drag it to aim while you shoot. The crosshair snaps onto the nearest robot."],
         [<Flame key="i" className="size-5" fill="#FFB03A" stroke="none" />, "Tap JET to jump, hold it to fly. The jetpack burns oil: it refills slowly on the ground, or all at once with an oil can."],
-        [<Repeat2 key="i" className="size-5" stroke="#FFD23F" />, "Carry two blasters and SWAP between them. Buy and upgrade blasters, armour, jetpack and boots in the Armory."],
+        [<Repeat2 key="i" className="size-5" stroke="#FFD23F" />, "Carry four guns: tap one in the gun bar (1–4, mouse wheel or Q on a computer). Gold gun crates give a mission gun for a while (slot 5 / T). Ammo crates refill your spare ammo; the Zapper never runs dry."],
+        [<Bomb key="i" className="size-5" stroke="#FF6A4A" />, "Bombs: tap BOMB to throw (G or right-click), the little arrow changes the kind (B). Frag, sticky, cluster, EMP (stuns robots), fire, gravity — and the rare mega bomb from crates."],
+        [<Zap key="i" className="size-5" fill="#FFD23F" stroke="none" />, "Your gun power grows every operation (PWR in the corner) — and the robots come in bigger numbers to match."],
         [<Eye key="i" className="size-5" stroke="#B8B8D8" />, "VIEW switches between over-the-shoulder and first person."],
         [<Swords key="i" className="size-5" stroke="#FF8A6A" />, "Your squad mates Juno and Brick fight with you. If they go down they get back up."],
-        [<Heart key="i" className="size-5" fill="#FF4F7A" stroke="none" />, "Hearts heal you — or give an extra life when you're healthy. Lose all your health and you lose a life."],
-        [<Zap key="i" className="size-5" fill="#FFD23F" stroke="none" />, "Power cubes: rapid fire, double damage, a shield, a coin magnet and a speed boost."],
-        [<Flag key="i" className="size-5" stroke="#FFD23F" />, "Every operation is a long fight across several sectors, phase after phase: clear the robots, survive, defend the core, destroy the robot beacons, capture the relay rings, beat the elites — and a boss at the end. It runs 30 minutes and more."],
-        [<CoinsIcon key="i" className="size-5" stroke="#FFC93D" />, "Your progress is saved after every phase. With no lives left the phase starts over — never the whole operation. The next operation starts by itself."],
-        [<Crosshair key="i" className="size-5" stroke="#fff" />, "Computer: click to aim with the mouse, WASD to move, click to fire, Space to jet, Shift to run, Q to swap, R to reload, V to change the view."],
+        [<Heart key="i" className="size-5" fill="#FF4F7A" stroke="none" />, "Hearts heal you — or give an extra life when you're healthy. Power cubes: rapid fire, double damage, a shield, a coin magnet and a speed boost."],
+        [<Flag key="i" className="size-5" stroke="#FFD23F" />, "Every operation is a long fight across several sectors, phase after phase — and a boss at the end. Progress is saved after every phase; with no lives left only the phase starts over."],
       ].map(([i, t], k) => <div key={k} className="vv-px flex items-start gap-3 bg-white/[.06] p-3"><span className="mt-0.5 shrink-0">{i}</span><span>{t}</span></div>)}
       <button type="button" className="vv-btn vv-cta vv-px mt-2 py-3 text-lg" onClick={onPlay}><Play className="size-5 fill-current" /> Deploy</button>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- the controls tutorial
+function Key({ k, wide }: { k: string; wide?: boolean }) { return <span className={`vv-key ${wide ? "wide" : ""}`}>{k}</span>; }
+function Pad({ c, children, label }: { c: string; children: React.ReactNode; label: string }) {
+  return <span className="vv-pad" style={{ ["--b1" as string]: c }}><span className="dot">{children}</span><small>{label}</small></span>;
+}
+const STEPS: { title: string; phone: React.ReactNode; web: React.ReactNode }[] = [
+  {
+    title: "Move and aim",
+    phone: <><div className="vv-demo"><Pad c="#8A90A6" label="LEFT THUMB"><Gauge className="size-6" /></Pad><Pad c="#5AB8FF" label="DRAG RIGHT"><Crosshair className="size-6" /></Pad></div><p>Put your left thumb anywhere on the left half and slide to run. Drag anywhere on the right half to look and aim — the crosshair snaps onto the robot nearest it.</p></>,
+    web: <><div className="vv-demo"><Key k="W" /><Key k="A" /><Key k="S" /><Key k="D" /><span className="vv-plus">+</span><Key k="Mouse" wide /></div><p>WASD (or the arrows) to move, Shift to run. Click the game once and the mouse aims; Esc lets go.</p></>,
+  },
+  {
+    title: "Shoot and reload",
+    phone: <><div className="vv-demo"><Pad c="#FF4A5A" label="FIRE"><Crosshair className="size-6" /></Pad><Pad c="#3A3E52" label="AMMO = RELOAD"><Repeat2 className="size-6" /></Pad></div><p>Hold FIRE to shoot — you can slide your thumb on it to aim while firing. Tap the ammo number to reload early.</p></>,
+    web: <><div className="vv-demo"><Key k="Left click" wide /><Key k="R" /></div><p>Hold the left mouse button to fire. R reloads. The Zapper never runs out; other guns use spare ammo from ammo crates.</p></>,
+  },
+  {
+    title: "Jump and fly",
+    phone: <><div className="vv-demo"><Pad c="#1E7AD8" label="JET"><Flame className="size-6" /></Pad></div><p>Tap JET to jump, hold it to fly with the jetpack. It burns oil — grab oil cans.</p></>,
+    web: <><div className="vv-demo"><Key k="Space" wide /></div><p>Space jumps; hold it to fly.</p></>,
+  },
+  {
+    title: "Switch guns",
+    phone: <><div className="vv-demo"><span className="vv-gunrow">{(["zapper", "pulse", "scatter", "rail"] as WeaponId[]).map((g) => <span key={g} className="vv-gunmock"><GunIcon id={g} size={2} /></span>)}<span className="vv-gunmock gold"><GunIcon id="omega" size={2} /></span></span></div><p>The gun bar on the right holds your four guns — tap one to take it. A gold one is a mission gun from a gun crate: huge power until its ammo runs out.</p></>,
+    web: <><div className="vv-demo"><Key k="1" /><Key k="2" /><Key k="3" /><Key k="4" /><Key k="5" /><Key k="Wheel" wide /><Key k="Q" /></div><p>1–4 pick a gun, 5 (or T) the mission gun, the mouse wheel or E the next gun, Q the one you had before.</p></>,
+  },
+  {
+    title: "Bombs",
+    phone: <><div className="vv-demo"><Pad c="#5A7A4A" label="BOMB"><BombIcon id="frag" size={3} /></Pad><Pad c="#FFD23F" label="ARROW = KIND"><Repeat2 className="size-6" /></Pad></div><p>Tap BOMB to throw where you aim. Tap the little arrow on it to change the kind.</p><div className="vv-bombrow">{BOMBS.map((b) => <span key={b.id}><BombIcon id={b.id} size={2.6} />{b.name}</span>)}</div></>,
+    web: <><div className="vv-demo"><Key k="G" /><Key k="Right click" wide /><Key k="B" /></div><p>G or a right click throws a bomb; B (or Tab) changes the kind.</p><div className="vv-bombrow">{BOMBS.map((b) => <span key={b.id}><BombIcon id={b.id} size={2.6} />{b.name}</span>)}</div></>,
+  },
+  {
+    title: "Pick things up",
+    phone: <><p>Run over them: <b>ammo crates</b> (spare bullets for every gun), <b>bomb crates</b> (two bombs), gold <b>gun crates</b> (a mission gun), coins, hearts, oil cans and power cubes. Robots drop them too — elites and bosses more.</p></>,
+    web: <><p>Run over them: <b>ammo crates</b> (spare bullets for every gun), <b>bomb crates</b> (two bombs), gold <b>gun crates</b> (a mission gun), coins, hearts, oil cans and power cubes. Robots drop them too — elites and bosses more.</p></>,
+  },
+  {
+    title: "Win the operation",
+    phone: <><p>Each operation is sectors of mission phases — clear the robots, survive, defend the core, destroy beacons, capture relays — and a boss. Your gun power (<b>PWR</b>) grows every operation, and the robot army grows with it. VIEW swaps first person and over-the-shoulder.</p></>,
+    web: <><p>Each operation is sectors of mission phases — clear the robots, survive, defend the core, destroy beacons, capture relays — and a boss. Your gun power (<b>PWR</b>) grows every operation, and the robot army grows with it. V swaps first person and over-the-shoulder.</p></>,
+  },
+];
+function Tutorial({ touch, onDone, first }: { touch: boolean; onDone: () => void; first: boolean }) {
+  const [i, setI] = useState(0);
+  const [phone, setPhone] = useState(touch);
+  const st = STEPS[i], last = i === STEPS.length - 1;
+  return (
+    <motion.div className="vv-tut" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <motion.div key={i} className="vv-tutcard vv-px" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 340, damping: 28 }}>
+        <div className="flex items-center justify-between gap-2">
+          <span className="vv-kicker">Controls · {i + 1} / {STEPS.length}</span>
+          <div className="vv-tabs m-0">
+            <button type="button" className={`vv-tab vv-px px-3 ${phone ? "on" : ""}`} onClick={() => setPhone(true)}>Phone</button>
+            <button type="button" className={`vv-tab vv-px px-3 ${!phone ? "on" : ""}`} onClick={() => setPhone(false)}>Computer</button>
+          </div>
+        </div>
+        <p className="vv-display mt-3 text-[26px] leading-tight">{st.title}</p>
+        <div className="vv-tutbody">{phone ? st.phone : st.web}</div>
+        <div className="vv-dotsrow">{STEPS.map((_, k) => <i key={k} className={k === i ? "on" : ""} />)}</div>
+        <div className="mt-3 flex gap-2">
+          {i > 0 && <button type="button" className="vv-btn vv-ghost vv-px flex-1 py-3" onClick={() => { sfx("tap"); setI(i - 1); }}>Back</button>}
+          {!last && <button type="button" className="vv-btn vv-ghost vv-px flex-1 py-3" onClick={() => { sfx("tap"); onDone(); }}>Skip</button>}
+          <button type="button" className="vv-btn vv-cta vv-px flex-[1.4] py-3 text-lg" onClick={() => { sfx("tap"); if (last) onDone(); else setI(i + 1); }}>{last ? (first ? "Deploy!" : "Got it") : "Next"}</button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -3,7 +3,7 @@
 // moving on from sector to sector), and every sector is a run of mission phases — clear the robots out, survive the
 // onslaught, defend the world's core, destroy the robot beacons that call in reinforcements, capture relay rings, beat
 // a squad of gold elites — and the operation ends with a boss. An operation lasts about half an hour at the start and
-// grows past an hour; it throws about ten times the robots of a classic wave stage at you, tougher, with more of them
+// grows past an hour; it throws about twenty times the robots of a classic wave stage at you, tougher, with more of them
 // alive at once the further you go. Progress is kept after every phase, so you come back to where you left off.
 // After 1200 the war goes on forever: remix operations blend two worlds' looks, places, robots and music, add twists
 // (low gravity, a drone swarm, a rocket rain, a coin rush, a night raid, a horde) and swing the difficulty in long
@@ -98,11 +98,12 @@ function makePhase(kind: Objective, r: Rng, w: World, list: [RobotKind, number][
   const horde = twist === "horde" ? 1.4 : 1;
   const ph: Phase = {
     kind, title: "", hint: "", mix: mixFor(list, d, twist), count: 0, secs: 0, towers: 0, zones: 0,
-    elite: clamp(d * 0.14, 0.02, 0.16), cap: Math.round((8 + d * 9) * (twist === "horde" ? 1.25 : 1)), every: clamp((2.3 - d * 1.4) / horde, 0.7, 2.3), boss, d,
+    // twice the robots (your guns hit far harder now): more at once, coming in twice as fast
+    elite: clamp(d * 0.14, 0.02, 0.16), cap: Math.round((7 + d * 11) * (twist === "horde" ? 1.25 : 1)), every: clamp((2.3 - d * 1.4) * 0.55 / horde, 0.4, 1.3), boss, d,
   };
   switch (kind) {
     case "assault":
-      ph.count = Math.round((E / (3.1 + d * 2.2)) * horde);
+      ph.count = Math.round((E / (3.1 + d * 2.2)) * horde * 2);
       ph.title = first ? "Clear the landing zone" : pick(r, ["Push them back", "Sweep the sector", "Break their line", "Take the high ground"]);
       ph.hint = `Destroy ${ph.count} robots`;
       break;
@@ -128,7 +129,7 @@ function makePhase(kind: Objective, r: Rng, w: World, list: [RobotKind, number][
       ph.hint = `Stand in each ring for ${ph.secs}s`;
       break;
     case "elite":
-      ph.count = Math.round(E / (7.5 + d * 4)); ph.elite = 1; ph.cap = Math.max(5, Math.round(ph.cap * 0.6)); ph.every *= 1.6;
+      ph.count = Math.round((E / (7.5 + d * 4)) * 2); ph.elite = 1; ph.cap = Math.max(5, Math.round(ph.cap * 0.6)); ph.every *= 1.6;
       ph.title = "Elite squad";
       ph.hint = `${ph.count} gold elites`;
       break;

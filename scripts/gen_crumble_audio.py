@@ -1,13 +1,16 @@
 """Crumble Crew sound effects, synthesised from scratch (numpy + scipy; no samples, all original): smashing wood,
 glass, brick, stone and metal, a clank when a block holds, the hammer swing, rubble pouring and whole walls collapsing,
 the drill (and the drill on metal), the paint sprayer, the blaster, robot and turret shots, throws, bounces, a fuse,
-explosions big and small, a rocket, loot (cash, gold bars, gems, coins), hearts, oil, power cubes and ammo, the alarm
+explosions big and small, a rocket, every gun's shot (the pulse SMG, the scatter gun, the laser cutter, the plasma lobber,
+the vortex and Omega miniguns, the swarm launcher, the Wrecking Cannon, the Storm Arc), reloading, the EMP, fire and
+gravity bombs, bomb and gun crates, loot (cash, gold bars, gems, coins), hearts, oil, power cubes and ammo, the alarm
 siren and bell, robots hit, going down, a hound bot, a drone, the Vault Warden, getting hurt, the vault door and the
 safe cracking, steps, jumps and landings, the getaway van (horn, engine, door), the radio, goal / site / heist fanfares,
 the start, a fail, the warp, menu sounds, and each district's ambience. The music is composed live in the game
 (src/crumble/music.ts), so there are no music files.
 
 usage: python scripts/gen_crumble_audio.py [out-dir]          (default: public/audio/arcade)
+       ONLY_NEW=1 python scripts/gen_crumble_audio.py   (only the gun and bomb sounds added with the guns)
   Files: sfx_crumble_<name>.mp3 (mono). Needs ffmpeg on PATH or the imageio-ffmpeg package.
 """
 import os
@@ -226,6 +229,60 @@ S["boom_big"] = verb(y, 1.3, 0.3)
 d = 0.7; t = tt(d)
 S["rocket"] = filt(noise(d), "bp", (300, 3000)) * np.minimum(1, t / 0.03) * np.exp(-t / 0.35) + sweep(500, 140, d, "saw") * env(d, 0.005, 0.2) * 0.3
 
+# ---------------------------------------------------------------- the guns, reloading, the special bombs, crates
+NEW = ["fire_smg", "fire_scatter", "fire_laser", "fire_plasma", "fire_minigun", "fire_swarm", "fire_omega", "fire_wrecker", "fire_storm",
+       "reload", "reloaded", "emp", "fireBomb", "gravity", "bombPick", "gunPick"]
+y = blank(0.16); place(y, sweep(2200, 700, 0.07, "square") * env(0.07, 0.001, 0.025) * 0.45, 0); place(y, filt(noise(0.03), "hp", 3500) * env(0.03, 0.001, 0.01), 0, 0.35)
+S["fire_smg"] = filt(y, "lp", 7000)
+y = blank(0.6); place(y, thud(180, 50, 0.3), 0, 0.9); place(y, filt(noise(0.35), "bp", (300, 4200)) * env(0.35, 0.001, 0.09), 0, 0.9)
+place(y, metal(600, 0.12) * 0.25, 0.32); place(y, thud(300, 180, 0.06), 0.36, 0.35)
+S["fire_scatter"] = verb(y, 0.4, 0.15)
+d = 0.22; t = tt(d)
+S["fire_laser"] = (sweep(3200, 2600, d, "sine", "lin") * 0.5 + sweep(1600, 1300, d, "square", "lin") * 0.18) * (0.8 + 0.2 * np.sin(2 * np.pi * 60 * t)) * env(d, 0.003, 0.08)
+y = blank(0.7); place(y, sweep(180, 900, 0.18) * env(0.18, 0.005, 0.1) * 0.6, 0); place(y, filt(noise(0.4), "bp", (400, 2200)) * env(0.4, 0.01, 0.14) * 0.5, 0.05)
+place(y, fm(220, 0.4, 1.5, 3.0, 0.15) * 0.3, 0)
+S["fire_plasma"] = verb(y, 0.5, 0.2)
+y = blank(0.12); place(y, sweep(1500, 500, 0.05, "saw") * env(0.05, 0.001, 0.02) * 0.4, 0); place(y, filt(noise(0.03), "bp", (1500, 6000)) * env(0.03, 0.001, 0.008) * 0.6, 0)
+S["fire_minigun"] = filt(y, "lp", 6500)
+y = blank(0.9)
+for i in range(4):
+    d = 0.4; t = tt(d)
+    place(y, filt(noise(d), "bp", (500, 3400)) * np.minimum(1, t / 0.02) * np.exp(-t / 0.18) * 0.5 + sweep(900, 300, d, "saw") * env(d, 0.003, 0.1) * 0.12, i * 0.07)
+S["fire_swarm"] = y
+y = blank(0.14); place(y, sweep(1900, 450, 0.06, "square") * env(0.06, 0.001, 0.022) * 0.45, 0); place(y, metal(2600, 0.06) * 0.2, 0); place(y, thud(160, 80, 0.05), 0, 0.4)
+S["fire_omega"] = filt(y, "lp", 7500)
+y = blank(1.3); place(y, thud(90, 26, 0.6), 0, 1.0); place(y, filt(noise(0.9), "bp", (120, 2400)) * np.minimum(1, tt(0.9) / 0.01) * np.exp(-tt(0.9) / 0.25), 0, 0.9)
+place(y, metal(320, 0.4) * 0.3, 0.02)
+S["fire_wrecker"] = verb(y, 0.9, 0.25)
+y = blank(0.4)
+for i in range(7): place(y, filt(noise(0.04), "hp", 2500) * env(0.04, 0.001, 0.012) * (0.4 + RNG.random() * 0.4), i * 0.03 + RNG.random() * 0.02)
+d = 0.3; t = tt(d); place(y, np.sign(np.sin(2 * np.pi * (500 + 1200 * RNG.random(n_(d))) * t)) * env(d, 0.002, 0.08) * 0.15, 0)
+place(y, sweep(2400, 900, 0.2, "saw") * env(0.2, 0.002, 0.06) * 0.25, 0)
+S["fire_storm"] = filt(y, "lp", 9000)
+y = blank(0.7); place(y, metal(900, 0.1) * 0.4, 0); place(y, filt(noise(0.15), "bp", (800, 3000)) * env(0.15, 0.005, 0.05) * 0.5, 0.18)
+place(y, metal(1300, 0.08) * 0.35, 0.4)
+S["reload"] = y
+y = blank(0.35); place(y, metal(1500, 0.08) * 0.45, 0); place(y, thud(400, 240, 0.05), 0.04, 0.5); place(y, metal(2100, 0.06) * 0.3, 0.12)
+S["reloaded"] = y
+d = 1.3; t = tt(d)
+y = blank(1.6); place(y, sweep(200, 2600, 0.25, "saw") * env(0.25, 0.005, 0.2) * 0.4, 0)
+place(y, filt(noise(d), "bp", (1500, 7000)) * np.exp(-t / 0.35) * (0.6 + 0.4 * np.sign(np.sin(2 * np.pi * 34 * t))) * 0.5, 0.2)
+place(y, sweep(2600, 80, 0.9) * env(0.9, 0.01, 0.4) * 0.4, 0.25)
+S["emp"] = verb(y, 0.8, 0.3)
+y = blank(2.0); place(y, thud(120, 50, 0.4), 0, 0.8); place(y, filt(noise(1.9), "bp", (200, 2400)) * adsr(1.9, 0.08, 0.5, 0.55, 0.9) * 0.7, 0.05)
+for i in range(14): place(y, filt(noise(0.03), "hp", 3000) * env(0.03, 0.001, 0.01) * 0.4, 0.2 + RNG.random() * 1.5)
+S["fireBomb"] = verb(y, 0.8, 0.25)
+d = 1.5; t = tt(d)
+y = blank(1.8); place(y, sweep(900, 60, d) * adsr(d, 0.05, 0.4, 0.8, 0.2) * 0.6, 0); place(y, filt(noise(d), "bp", (100, 900)) * np.linspace(0.2, 1, n_(d)) * 0.5, 0)
+place(y, fm(110, d, 0.5, 4.0, 0.9) * 0.25, 0)
+S["gravity"] = verb(y, 1.0, 0.35)
+y = blank(0.6); place(y, thud(240, 120, 0.1), 0, 0.5); place(y, metal(800, 0.15) * 0.35, 0.02)
+for i, m in enumerate((64, 67, 71)): place(y, synth(m, 0.12) * 0.45, 0.12 + i * 0.07)
+S["bombPick"] = y
+y = blank(1.1); place(y, metal(1100, 0.15) * 0.4, 0); place(y, thud(260, 140, 0.08), 0.02, 0.5)
+for i, m in enumerate((72, 76, 79, 84, 88)): place(y, bell(mtof(m), 0.45, 1.2) * 0.4, 0.14 + i * 0.07)
+S["gunPick"] = verb(y, 0.7, 0.25)
+
 # ---------------------------------------------------------------- loot and pickups
 y = blank(0.7)
 for i in range(5): place(y, filt(noise(0.05), "bp", (1500, 6000)) * env(0.05, 0.002, 0.02) * 0.4, i * 0.035)
@@ -387,5 +444,8 @@ for i, f in enumerate((1500, 1100, 1800, 900)): place(y, sweep(f, f, 0.06, "squa
 S["beeps"] = y
 
 if __name__ == "__main__":
-    for k, y in S.items(): write(k, y, peak=0.85 if k not in ("gust", "lava", "surf", "hum", "machine", "drill", "drill_metal", "van_engine", "alarm") else 0.7)
+    only = os.environ.get("ONLY_NEW") == "1"
+    for k, y in S.items():
+        if only and k not in NEW: continue
+        write(k, y, peak=0.85 if k not in ("gust", "lava", "surf", "hum", "machine", "drill", "drill_metal", "van_engine", "alarm") else 0.7)
     print("done:", len(S), "sounds into", os.path.abspath(OUT))

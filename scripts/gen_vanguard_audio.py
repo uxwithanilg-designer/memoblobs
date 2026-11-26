@@ -3,7 +3,8 @@ blaster (the zapper's pew, the pulse rifle's buzz, the scatter blaster's boom, t
 rocket tube's whoosh, the arc caster's crackle), robot shots, cannon thumps, a sniper's beam, mortar whistles,
 explosions and a boss going down, a boss's roar, hits, hurts and the shield, the jetpack, jumps, landings and
 footsteps, reloads and swaps, pickups (coins, gems, hearts, oil glugs, power cubes), teleporting robots, wave alarms,
-the stage-clear fanfare, the warp and the drop-in, menu sounds, and the worlds' ambience (songbirds, a gust,
+the stage-clear fanfare, the warp and the drop-in, menu sounds, the newer guns and mission guns, bomb throws, the EMP,
+fire and gravity bombs, ammo, bomb and gun crates, and the worlds' ambience (songbirds, a gust,
 crickets, an owl, traffic horns, a parrot, cave drips, machines, bubbling lava, surf, gulls, chimes, radio beeps, a
 hum). The music is composed live in the game (src/vanguard/music.ts), so there are no music files.
 
@@ -359,6 +360,51 @@ S["radio"] = y
 d = 2.4; t = tt(d)
 S["hum"] = filt(sweep(60, 60, d, "saw", "lin") * 0.6 + sweep(120, 120, d, "sine", "lin") * 0.4, "lp", 500) * np.sin(np.pi * t / d) * (0.8 + 0.2 * np.sin(2 * np.pi * 0.7 * t)) * 0.7
 
+# ---------------------------------------------------------------- more guns, the mission guns, bombs and crates
+y = blank(0.3); place(y, laser(2600, 700, 0.1, "square", 6500), 0, 0.5); place(y, laser(1800, 500, 0.1, "square", 5000), 0.05, 0.35)
+S["fire_twin"] = y
+y = blank(0.16); place(y, laser(1700, 600, 0.07, "saw", 5000), 0, 0.45); place(y, thud(220, 120, 0.05), 0, 0.3); place(y, filt(noise(0.04), "hp", 3000) * env(0.04, 0.001, 0.012), 0, 0.25)
+S["fire_minigun"] = y
+d = 0.3; t = tt(d)
+S["fire_laser"] = (sweep(1400, 1400, d, "saw", "lin") * 0.25 + sweep(2800, 2800, d, "sine", "lin") * 0.2) * (0.7 + 0.3 * np.sin(2 * np.pi * 50 * t)) * adsr(d, 0.01, 0.1, 0.8, 0.08)
+y = blank(0.9); place(y, sweep(300, 1400, 0.15, "sine") * env(0.15, 0.1, 0.05) * 0.4, 0); place(y, thud(160, 50, 0.4), 0.12, 0.9); place(y, laser(900, 200, 0.5, "saw", 2500), 0.12, 0.4)
+S["fire_plasma"] = verb(y, 0.6, 0.2)
+y = blank(0.7)
+for k in range(4): place(y, filt(noise(0.25), "bp", (400, 3000)) * np.minimum(1, tt(0.25) / 0.005) * np.exp(-tt(0.25) / 0.1) * 0.5, k * 0.07)
+S["fire_swarm"] = y
+y = blank(0.16); place(y, laser(2200, 900, 0.07, "saw", 6000), 0, 0.5); place(y, metal(2400, 0.05) * 0.15, 0); place(y, thud(240, 130, 0.05), 0, 0.3)
+S["fire_omega"] = y
+y = blank(1.4); place(y, sweep(200, 2200, 0.2, "sine") * env(0.2, 0.15, 0.05) * 0.4, 0); place(y, blast(1.0, 0.8), 0.18, 0.9)
+S["fire_nova"] = verb(y, 0.9, 0.25)
+y = blank(0.6); place(y, filt(noise(0.05), "hp", 2000) * env(0.05, 0.0005, 0.02), 0, 0.9); place(y, laser(3600, 700, 0.3, "square", 8000), 0, 0.5)
+for k in range(3): place(y, bell(2600 + k * 900, 0.3, 2), 0.01, 0.07)
+S["fire_storm"] = verb(y, 0.5, 0.2)
+d = 0.4; t = tt(d)
+S["fire_inferno"] = filt(noise(d), "bp", (250, 2400)) * (0.7 + 0.3 * np.sin(2 * np.pi * 17 * t)) * adsr(d, 0.03, 0.1, 0.8, 0.1) * 0.8
+S["throw"] = filt(noise(0.25), "bp", (500, 2600)) * np.sin(np.pi * tt(0.25) / 0.25) ** 3 * 0.8
+y = blank(1.2); place(y, sweep(3000, 200, 0.6, "square") * env(0.6, 0.005, 0.25) * 0.35, 0); place(y, filt(noise(0.8), "hp", 2500) * np.exp(-tt(0.8) / 0.2) * 0.5, 0)
+for k in range(6): place(y, sweep(1800 + RNG.random() * 2000, 600, 0.05, "square") * env(0.05, 0.001, 0.02) * 0.25, 0.1 + k * 0.08)
+S["emp"] = verb(y, 0.8, 0.3)
+d = 1.6; t = tt(d)
+y = filt(noise(d), "bp", (200, 2500)) * adsr(d, 0.05, 0.3, 0.7, 0.5) * (0.7 + 0.3 * np.sin(2 * np.pi * 11 * t)); place(y, thud(130, 50, 0.3), 0, 0.7)
+S["fireBomb"] = y
+d = 1.6; t = tt(d)
+y = sweep(80, 420, d, "saw") * adsr(d, 0.4, 0.4, 0.7, 0.2) * 0.4; place(y, filt(noise(d), "lp", 600) * (t / d) * 0.5, 0)
+S["gravity"] = verb(filt(y, "lp", 2500), 1.0, 0.35)
+y = blank(0.5)
+for k in range(4): place(y, metal(1800 + k * 200, 0.08) * 0.3, k * 0.05)
+place(y, thud(220, 140, 0.08), 0.22, 0.5)
+S["ammo"] = y
+y = blank(0.6); place(y, thud(180, 90, 0.12), 0, 0.6); place(y, metal(700, 0.2) * 0.3, 0.02); place(y, pluck(76, 0.3) * 0.4, 0.12); place(y, pluck(81, 0.3) * 0.4, 0.2)
+S["bombPick"] = y
+y = blank(1.4)
+for i, m in enumerate((67, 71, 74, 79, 83, 86, 91)): place(y, brass(m, 0.16) * 0.4, i * 0.07)
+place(y, bell(mtof(98), 0.8) * 0.3, 0.5)
+S["gunPick"] = verb(y, 0.8, 0.3)
+
 if __name__ == "__main__":
-    for k, y in S.items(): write(k, y, peak=0.85 if k not in ("gust", "lava", "wave2", "hum", "machine") else 0.7)
+    only_new = os.environ.get("ONLY_NEW") == "1"
+    for k, y in S.items():
+        if only_new and os.path.exists(os.path.join(OUT, f"sfx_vanguard_{k}.mp3")): continue
+        write(k, y, peak=0.85 if k not in ("gust", "lava", "wave2", "hum", "machine") else 0.7)
     print("done:", len(S), "sounds into", os.path.abspath(OUT))

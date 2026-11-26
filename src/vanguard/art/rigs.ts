@@ -462,6 +462,13 @@ export function gunGeometry(id: string, color: string) {
     case "rail": v(-1.5, 0, -7, 3, 3, 12, mid); v(-0.5, 1, 5, 1, 1, 12, light); v(-1, 0.5, 5, 2, 2, 2, col); v(-1, 0.5, 10, 2, 2, 2, col); v(-1, 3, -2, 2, 2, 5, dark); v(-1.5, -1, -10, 3, 4, 3, mid); break;
     case "boom": v(-2.5, 0, -6, 5, 5, 16, mid); v(-2, 0.5, 10, 4, 4, 1, col); v(-1.5, 5, -2, 3, 1, 6, dark); v(-2.5, 1, -7, 5, 3, 1, dark); break;
     case "arc": v(-1.5, 0, -4, 3, 3, 9, mid); for (let k = 0; k < 3; k++) v(-2, -0.5, 5 + k * 2, 4, 4, 1, col); v(-0.5, 1, 11, 1, 1, 2, C("#E8DCFF")); v(-1.5, 3, -3, 3, 1, 5, dark); break;
+    case "twin": v(-1.5, 0, -3, 3, 3, 9, mid); v(-1, 1, 6, 2, 2, 3, dark); v(-1.5, 3, -2, 3, 1, 5, col); v(2.5, 0, -2, 3, 3, 8, mid); v(3, 1, 6, 2, 2, 2, dark); v(2.5, 3, -1, 3, 1, 4, col); break;
+    case "minigun": case "omega": { const body = id === "omega" ? C("#E8B030") : mid; v(-3, -1, -6, 6, 5, 10, body); for (const [x, y] of [[-2, 0], [1, 0], [-2, 2.5], [1, 2.5], [-0.5, 3.5], [-0.5, -1]]) v(x, y, 4, 1.4, 1.4, 12, id === "omega" ? C("#FFF0A0") : light); v(-3.5, 1, 15, 7, 3, 1, col); v(-1.5, 4, -4, 3, 2, 6, dark); break; }
+    case "laser": v(-1.5, 0, -6, 3, 4, 13, C("#3A3E4E")); v(-1, 1, 7, 2, 2, 6, col); v(-0.5, 1.5, 13, 1, 1, 1, C("#FFC0D0")); v(-2, 4, -3, 4, 1, 8, col); v(-1, -2, -2, 2, 2, 4, dark); break;
+    case "plasma": case "nova": { const c2 = id === "nova" ? C("#9AF0FF") : col; v(-3, -1, -6, 6, 6, 12, mid); v(-2.5, -0.5, 6, 5, 5, 3, c2); v(-2, 0, 9, 4, 4, 1, C("#FFFFFF")); v(-3.5, 5, -3, 7, 1, 6, c2); v(-1, -4, -1, 2, 3, 2, dark); break; }
+    case "swarm": v(-3, -1, -5, 6, 6, 12, C("#4A5A3A")); for (const [x, y] of [[-2, 0], [0.5, 0], [-2, 2.5], [0.5, 2.5]]) v(x, y, 7, 2, 2, 1, C("#FF3A3A")); v(-3.5, 5, -2, 7, 1, 6, col); break;
+    case "storm": v(-1.5, 0, -7, 3, 3, 12, C("#3A2A4A")); v(-0.5, 1, 5, 1, 1, 14, C("#FFC8FA")); for (let k = 0; k < 4; k++) v(-1.5, 0, 5 + k * 3, 3, 3, 1, col); v(-1, 3, -2, 2, 2, 5, dark); break;
+    case "inferno": v(-2, -1, -6, 4, 5, 10, C("#5A3A2A")); v(-1.5, 0, 4, 3, 3, 8, mid); v(-2, -0.5, 12, 4, 4, 1, col); v(-1.5, -6, -4, 3, 5, 3, C("#D8302A")); v(-1.5, 4, -3, 3, 1, 5, col); break;
     default: v(-1.5, 0, -3, 3, 3, 8, mid);
   }
   const g = b.geometry();
@@ -471,7 +478,7 @@ export function gunGeometry(id: string, color: string) {
 export const gunMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true });
 
 // ---------------------------------------------------------------- pickups
-export type PickupKind = "coin" | "gem" | "heart" | "oil" | "rapid" | "damage" | "shield" | "magnet" | "speed";
+export type PickupKind = "coin" | "gem" | "heart" | "oil" | "rapid" | "damage" | "shield" | "magnet" | "speed" | "ammo" | "bombs" | "gun";
 const pickCache = new Map<PickupKind, THREE.BufferGeometry>();
 export const POWER_COL: Record<string, string> = { rapid: "#FFD23F", damage: "#FF4A4A", shield: "#5AB8FF", magnet: "#FF5AC8", speed: "#5CE07A" };
 export function pickupGeometry(k: PickupKind) {
@@ -494,6 +501,15 @@ export function pickupGeometry(k: PickupKind) {
   } else if (k === "oil") {
     v(-3, -4, -2, 6, 8, 4, 0xd8302a); v(-2, 4, -1, 2, 2, 2, 0xffd23f); v(-3, -1, -2.2, 6, 1, 4.4, 0x1e1e24); v(1, 4, -1, 2, 1, 2, 0x2a2d3a);
     v(-1, 0, -2.3, 2, 3, 0.3, 0xffffff);
+  } else if (k === "ammo") {
+    // a crate of bullets: olive box, a yellow band, brass rounds on top
+    v(-4, -3, -3, 8, 5, 6, 0x5a6a3a); v(-4.2, -1, -3.2, 8.4, 1, 6.4, 0xffd23f); for (let x = -3; x <= 2; x += 1.6) v(x, 2, -1, 1, 2.2, 1, 0xe8b030);
+  } else if (k === "bombs") {
+    // a red crate with a round bomb on it
+    v(-4, -3, -3, 8, 5, 6, 0xb8302a); v(-4.2, 1.5, -3.2, 8.4, 0.6, 6.4, 0x2a2d3a); v(-2, 2, -2, 4, 3, 4, 0x2a2d3a); v(-0.5, 5, -0.5, 1, 1.5, 1, 0xffd23f);
+  } else if (k === "gun") {
+    // a glowing gold-and-blue gun case
+    v(-5, -3, -3, 10, 4, 6, 0x2a5ad8); v(-5.2, 0.6, -3.2, 10.4, 0.8, 6.4, 0xffd23f); v(-3, 1.5, -1, 6, 1.5, 2, 0xe8eef8); v(-1, -1, -3.4, 2, 2, 0.4, 0x9af0ff);
   } else {
     const col = C(POWER_COL[k]);
     v(-3, -3, -3, 6, 6, 6, col); v(-2, -2, -3.3, 4, 4, 6.6, 0xffffff); v(-3.3, -2, -2, 6.6, 4, 4, 0xffffff);

@@ -17,6 +17,8 @@ export interface Bot extends Body {
   id: number; kind: BotKind | "warden"; spec: BotSpec; rig: Rig; elite: boolean;
   yaw: number; pitch: number; hp: number; maxHp: number; alive: boolean; dead: number;
   fireT: number; burst: number; thinkT: number; strafe: number; strafeT: number; stuck: number; spawnT: number; flash: number;
+  /** seconds left frozen by an EMP blast, a gravity well or the freeze power */
+  stun: number;
   walk: number; speed: number; recoil: number; special: number; summon: number;
   /** turrets: the block they're bolted to */
   mount: { x: number; y: number; z: number } | null;
@@ -33,7 +35,7 @@ export function makeBot(kind: BotKind | "warden", elite: boolean, x: number, y: 
   return {
     id: NEXT++, kind, spec, rig, elite, x, y, z, vx: 0, vy: 0, vz: 0, hw: kind === "warden" ? 0.9 : kind === "hound" ? 0.3 : 0.32, h: kind === "drone" ? 0.5 : Math.min(2.4, rig.height),
     grounded: false, yaw: 0, pitch: 0, hp, maxHp: hp, alive: true, dead: 0, fireT: 1 + Math.random(), burst: 0, thinkT: 0, strafe: Math.random() < 0.5 ? 1 : -1, strafeT: 0,
-    stuck: 0, spawnT: kind === "turret" ? 0 : 0.9, flash: 0, walk: 0, speed: 0, recoil: 0, special: 5 + Math.random() * 3, summon: 9, mount: null,
+    stuck: 0, spawnT: kind === "turret" ? 0 : 0.9, flash: 0, stun: 0, walk: 0, speed: 0, recoil: 0, special: 5 + Math.random() * 3, summon: 9, mount: null,
   };
 }
 const BAND: Record<BotKind | "warden", [number, number]> = { guard: [6, 14], hound: [0, 0.8], drone: [5, 11], turret: [0, 99], shield: [3, 9], heavy: [10, 20], warden: [7, 16] };
@@ -47,6 +49,8 @@ export function muzzleOf(b: Bot) {
 export function botThink(bw: BotWorld, b: Bot, dt: number, fire: (s: Shot) => void, summon: (b: Bot) => void) {
   const w = bw.w, spec = b.spec;
   if (b.spawnT > 0) { b.spawnT = Math.max(0, b.spawnT - dt); b.speed = 0; return; }
+  // stunned: no moving, no shooting (walkers still fall)
+  if (b.stun > 0) { b.stun = Math.max(0, b.stun - dt); b.speed = 0; b.burst = 0; if (!spec.flying && b.kind !== "turret") fallBody(w, b, dt, bw.g); return; }
   const dx = bw.px - b.x, dz = bw.pz - b.z, dist = Math.hypot(dx, dz) || 1;
   const want = Math.atan2(dx, dz);
   b.yaw += clamp(angDiff(b.yaw, want), -dt * (b.kind === "warden" ? 1.6 : 5), dt * (b.kind === "warden" ? 1.6 : 5));
@@ -114,7 +118,8 @@ export function poseBot(b: Bot, dt: number, t: number) {
   b.rig.pose.rotation.y = b.yaw;
   b.recoil = Math.max(0, b.recoil - dt * 8);
   const fl = Math.max(0, b.flash);
-  b.rig.mat.emissive.setRGB(fl, fl, fl);
+  if (b.stun > 0) { const z = 0.25 + Math.sin(t * 20 + b.id) * 0.1; b.rig.mat.emissive.setRGB(fl + z * 0.3, fl + z * 0.8, fl + z); }
+  else b.rig.mat.emissive.setRGB(fl, fl, fl);
   b.flash = Math.max(0, b.flash - dt * 5);
   if (b.spawnT > 0) b.rig.root.scale.set(1 - b.spawnT * 0.9, 1 + b.spawnT * 1.5, 1 - b.spawnT * 0.9); else b.rig.root.scale.set(1, 1, 1);
   switch (b.kind) {

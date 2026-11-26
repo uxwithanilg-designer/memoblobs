@@ -1,7 +1,9 @@
 // Voxel Vanguard's interface: a 2026 pixel-arcade look — panels with stepped pixel corners and hard offset shadows,
 // a blocky extruded logo, segmented pixel health bars, neon accents in the world's colour, solid dark capsules (no
-// blur, so phones stay smooth), big round thumb buttons with gauges (fire, jetpack with its oil ring, swap, view),
-// a floating move stick, banners that slide in for "Stage N started", waves and bosses, and safe areas on every edge.
+// blur, so phones stay smooth), big round thumb buttons with gauges (fire, jetpack with its oil ring, bomb, view), the
+// gun bar (four guns and a gold mission gun), the bomb button with its count and the arrow that changes the kind, a
+// gun-power badge, the controls tutorial (phone buttons and computer keys, step by step), a floating move stick,
+// banners that slide in for each operation, phase and boss, and safe areas on every edge.
 // Animations are transform / opacity only.
 export const VANGUARD_CSS = `
 .vv-root{position:absolute;inset:0;overflow:hidden;background:#070914;color:#fff;font-family:var(--font-fredoka),system-ui,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:none}
@@ -98,7 +100,55 @@ export const VANGUARD_CSS = `
 .vv-jet{right:104px;bottom:6px;width:70px;height:70px;--b1:#7CE0FF;--b2:#1E7AD8}
 .vv-swap{right:12px;bottom:118px;width:62px;height:62px;--b1:#FFE07A;--b2:#D8A020;color:#2a1a00}
 .vv-view{right:88px;bottom:98px;width:46px;height:46px;--b1:#B8B8D8;--b2:#5A5A7A}
-.vv-ammo{position:absolute;right:calc(var(--safe-right) + 118px);bottom:calc(var(--safe-bottom) + 92px);font-family:var(--font-lilita),sans-serif;font-size:18px;text-shadow:0 2px 0 #000}
+.vv-ammo{position:absolute;right:calc(var(--safe-right) + 122px);bottom:calc(var(--safe-bottom) + 96px);display:flex;flex-direction:column;align-items:center;border:0;background:transparent;color:#fff;font-family:var(--font-lilita),sans-serif;font-size:18px;line-height:1;text-shadow:0 2px 0 #000;pointer-events:auto;cursor:pointer;padding:2px 4px}
+.vv-ammo i{font-style:normal;font-family:var(--font-fredoka),sans-serif;font-weight:900;font-size:8.5px;letter-spacing:.14em;opacity:.75;margin-top:2px}
+/* bombs: the throw button (its colour is the bomb's), the count, the little arrow that changes the kind */
+.vv-bomb{right:10px;bottom:118px;width:64px;height:64px;--b2:#2A2D3A}
+.vv-bomb .vv-cnt{position:absolute;right:-4px;top:-4px;min-width:22px;height:22px;padding:0 5px;display:grid;place-items:center;border-radius:11px;background:#14102a;border:2px solid #fff;font-size:12px;font-weight:900}
+.vv-bombnext{position:absolute;right:62px;bottom:168px;width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:#FFD23F;color:#2a1a00;display:grid;place-items:center;pointer-events:auto;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+.vv-bombnext:active{transform:translateY(2px)}
+/* the gun bar: a column on the right on phones, a row along the bottom (with the keys) on computers */
+.vv-guns{position:absolute;right:calc(var(--safe-right) + 12px);bottom:calc(var(--safe-bottom) + 244px);display:flex;flex-direction:column-reverse;gap:5px;pointer-events:auto}
+.vv-gun{position:relative;width:52px;height:40px;display:grid;place-items:center;border:2px solid rgba(255,255,255,.16);background:rgba(10,12,28,.82);color:#fff;cursor:pointer;padding:0}
+.vv-gun.on{border-color:var(--acc);background:rgba(40,46,80,.95);transform:translateX(-5px)}
+.vv-gun.dry{opacity:.45}
+.vv-gun.mission{border-color:#FFD23F;box-shadow:0 0 14px rgba(255,210,63,.55);animation:vv-gold 1.2s ease-in-out infinite}
+@keyframes vv-gold{0%,100%{box-shadow:0 0 8px rgba(255,210,63,.4)}50%{box-shadow:0 0 18px rgba(255,210,63,.8)}}
+.vv-gun b{position:absolute;right:2px;bottom:0;font-size:9.5px;font-weight:900;text-shadow:0 1px 0 #000}
+.vv-gun .k,.vv-gun .k2{position:absolute;left:2px;top:1px;font-size:9px;font-weight:900;color:var(--acc)}
+.vv-gun .k2{left:auto;right:2px}
+.vv-gun.bombslot{border-color:var(--bc);cursor:default}
+.vv-pwr{position:absolute;right:calc(var(--safe-right) + 64px);top:calc(var(--safe-top) + 46px);padding:3px 8px;font-weight:900;font-size:11px;color:#FFD23F;letter-spacing:.06em}
+@media (hover:hover) and (pointer:fine){
+  .vv-guns{flex-direction:row;right:auto;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-bottom) + 50px)}
+  .vv-gun{width:60px;height:44px}
+  .vv-gun.on{transform:translateY(-5px)}
+}
+@media (orientation:landscape) and (max-height:500px){
+  .vv-guns{flex-direction:row;right:auto;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-bottom) + 6px)}
+  .vv-gun.on{transform:translateY(-4px)}
+}
+/* the controls tutorial */
+.vv-tut{position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:calc(var(--safe-top) + 12px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px);background:rgba(4,5,14,.78)}
+.vv-tutcard{width:min(520px,100%);max-height:100%;overflow-y:auto;padding:16px 16px 14px;background:#141834;border:2px solid var(--acc);color:#fff}
+.vv-tutbody{margin-top:8px;font-size:15px;line-height:1.45}
+.vv-tutbody p{margin-top:10px}
+.vv-demo{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;padding:14px 8px;background:rgba(255,255,255,.05);margin-top:6px}
+.vv-key{display:inline-grid;place-items:center;min-width:40px;height:40px;padding:0 9px;border-radius:7px;background:linear-gradient(180deg,#F4F6FC,#C8CCDA);color:#141426;font-weight:900;font-size:15px;box-shadow:0 4px 0 #6A7088,inset 0 -2px 0 rgba(0,0,0,.12)}
+.vv-key.wide{min-width:74px;font-size:13px}
+.vv-plus{font-weight:900;opacity:.7}
+.vv-pad{display:inline-flex;flex-direction:column;align-items:center;gap:6px}
+.vv-pad .dot{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 50% 35%,var(--b1),color-mix(in srgb,var(--b1) 55%,#000));box-shadow:0 5px 0 rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.35);animation:vv-tap 1.4s ease-in-out infinite}
+.vv-pad small{font-weight:900;font-size:10px;letter-spacing:.12em}
+@keyframes vv-tap{0%,70%,100%{transform:none}80%{transform:translateY(4px) scale(.94)}}
+.vv-gunrow{display:flex;gap:4px}
+.vv-gunmock{width:48px;height:36px;display:grid;place-items:center;border:2px solid rgba(255,255,255,.2);background:rgba(10,12,28,.8)}
+.vv-gunmock.gold{border-color:#FFD23F;box-shadow:0 0 12px rgba(255,210,63,.6)}
+.vv-bombrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:10px;font-size:12.5px;font-weight:800}
+.vv-bombrow span{display:flex;align-items:center;gap:6px;padding:4px 6px;background:rgba(255,255,255,.06)}
+.vv-dotsrow{display:flex;justify-content:center;gap:6px;margin-top:12px}
+.vv-dotsrow i{width:9px;height:9px;background:rgba(255,255,255,.2)}
+.vv-dotsrow i.on{background:var(--acc)}
 @media (hover:hover) and (pointer:fine){
   .vv-acts{transform:scale(.82);transform-origin:bottom right}
 }
