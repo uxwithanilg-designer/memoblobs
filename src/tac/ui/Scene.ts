@@ -297,7 +297,7 @@ export class TacScene {
       if (this.hintMesh.visible) { this.hintMesh.scale.setScalar(1 + ((now / 600) % 1) * 0.5); (this.hintMesh.material as THREE.MeshBasicMaterial).opacity = 1 - ((now / 600) % 1); moving = true; }
     }
     for (const p of this.parts) { p.v.y -= 6 * dt; p.m.position.addScaledVector(p.v, dt); p.life -= dt; p.m.scale.setScalar(Math.max(0.01, p.life * 1.6)); }
-    if (this.parts.length) { this.parts = this.parts.filter((p) => { if (p.life > 0) return true; this.root.remove(p.m); return false; }); moving = true; }
+    if (this.parts.length) { { let k = 0; for (let i = 0; i < this.parts.length; i++) { const p = this.parts[i]; if (p.life > 0) this.parts[k++] = p; else this.root.remove(p.m); } this.parts.length = k; } moving = true; }
     this.renderer.render(this.scene, this.camera);
     if (moving) this.raf = requestAnimationFrame(this.frame);
   };

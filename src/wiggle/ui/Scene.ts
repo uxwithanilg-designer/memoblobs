@@ -255,7 +255,7 @@ export class WiggleScene {
     if (this.portal) { this.portal.rotation.z += dt * 2.4; this.portal.children[1].rotation.z -= dt * 5; }
     this.items.forEach((g, k) => { if (g) { g.position.y = this.cellPos(this.b!.items[k].at).y + Math.sin(now / 400 + k) * 0.05; g.rotation.y = Math.sin(now / 700 + k) * 0.4; } });
     for (const p of this.parts) { p.v.y -= 9 * dt; p.m.position.addScaledVector(p.v, dt); p.life -= dt; p.m.scale.setScalar(Math.max(0.01, p.life * 1.4)); }
-    this.parts = this.parts.filter((p) => { if (p.life > 0) return true; this.root.remove(p.m); return false; });
+    { let k = 0; for (let i = 0; i < this.parts.length; i++) { const p = this.parts[i]; if (p.life > 0) this.parts[k++] = p; else this.root.remove(p.m); } this.parts.length = k; }
     this.renderer.render(this.scene, this.camera);
     if (moving) this.raf = requestAnimationFrame(this.frame);
     else if (!this.idle) this.idle = window.setTimeout(() => { this.idle = 0; this.kick(); }, 50);

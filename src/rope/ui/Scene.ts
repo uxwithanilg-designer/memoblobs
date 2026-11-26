@@ -242,7 +242,7 @@ export class RopeScene {
     });
     if (this.flying.length) moving = true;
     for (const p of this.parts) { p.v.y -= 9 * dt; p.m.position.addScaledVector(p.v, dt); p.m.rotation.x += dt * 6; p.life -= dt; }
-    this.parts = this.parts.filter((p) => { if (p.life > 0) return true; this.root.remove(p.m); return false; });
+    { let k = 0; for (let i = 0; i < this.parts.length; i++) { const p = this.parts[i]; if (p.life > 0) this.parts[k++] = p; else this.root.remove(p.m); } this.parts.length = k; }
     if (this.parts.length) moving = true;
     this.renderer.render(this.scene, this.camera);
     if (moving) this.raf = requestAnimationFrame(this.frame);

@@ -11,6 +11,7 @@ export interface SceneHooks { active: () => boolean; event: (e: RunEvent, run: R
 
 const MAX_BEADS = 260, SPACING = 0.62, VIEW = 44, POOL = 60;
 const BLOCK_COLS = ["#3ad86a", "#9ae03a", "#f8d23a", "#ff9a2a", "#ff5a3a", "#f0324a", "#c03ad8", "#7a3aff"];
+const WHITE = new THREE.Color("#ffffff");
 
 function labelTex(text: string, fg = "#ffffff", bg: string | null = null) {
   const c = document.createElement("canvas"); c.width = 128; c.height = 128;
@@ -37,7 +38,8 @@ export class BeadScene {
   private labels: THREE.Sprite[] = [];
   private tex = new Map<string, THREE.CanvasTexture>();
   private dummy = new THREE.Object3D(); private col = new THREE.Color();
-  private squash = new Map<string, number>();
+  /** chewed blocks still squashing: row * 16 + lane → until (ms) */
+  private squash = new Map<number, number>();
   private parts: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = [];
   private partPool: THREE.Mesh[] = [];
   private partGeo = new THREE.BoxGeometry(0.16, 0.16, 0.16);
@@ -264,17 +266,17 @@ export class BeadScene {
     // chewed blocks squash and flash
     if (this.blocks && t && r) {
       for (const [key, until] of this.squash) {
-        const [ri, li] = key.split(":").map(Number); const idx = this.blockIdx[ri][li];
+        const ri = key >> 4, li = key & 15; const idx = this.blockIdx[ri][li];
         const u = (until - now) / 140;
         if (u <= 0 || !r.cells[ri][li]) { this.squash.delete(key); if (!r.cells[ri][li]) { this.dummy.scale.setScalar(0); } else this.dummy.scale.setScalar(1); }
         else this.dummy.scale.set(1 + u * 0.12, 1 - u * 0.14, 1 + u * 0.12);
         this.dummy.position.set(laneX(li, t.lanes), 0.45, t.rows[ri].z); this.dummy.updateMatrix(); this.blocks.setMatrixAt(idx, this.dummy.matrix);
-        const c = r.cells[ri][li]; this.blocks.setColorAt(idx, this.col.set(c && c.t === "block" ? this.colorOf(c.v, r.L) : "#ffffff").lerp(new THREE.Color("#ffffff"), Math.max(0, u) * 0.6));
+        const c = r.cells[ri][li]; this.blocks.setColorAt(idx, this.col.set(c && c.t === "block" ? this.colorOf(c.v, r.L) : "#ffffff").lerp(WHITE, Math.max(0, u) * 0.6));
       }
       this.blocks.instanceMatrix.needsUpdate = true; if (this.blocks.instanceColor) this.blocks.instanceColor.needsUpdate = true;
     }
     for (const p of this.parts) { p.v.y -= 14 * dt; p.m.position.addScaledVector(p.v, dt); p.m.rotation.x += dt * 8; p.life -= dt; p.m.scale.setScalar(Math.max(0.01, p.life * 1.5)); if (p.life <= 0) p.m.visible = false; }
-    this.parts = this.parts.filter((p) => p.life > 0);
+    { let k = 0; for (let i = 0; i < this.parts.length; i++) { const p = this.parts[i]; if (p.life > 0) this.parts[k++] = p; } this.parts.length = k; }
     this.shake *= Math.pow(0.02, dt);
     // the head bobs a little while running
     if (r && r.state === "run" && this.started) this.head.position.y = HEAD_R + Math.abs(Math.sin(now / 90)) * 0.05;
@@ -284,8 +286,8 @@ export class BeadScene {
   private onEvent(e: RunEvent, r: Run) {
     const t = this.track!;
     const x = e.lane !== undefined ? laneX(e.lane, t.lanes) : r.x, z = e.row !== undefined ? t.rows[e.row].z : r.z;
-    if (e.e === "bite") { this.squash.set(`${e.row}:${e.lane}`, performance.now() + 140); this.burst(r.x, 0.3, r.z + 0.2, "#ffffff", 2); this.shake = Math.max(this.shake, 0.08); }
-    if (e.e === "break") { const idx = this.blockIdx[e.row!][e.lane!]; this.dummy.position.set(x, -5, z); this.dummy.scale.setScalar(0); this.dummy.updateMatrix(); this.blocks?.setMatrixAt(idx, this.dummy.matrix); this.squash.delete(`${e.row}:${e.lane}`); this.burst(x, 0.5, z, "#ffd23a", 14); this.shake = 0.25; }
+    if (e.e === "bite") { this.squash.set(e.row! * 16 + e.lane!, performance.now() + 140); this.burst(r.x, 0.3, r.z + 0.2, "#ffffff", 2); this.shake = Math.max(this.shake, 0.08); }
+    if (e.e === "break") { const idx = this.blockIdx[e.row!][e.lane!]; this.dummy.position.set(x, -5, z); this.dummy.scale.setScalar(0); this.dummy.updateMatrix(); this.blocks?.setMatrixAt(idx, this.dummy.matrix); this.squash.delete(e.row! * 16 + e.lane!); this.burst(x, 0.5, z, "#ffd23a", 14); this.shake = 0.25; }
     if (e.e === "orb" || e.e === "minus") {
       const idx = this.orbIdx[e.row!][e.lane!];
       this.dummy.position.set(0, -5, 0); this.dummy.scale.setScalar(0); this.dummy.updateMatrix();

@@ -254,7 +254,7 @@ export class SplashScene {
     for (const g of this.mines) if (g.parent) { g.rotation.y += dt * 0.8; g.rotation.x += dt * 0.3; }
     if (this.shieldMesh.visible) { this.shieldMesh.rotation.y += dt; moving = true; }
     for (const p of this.parts) { p.life += dt; p.v.y -= 14 * dt; p.m.position.addScaledVector(p.v, dt); p.m.rotation.x += dt * 8; p.m.rotation.y += dt * 6; }
-    this.parts = this.parts.filter((p) => { if (p.life < p.max) return true; this.root.remove(p.m); return false; });
+    { let k = 0; for (let i = 0; i < this.parts.length; i++) { const p = this.parts[i]; if (p.life < p.max) this.parts[k++] = p; else this.root.remove(p.m); } this.parts.length = k; }
     if (this.parts.length) moving = true;
     if (this.shake > 0.01) { this.shake *= Math.pow(0.01, dt); this.root.position.set((Math.random() - 0.5) * this.shake, 0, (Math.random() - 0.5) * this.shake); moving = true; } else this.root.position.set(0, 0, 0);
     this.renderer.render(this.scene, this.camera);
