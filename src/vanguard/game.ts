@@ -166,7 +166,7 @@ export class Game {
     this.camera.add(this.viewGun);
     this.resize();
     window.addEventListener("resize", this.onResize);
-    window.addEventListener("keydown", this.onKey); window.addEventListener("keyup", this.onKey);
+    window.addEventListener("keydown", this.onKey, true); window.addEventListener("keyup", this.onKey, true);
     window.addEventListener("mousemove", this.onMouse);
     this.renderer.domElement.addEventListener("mousedown", this.onMouse);
     window.addEventListener("mouseup", this.onMouse);
@@ -1362,6 +1362,8 @@ export class Game {
     const code = e.code;
     if (down) this.keys.add(code); else this.keys.delete(code);
     if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(code)) e.preventDefault();
+    // Space is the game's while a stage runs: the player shell's Space-to-pause never sees it (Esc still pauses)
+    if (code === "Space" && this.running && this.mode !== "attract") e.stopPropagation();
     if (!down || e.repeat) return;
     if (code === "KeyQ" || code === "Digit1" || code === "Digit2") { if (code === "KeyQ" || (code === "Digit1" ? 0 : 1) !== this.slot) this.swap(); }
     if (code === "KeyV" || code === "KeyP") { const f = this.toggleView(); this.opts.onEvent({ k: "view", first: f }); }
@@ -1381,7 +1383,7 @@ export class Game {
     const w = window as unknown as { __voxelVanguard?: Game };
     if (w.__voxelVanguard === this) delete w.__voxelVanguard;
     window.removeEventListener("resize", this.onResize);
-    window.removeEventListener("keydown", this.onKey); window.removeEventListener("keyup", this.onKey);
+    window.removeEventListener("keydown", this.onKey, true); window.removeEventListener("keyup", this.onKey, true);
     window.removeEventListener("mousemove", this.onMouse); window.removeEventListener("mouseup", this.onMouse);
     this.renderer.domElement.removeEventListener("mousedown", this.onMouse);
     if (document.pointerLockElement === this.renderer.domElement) document.exitPointerLock?.();

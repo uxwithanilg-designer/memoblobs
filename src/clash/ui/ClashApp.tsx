@@ -67,6 +67,8 @@ export default function ClashApp({ slug }: { slug: string; title: string }) {
   const coinsRef = useRef(0);
   const [touchDevice] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
   const [gameReady, setGameReady] = useState(false);
+  /** computers: the controls card shown when a game starts */
+  const [coach, setCoach] = useState(false);
 
   const say = useCallback((big: string, sub?: string, color?: string, ms = 1300) => {
     const id = Math.random(); setMsg({ id, big, sub, color });
@@ -168,11 +170,26 @@ export default function ClashApp({ slug }: { slug: string; title: string }) {
     const g = gameRef.current;
     if (!g) return;
     sfx("tap"); setSheet(""); setScreen("play"); g.play();
-    if (!useClash.getState().seenHelp) setTimeout(() => toastIt(touchDevice ? "Left: move · Right: aim · FIRE · hold JUMP to jet · BUILD bridges" : "WASD · mouse aim · click fire · right-click / E build · hold Space to jet", "#FFD23F", 3600), 3600);
+    if (!touchDevice) { g.setHoldIntro(true); setCoach(true); }
+    else if (!useClash.getState().seenHelp) setTimeout(() => toastIt("Left: move · Right: aim · FIRE · hold JUMP to jet · BUILD bridges", "#FFD23F", 3600), 3600);
     useClash.getState().sawHelp();
   }, [toastIt, touchDevice]);
+  const closeCoach = useCallback(() => {
+    setCoach(false);
+    const g = gameRef.current;
+    if (!g) return;
+    g.setHoldIntro(false); g.skipIntro(); g.lockMouse();
+    sfx("tap");
+  }, []);
+  // any key (except the player's pause / mute / fullscreen keys) closes the controls card
+  useEffect(() => {
+    if (!coach) return;
+    const on = (e: KeyboardEvent) => { if (!e.repeat && !["escape", "p", "m", "f"].includes(e.key.toLowerCase())) closeCoach(); };
+    window.addEventListener("keydown", on, true);
+    return () => window.removeEventListener("keydown", on, true);
+  }, [coach, closeCoach]);
   const home = useCallback(() => {
-    setCleared(null); setIntro(null); setScreen("home");
+    setCoach(false); setCleared(null); setIntro(null); setScreen("home");
     gameRef.current?.load(useClash.getState().stage, "attract");
     music.current?.title();
   }, []);
@@ -292,8 +309,8 @@ export default function ClashApp({ slug }: { slug: string; title: string }) {
           )}
           <div className="cc-feed">{feed.map((f) => <p key={f.id} style={{ color: f.color }}>{f.text}</p>)}</div>
           {hud.phase === "play" && touchDevice && <TouchControls game={gameRef} cubes={hud.cubes} />}
-          {hud.phase === "play" && !touchDevice && <div className="cc-keys cc-panel">WASD move · mouse aim · click fire · right-click / E build · Space jump (hold: jetpack)</div>}
-          {hud.phase === "intro" && <div className="absolute inset-0 pointer-events-auto" onPointerDown={() => gameRef.current?.skipIntro()} />}
+          {hud.phase === "play" && !touchDevice && <div className="cc-keys cc-panel">WASD move · mouse aim · click fire · right-click / E build · Space jump (hold: jetpack) · P pause</div>}
+          {hud.phase === "intro" && !coach && <div className="absolute inset-0 pointer-events-auto" onPointerDown={() => gameRef.current?.skipIntro()} />}
         </div>
       )}
 
@@ -310,7 +327,8 @@ export default function ClashApp({ slug }: { slug: string; title: string }) {
           </motion.div>
         )}
       </AnimatePresence>
-      {screen === "play" && hud?.phase === "intro" && <p className="cc-skip">Tap to skip</p>}
+      {screen === "play" && hud?.phase === "intro" && !coach && <p className="cc-skip">{touchDevice ? "Tap" : "Click"} to skip</p>}
+      <AnimatePresence>{coach && screen === "play" && <KeysCoach key="coach" onClose={closeCoach} />}</AnimatePresence>
 
       <div className="cc-wrap cc-clearwrap"><AnimatePresence>{cleared && screen === "play" && <ClearBanner key={cleared.stage} r={cleared} />}</AnimatePresence></div>
       <div className="cc-wrap cc-popwrap"><AnimatePresence>
@@ -412,6 +430,52 @@ function TouchControls({ game, cubes }: { game: React.RefObject<Game | null>; cu
 }
 
 // ------------------------------------------------------------------ the stage-clear banner (no buttons: the game moves on by itself)
+// ---------------------------------------------------------------- the controls card (computers, when a game starts)
+const Kbd = ({ children, wide }: { children: React.ReactNode; wide?: boolean }) => <kbd className={`cc-kbd cc-px ${wide ? "wide" : ""}`}>{children}</kbd>;
+/** a mouse with its left or right button lit */
+function MouseIcon({ side }: { side?: "l" | "r" }) {
+  return (
+    <svg className="cc-mouse" viewBox="0 0 24 34" aria-hidden>
+      <rect x="1.5" y="1.5" width="21" height="31" rx="10.5" fill="#E8EEF8" stroke="#16233F" strokeWidth="2.2" />
+      {side === "l" && <path d="M12 2.6V14H2.6V12A9.4 9.4 0 0 1 12 2.6Z" fill="#38D96B" />}
+      {side === "r" && <path d="M12 2.6V14H21.4V12A9.4 9.4 0 0 0 12 2.6Z" fill="#FFB627" />}
+      <path d="M12 2.5V14M2.5 14H21.5" stroke="#16233F" strokeWidth="2" fill="none" />
+      {!side && <path d="M12 20v7M9.5 24.5 12 27l2.5-2.5" stroke="#3D8BFF" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />}
+    </svg>
+  );
+}
+const Or = () => <span className="cc-or">or</span>;
+const COACH: [React.ReactNode, string, string][] = [
+  [<><Kbd>W</Kbd><Kbd>A</Kbd><Kbd>S</Kbd><Kbd>D</Kbd></>, "Move", "or the arrow keys"],
+  [<MouseIcon key="k" />, "Aim", "move the mouse"],
+  [<MouseIcon key="k" side="l" />, "Fire", "left click · hold to keep firing"],
+  [<><MouseIcon side="r" /><Or /><Kbd>E</Kbd></>, "Build cubes", "bridges and walls · hold while you walk off an edge"],
+  [<Kbd key="k" wide>Space</Kbd>, "Jump", "hold in the air: jetpack (uses oil)"],
+  [<Kbd key="k" wide>Shift</Kbd>, "Sprint", "hold to run faster"],
+  [<><Kbd>P</Kbd><Or /><Kbd wide>Esc</Kbd></>, "Pause", "and the menu"],
+];
+function KeysCoach({ onClose }: { onClose: () => void }) {
+  return (
+    <motion.div className="cc-coach" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <motion.div className="cc-coach-card cc-panel" role="dialog" aria-label="Controls" initial={{ y: 26, scale: 0.94 }} animate={{ y: 0, scale: 1 }} exit={{ y: -14, scale: 0.97 }} transition={{ type: "spring", stiffness: 340, damping: 26 }}>
+        <p className="cc-kicker">How to play</p>
+        <div className="cc-coach-grid">
+          {COACH.map(([keys, what, more], i) => (
+            <motion.div key={what} className="cc-coach-row" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 + i * 0.05 }}>
+              <span className="cc-coach-keys">{keys}</span>
+              <span className="min-w-0"><b className="block text-[15px] leading-tight">{what}</b><span className="block text-[12px] leading-snug opacity-70">{more}</span></span>
+            </motion.div>
+          ))}
+        </div>
+        <button type="button" className="cc-btn cc-cta cc-shine mt-4 w-full py-3 text-lg" onClick={onClose}>
+          <Play className="size-5 fill-current" /> <span className="cc-px font-bold">GOT IT · PLAY</span>
+        </button>
+        <p className="mt-2 text-center text-[12px] font-bold opacity-60">or press any key</p>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function ClearBanner({ r }: { r: StageStats }) {
   const next = stagePlan(r.stage + 1);
   const big = r.worldDone ? "MAP CLEAR!" : r.mode === "titan" ? "TITAN DOWN!" : r.mode === "obby" ? "FINISHED!" : r.mode === "zombie" ? "SURVIVED!" : "VICTORY!";

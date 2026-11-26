@@ -135,4 +135,15 @@ export const CLASH_CSS = `
   .cc-boss{top:calc(var(--safe-top) + 64px)}
   .cc-intro{top:calc(var(--safe-top) + 10%)}
 }
+/* the controls card (computers, when a game starts) */
+.cc-coach{position:absolute;inset:0;z-index:18;display:flex;align-items:flex-end;justify-content:center;padding:16px 16px calc(var(--safe-bottom) + 18px);background:linear-gradient(180deg,rgba(6,10,30,0) 28%,rgba(6,10,30,.6) 100%);pointer-events:auto}
+.cc-coach-card{width:min(580px,100%);max-height:calc(100% - 8px);overflow:auto;padding:16px 18px 14px;text-align:left}
+.cc-coach-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:12px}
+.cc-coach-row{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:12px;background:rgba(255,255,255,.06)}
+.cc-coach-keys{display:flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;width:124px}
+.cc-kbd{display:inline-grid;place-items:center;min-width:26px;height:28px;padding:0 6px;border-radius:7px;background:linear-gradient(180deg,#FFFFFF,#D9E3F2);color:#16233F;font-size:12px;font-weight:700;line-height:1;box-shadow:inset 0 -3px 0 #A9B9D3,0 2px 0 rgba(0,0,0,.45)}
+.cc-kbd.wide{padding:0 11px}
+.cc-mouse{width:22px;height:31px;flex-shrink:0;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
+.cc-or{font-size:11px;font-weight:800;opacity:.6;margin:0 2px}
+@media (max-width:560px){.cc-coach-grid{grid-template-columns:1fr}}
 `;

@@ -63,6 +63,8 @@ const MOB: Record<MobKind, { hp: number; speed: number; dmg: number; coins: numb
 };
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3();
 const HIT: RayHit = { x: 0, y: 0, z: 0, nx: 0, ny: 0, nz: 0, t: 0, id: 0 };
+/** keys the game uses (lower-case KeyboardEvent.key) */
+const GAME_KEYS = new Set(["w", "a", "s", "d", " ", "shift", "e", "q", "arrowup", "arrowdown", "arrowleft", "arrowright"]);
 
 export class Game {
   readonly view: View;
@@ -120,7 +122,9 @@ export class Game {
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(host);
     this.resize();
-    window.addEventListener("keydown", this.onKey); window.addEventListener("keyup", this.onKeyUp); window.addEventListener("blur", this.onBlur);
+    // capture phase: Space is "jump" here, so the player shell's own Space-to-pause never sees it (P / Esc still pause)
+    window.addEventListener("keydown", this.onKey, true); window.addEventListener("keyup", this.onKeyUp, true); window.addEventListener("blur", this.onBlur);
+    window.addEventListener("message", this.onMsg);
     this.view.renderer.domElement.addEventListener("mousedown", this.onMouseDown);
     this.view.renderer.domElement.addEventListener("contextmenu", this.onContext);
     window.addEventListener("mouseup", this.onMouseUp); document.addEventListener("mousemove", this.onMouseMove);
@@ -148,23 +152,53 @@ export class Game {
   setBuild(on: boolean) { this.building = on; if (on) this.buildCd = 0; }
   setJump(on: boolean) { if (on && !this.jumpHeld) this.wantJump = true; this.jumpHeld = on; }
   skipIntro() { if (this.phase === "intro" && this.phaseT > 0.4) this.phaseT = 99; }
-  private onKey = (e: KeyboardEvent) => {
-    if (e.target instanceof HTMLInputElement) return;
-    const k = e.key.toLowerCase();
-    if (this.phase === "play" && ["w", "a", "s", "d", " ", "shift", "e", "q", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) e.preventDefault();
+  /** keep the opening fly-over waiting at its end (the controls card is up) */
+  setHoldIntro(on: boolean) { this.holdIntro = on; }
+  /** aim with the mouse (call from a click or key press) */
+  lockMouse() {
+    if (this.touch || !this.running || this.pointerLocked) return;
+    // newer browsers return a promise that rejects when the lock isn't allowed right now (the next click tries again)
+    const r = this.view.renderer.domElement.requestPointerLock?.() as unknown as Promise<void> | undefined;
+    r?.catch?.(() => {});
+  }
+  private holdIntro = false;
+  /** a stage is on screen and running: the game's keys are the game's (not the page's or the player shell's) */
+  private get ownsKeys() { return this.running && this.phase !== "attract"; }
+  private keyDown(k: string) {
     this.keys.add(k);
-    if (k === " ") this.setJump(true);
+    if (k === " " && this.phase === "play") this.setJump(true);
     if (k === "shift") this.sprint = true;
     if (k === "e" || k === "q") this.setBuild(true);
+  }
+  private keyUp(k: string) { this.keys.delete(k); if (k === " ") this.setJump(false); if (k === "shift") this.sprint = false; if (k === "e" || k === "q") this.setBuild(false); }
+  private onKey = (e: KeyboardEvent) => {
+    if ((e.target as HTMLElement)?.closest?.("input,textarea,select")) return;
+    const k = e.key.toLowerCase();
+    if (this.ownsKeys && GAME_KEYS.has(k)) {
+      e.preventDefault(); // no page scroll, and Space doesn't press a focused button
+      if (k === " ") e.stopPropagation();
+    }
+    if (!e.repeat) this.keyDown(k);
   };
-  private onKeyUp = (e: KeyboardEvent) => { const k = e.key.toLowerCase(); this.keys.delete(k); if (k === " ") this.setJump(false); if (k === "shift") this.sprint = false; if (k === "e" || k === "q") this.setBuild(false); };
+  private onKeyUp = (e: KeyboardEvent) => {
+    const k = e.key.toLowerCase();
+    if (this.ownsKeys && GAME_KEYS.has(k)) { e.preventDefault(); if (k === " ") e.stopPropagation(); }
+    this.keyUp(k);
+  };
+  /** keys the game page passes in (focus was on the page around the game's frame) */
+  private onMsg = (e: MessageEvent) => {
+    const d = e.data as { type?: string; key?: string; down?: boolean } | null;
+    if (e.origin !== window.location.origin || d?.type !== "momoblobs:key" || !d.key) return;
+    const k = d.key.toLowerCase();
+    if (d.down) this.keyDown(k); else this.keyUp(k);
+  };
   private onBlur = () => { this.keys.clear(); this.firing = false; this.building = false; this.sprint = false; this.jumpHeld = false; };
   private mouseHeld = false;
   private onContext = (e: Event) => e.preventDefault();
   private onMouseDown = (e: MouseEvent) => {
     if (this.touch || this.phase !== "play") return;
     this.mouseHeld = true;
-    if (document.pointerLockElement !== this.view.renderer.domElement) this.view.renderer.domElement.requestPointerLock?.();
+    this.lockMouse();
     if (e.button === 0) this.firing = true;
     if (e.button === 2) this.setBuild(true);
   };
@@ -187,6 +221,7 @@ export class Game {
 
   // ------------------------------------------------------------------ stages
   load(n: number, phase: "attract" | "intro", next = false) {
+    this.holdIntro = false;
     this.stage = n;
     this.plan = stagePlan(n);
     this.theme = THEMES[this.plan.themeIndex];
@@ -1069,8 +1104,10 @@ export class Game {
   private slow(scale: number, secs: number) { this.slowTarget = scale; this.slowT = secs; }
 
   private flow() {
+    const introLen = this.plan.mode === "titan" ? 4.6 : 3.4;
+    if (this.phase === "intro" && this.holdIntro) this.phaseT = Math.min(this.phaseT, introLen - 0.02);
     const t = this.phaseT;
-    if (this.phase === "intro" && t > (this.plan.mode === "titan" ? 4.6 : 3.4)) {
+    if (this.phase === "intro" && t > introLen) {
       this.phase = "play"; this.phaseT = 0;
       this.o.onEvent({ k: "go" }); sfx("go");
       if (this.plan.mode === "titan") this.o.onEvent({ k: "titan", name: this.plan.titan });
@@ -1291,7 +1328,8 @@ export class Game {
 
   dispose() {
     this.stop(); this.ro.disconnect();
-    window.removeEventListener("keydown", this.onKey); window.removeEventListener("keyup", this.onKeyUp); window.removeEventListener("blur", this.onBlur);
+    window.removeEventListener("keydown", this.onKey, true); window.removeEventListener("keyup", this.onKeyUp, true); window.removeEventListener("blur", this.onBlur);
+    window.removeEventListener("message", this.onMsg);
     window.removeEventListener("mouseup", this.onMouseUp); document.removeEventListener("mousemove", this.onMouseMove);
     this.view.renderer.domElement.removeEventListener("mousedown", this.onMouseDown); this.view.renderer.domElement.removeEventListener("contextmenu", this.onContext);
     for (const r of this.rivals) r.batch.dispose();

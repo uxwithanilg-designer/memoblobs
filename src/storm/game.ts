@@ -144,8 +144,8 @@ export class Game {
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(host);
     this.resize();
-    window.addEventListener("keydown", this.onKey);
-    window.addEventListener("keyup", this.onKeyUp);
+    window.addEventListener("keydown", this.onKey, true); // capture: before the player shell sees Space
+    window.addEventListener("keyup", this.onKeyUp, true);
     window.addEventListener("blur", this.onBlur);
     this.view.renderer.domElement.addEventListener("mousedown", this.onMouseDown);
     window.addEventListener("mouseup", this.onMouseUp);
@@ -186,15 +186,17 @@ export class Game {
   jump() { this.wantJump = true; }
   skipIntro() { if (this.mode === "intro" && this.modeT > 0.4) this.modeT = 99; }
 
+  /** a stage is on screen and running: Space is "jump" (the player shell's Space-to-pause never sees it; P / Esc still pause) */
+  private get ownsKeys() { return this.running && this.mode !== "attract"; }
   private onKey = (e: KeyboardEvent) => {
-    if (e.target instanceof HTMLInputElement) return;
+    if ((e.target as HTMLElement)?.closest?.("input,textarea,select")) return;
     const k = e.key.toLowerCase();
-    if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", " ", "shift"].includes(k)) { if (this.mode === "play") e.preventDefault(); }
+    if (this.ownsKeys && ["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", " ", "shift"].includes(k)) { e.preventDefault(); if (k === " ") e.stopPropagation(); }
     this.keys.add(k);
-    if (k === " ") this.wantJump = true;
+    if (k === " " && this.mode === "play") this.wantJump = true;
     if (k === "shift") this.sprint = true;
   };
-  private onKeyUp = (e: KeyboardEvent) => { const k = e.key.toLowerCase(); this.keys.delete(k); if (k === "shift") this.sprint = false; };
+  private onKeyUp = (e: KeyboardEvent) => { const k = e.key.toLowerCase(); if (k === " " && this.ownsKeys) { e.preventDefault(); e.stopPropagation(); } this.keys.delete(k); if (k === "shift") this.sprint = false; };
   private onBlur = () => { this.keys.clear(); this.firing = false; this.sprint = false; };
   private mouseHeld = false;
   private onMouseDown = (e: MouseEvent) => {
@@ -1499,8 +1501,8 @@ export class Game {
   dispose() {
     this.stop();
     this.ro.disconnect();
-    window.removeEventListener("keydown", this.onKey);
-    window.removeEventListener("keyup", this.onKeyUp);
+    window.removeEventListener("keydown", this.onKey, true);
+    window.removeEventListener("keyup", this.onKeyUp, true);
     window.removeEventListener("blur", this.onBlur);
     window.removeEventListener("mouseup", this.onMouseUp);
     document.removeEventListener("mousemove", this.onMouseMove);
