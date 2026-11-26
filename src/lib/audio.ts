@@ -168,7 +168,37 @@ export type ArcadeSfx =
   | "wake_beep" | "wake_overtake" | "wake_nearMiss" | "wake_lowFuel" | "wake_horn" | "wake_tap" | "wake_open" | "wake_buy" | "wake_whoosh" | "wake_wreck"
   | "wake_docked" | "wake_cheer" | "wake_star" | "wake_unlock" | "wake_amb_gull" | "wake_amb_surf" | "wake_amb_parrot" | "wake_amb_whale" | "wake_amb_hawk" | "wake_amb_wind"
   | "wake_amb_horn" | "wake_amb_bell" | "wake_amb_ice" | "wake_amb_frog" | "wake_amb_chime" | "wake_amb_lava" | "wake_amb_thunder" | "wake_amb_drip" | "wake_amb_synth" | "wake_amb_monkey"
-  | "wake_amb_crowd";
+  | "wake_amb_crowd"
+  // Melon Merge Fiesta pack (scripts/gen_melon_audio.py)
+  | "melon_aim" | "melon_drop" | "melon_tap" | "melon_merge" | "melon_combo" | "melon_crack" | "melon_smash" | "melon_thaw" | "melon_hammer"
+  | "melon_bomb" | "melon_shake" | "melon_undo" | "melon_clear" | "melon_star" | "melon_room" | "melon_lose" | "melon_open"
+  // Arrow Unveil pack (scripts/gen_unveil_audio.py)
+  | "unveil_tap" | "unveil_slide" | "unveil_exit" | "unveil_bump" | "unveil_heart" | "unveil_reveal" | "unveil_hint" | "unveil_erase"
+  | "unveil_clear" | "unveil_star" | "unveil_gallery" | "unveil_lose" | "unveil_open"
+  // Noodle Pups pack (scripts/gen_pups_audio.py)
+  | "pups_tap" | "pups_run" | "pups_out" | "pups_bump" | "pups_bone" | "pups_bark" | "pups_hint" | "pups_treat"
+  | "pups_clear" | "pups_star" | "pups_park" | "pups_lose" | "pups_open"
+  // Plank Panic pack (scripts/gen_plank_audio.py)
+  | "plank_tap" | "plank_lift" | "plank_screw" | "plank_swing" | "plank_fall" | "plank_denied" | "plank_clink"
+  | "plank_hint" | "plank_undo" | "plank_clear" | "plank_star" | "plank_shop" | "plank_lose" | "plank_open"
+  // Slide Splash pack (scripts/gen_splash_audio.py)
+  | "splash_slide" | "splash_stop" | "splash_paint" | "splash_pop" | "splash_shield" | "splash_bump" | "splash_hint"
+  | "splash_undo" | "splash_clear" | "splash_star" | "splash_world" | "splash_lose" | "splash_open"
+  // Rope Loop pack (scripts/gen_rope_audio.py)
+  | "rope_pick" | "rope_drop" | "rope_wind" | "rope_done" | "rope_denied" | "rope_hint" | "rope_undo"
+  | "rope_spool" | "rope_clear" | "rope_star" | "rope_world" | "rope_lose" | "rope_open"
+  // Band Bend pack (scripts/gen_band_audio.py)
+  | "band_grab" | "band_stretch" | "band_snap" | "band_release" | "band_denied" | "band_hint" | "band_undo"
+  | "band_peek" | "band_clear" | "band_star" | "band_world" | "band_lose" | "band_open"
+  // Neon Tac Duel pack (scripts/gen_tac_audio.py)
+  | "tac_place" | "tac_drop" | "tac_rival" | "tac_vanish" | "tac_line" | "tac_denied" | "tac_hint" | "tac_undo"
+  | "tac_win" | "tac_lose" | "tac_draw" | "tac_star" | "tac_world" | "tac_open"
+  // Bead Rush pack (scripts/gen_bead_audio.py)
+  | "bead_orb" | "bead_minus" | "bead_bite" | "bead_break" | "bead_bump" | "bead_up" | "bead_down" | "bead_shield"
+  | "bead_lose" | "bead_win" | "bead_star" | "bead_world" | "bead_open"
+  // Wiggle Way pack (scripts/gen_wiggle_audio.py)
+  | "wiggle_step" | "wiggle_land" | "wiggle_eat" | "wiggle_plum" | "wiggle_die" | "wiggle_portal" | "wiggle_bump"
+  | "wiggle_hint" | "wiggle_undo" | "wiggle_win" | "wiggle_star" | "wiggle_world" | "wiggle_open";
 
 /** "a:<arcade sfx>" or "v:<character>_<mood>" (file: /audio/arcade/voice_<x>.mp3) */
 export type Sound = SfxName | `a:${ArcadeSfx}` | `v:${string}`;
@@ -424,6 +454,142 @@ const MUSIC_META: Record<string, { loop: number; gain?: number }> = {
   "a:treat_cocoa_action": { loop: 40 },
   "a:treat_diner_action": { loop: 29.090909 },
   "a:treat_carnival_action": { loop: 33.103448 },
+  // Rope Loop (scripts/gen_rope_audio.py)
+  "a:rope_title_calm": { loop: 20.869565 },
+  "a:rope_sail_action": { loop: 38.4 },
+  "a:rope_knit_action": { loop: 41.73913 },
+  "a:rope_circus_action": { loop: 31.47541 },
+  "a:rope_gym_action": { loop: 30.47619 },
+  "a:rope_pier_action": { loop: 39.183673 },
+  "a:rope_craft_action": { loop: 33.684211 },
+  "a:rope_toy_action": { loop: 32.542373 },
+  "a:rope_bead_action": { loop: 36.923077 },
+  "a:rope_ribbon_action": { loop: 42.666667 },
+  "a:rope_lantern_action": { loop: 43.636364 },
+  "a:rope_snow_action": { loop: 40.0 },
+  "a:rope_neon_action": { loop: 34.909091 },
+  // Wiggle Way (scripts/gen_wiggle_audio.py)
+  "a:wiggle_title_calm": { loop: 20.869565 },
+  "a:wiggle_meadow_action": { loop: 38.4 },
+  "a:wiggle_orchard_action": { loop: 41.73913 },
+  "a:wiggle_canyon_action": { loop: 31.47541 },
+  "a:wiggle_cave_action": { loop: 30.47619 },
+  "a:wiggle_plum_action": { loop: 39.183673 },
+  "a:wiggle_cliffs_action": { loop: 33.684211 },
+  "a:wiggle_glen_action": { loop: 32.542373 },
+  "a:wiggle_autumn_action": { loop: 36.923077 },
+  "a:wiggle_frost_action": { loop: 42.666667 },
+  "a:wiggle_dunes_action": { loop: 43.636364 },
+  "a:wiggle_night_action": { loop: 40.0 },
+  "a:wiggle_candy_action": { loop: 34.909091 },
+  // Bead Rush (scripts/gen_bead_audio.py)
+  "a:bead_title_calm": { loop: 20.869565 },
+  "a:bead_neon_action": { loop: 32.542373 },
+  "a:bead_candy_action": { loop: 35.555556 },
+  "a:bead_laser_action": { loop: 30.0 },
+  "a:bead_red_action": { loop: 30.967742 },
+  "a:bead_turbo_action": { loop: 33.103448 },
+  "a:bead_twin_action": { loop: 31.47541 },
+  "a:bead_crystal_action": { loop: 29.090909 },
+  "a:bead_sunset_action": { loop: 32.0 },
+  "a:bead_frost_action": { loop: 30.47619 },
+  "a:bead_lava_action": { loop: 38.4 },
+  "a:bead_galaxy_action": { loop: 34.285714 },
+  "a:bead_core_action": { loop: 28.235294 },
+  // Neon Tac Duel (scripts/gen_tac_audio.py)
+  "a:tac_title_calm": { loop: 20.869565 },
+  "a:tac_city_action": { loop: 32.542373 },
+  "a:tac_lagoon_action": { loop: 35.555556 },
+  "a:tac_arcade_action": { loop: 30.0 },
+  "a:tac_drop_action": { loop: 30.967742 },
+  "a:tac_loop_action": { loop: 33.103448 },
+  "a:tac_plaza_action": { loop: 31.47541 },
+  "a:tac_highway_action": { loop: 29.090909 },
+  "a:tac_rink_action": { loop: 32.0 },
+  "a:tac_vault_action": { loop: 30.47619 },
+  "a:tac_garden_action": { loop: 38.4 },
+  "a:tac_port_action": { loop: 34.285714 },
+  "a:tac_core_action": { loop: 28.235294 },
+  // Band Bend (scripts/gen_band_audio.py)
+  "a:band_title_calm": { loop: 20.869565 },
+  "a:band_sky_action": { loop: 38.4 },
+  "a:band_mint_action": { loop: 41.73913 },
+  "a:band_peach_action": { loop: 31.47541 },
+  "a:band_ocean_action": { loop: 30.47619 },
+  "a:band_lilac_action": { loop: 39.183673 },
+  "a:band_sunny_action": { loop: 33.684211 },
+  "a:band_coral_action": { loop: 32.542373 },
+  "a:band_jade_action": { loop: 36.923077 },
+  "a:band_night_action": { loop: 42.666667 },
+  "a:band_candy_action": { loop: 43.636364 },
+  "a:band_frost_action": { loop: 40.0 },
+  "a:band_ember_action": { loop: 34.909091 },
+  // Slide Splash (scripts/gen_splash_audio.py)
+  "a:splash_title_calm": { loop: 20.869565 },
+  "a:splash_mint_action": { loop: 33.103448 },
+  "a:splash_gum_action": { loop: 31.47541 },
+  "a:splash_ocean_action": { loop: 38.4 },
+  "a:splash_sunset_action": { loop: 34.909091 },
+  "a:splash_lavender_action": { loop: 42.666667 },
+  "a:splash_lemon_action": { loop: 30.47619 },
+  "a:splash_coral_action": { loop: 36.923077 },
+  "a:splash_forest_action": { loop: 38.4 },
+  "a:splash_galaxy_action": { loop: 35.555556 },
+  "a:splash_candy_action": { loop: 32.542373 },
+  "a:splash_ice_action": { loop: 40.0 },
+  "a:splash_lava_action": { loop: 30.967742 },
+  // Plank Panic (scripts/gen_plank_audio.py)
+  "a:plank_title_calm": { loop: 20.869565 },
+  "a:plank_pine_action": { loop: 35.555556 },
+  "a:plank_oak_action": { loop: 39.183673 },
+  "a:plank_toy_action": { loop: 32.542373 },
+  "a:plank_ship_action": { loop: 38.4 },
+  "a:plank_clock_action": { loop: 34.285714 },
+  "a:plank_tree_action": { loop: 34.909091 },
+  "a:plank_barn_action": { loop: 30.967742 },
+  "a:plank_garage_action": { loop: 32.0 },
+  "a:plank_cabin_action": { loop: 42.666667 },
+  "a:plank_bamboo_action": { loop: 36.923077 },
+  "a:plank_castle_action": { loop: 33.684211 },
+  "a:plank_star_action": { loop: 36.226415 },
+  // Noodle Pups (scripts/gen_pups_audio.py)
+  "a:pups_title_calm": { loop: 20.869565 },
+  "a:pups_yard_action": { loop: 32.542373 },
+  "a:pups_beach_action": { loop: 38.4 },
+  "a:pups_snow_action": { loop: 40.0 },
+  "a:pups_city_action": { loop: 32.0 },
+  "a:pups_farm_action": { loop: 30.967742 },
+  "a:pups_autumn_action": { loop: 38.4 },
+  "a:pups_garden_action": { loop: 41.73913 },
+  "a:pups_lake_action": { loop: 42.666667 },
+  "a:pups_desert_action": { loop: 36.923077 },
+  "a:pups_rain_action": { loop: 40.851064 },
+  "a:pups_candy_action": { loop: 33.103448 },
+  "a:pups_night_action": { loop: 45.714286 },
+  // Arrow Unveil (scripts/gen_unveil_audio.py)
+  "a:unveil_title_calm": { loop: 20.869565 },
+  "a:unveil_sunset_action": { loop: 40.0 },
+  "a:unveil_lake_action": { loop: 42.666667 },
+  "a:unveil_meadow_action": { loop: 32.542373 },
+  "a:unveil_city_action": { loop: 31.47541 },
+  "a:unveil_desert_action": { loop: 36.923077 },
+  "a:unveil_aurora_action": { loop: 45.714286 },
+  "a:unveil_blossom_action": { loop: 41.73913 },
+  "a:unveil_reef_action": { loop: 36.226415 },
+  "a:unveil_autumn_action": { loop: 38.4 },
+  "a:unveil_space_action": { loop: 34.909091 },
+  "a:unveil_village_action": { loop: 40.0 },
+  "a:unveil_balloon_action": { loop: 33.103448 },
+  // Melon Merge Fiesta (scripts/gen_melon_audio.py)
+  "a:melon_title_calm": { loop: 20.869565 },
+  "a:melon_farm_action": { loop: 33.103448 },
+  "a:melon_beach_action": { loop: 36.923077 },
+  "a:melon_berry_action": { loop: 32.0 },
+  "a:melon_citrus_action": { loop: 30.47619 },
+  "a:melon_smoothie_action": { loop: 41.73913 },
+  "a:melon_night_action": { loop: 43.636364 },
+  "a:melon_green_action": { loop: 39.183673 },
+  "a:melon_vine_action": { loop: 34.285714 },
   // Marble Merge 2048 (scripts/gen_marble_audio.py)
   "a:marble_title_calm": { loop: 20.869565 },
   "a:marble_toy_action": { loop: 34.285714 },

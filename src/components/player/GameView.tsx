@@ -50,6 +50,16 @@ const StormApp = dynamic(() => import("@/storm/ui/StormApp"), { ssr: false });
 const ClashApp = dynamic(() => import("@/clash/ui/ClashApp"), { ssr: false });
 const CrumbleApp = dynamic(() => import("@/crumble/ui/CrumbleApp"), { ssr: false });
 const VanguardApp = dynamic(() => import("@/vanguard/ui/VanguardApp"), { ssr: false });
+const MelonApp = dynamic(() => import("@/melon/ui/MelonApp"), { ssr: false });
+const UnveilApp = dynamic(() => import("@/unveil/ui/UnveilApp"), { ssr: false });
+const PupsApp = dynamic(() => import("@/pups/ui/PupsApp"), { ssr: false });
+const PlankApp = dynamic(() => import("@/plank/ui/PlankApp"), { ssr: false });
+const SplashApp = dynamic(() => import("@/splash/ui/SplashApp"), { ssr: false });
+const RopeApp = dynamic(() => import("@/rope/ui/RopeApp"), { ssr: false });
+const BandApp = dynamic(() => import("@/band/ui/BandApp"), { ssr: false });
+const TacApp = dynamic(() => import("@/tac/ui/TacApp"), { ssr: false });
+const BeadApp = dynamic(() => import("@/bead/ui/BeadApp"), { ssr: false });
+const WiggleApp = dynamic(() => import("@/wiggle/ui/WiggleApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 /** each engine's code (the same chunks the players below load) */
@@ -92,6 +102,16 @@ const ENGINE_CODE: Record<string, () => Promise<unknown>> = {
   clash: () => import("@/clash/ui/ClashApp"),
   crumble: () => import("@/crumble/ui/CrumbleApp"),
   vanguard: () => import("@/vanguard/ui/VanguardApp"),
+  melon: () => import("@/melon/ui/MelonApp"),
+  unveil: () => import("@/unveil/ui/UnveilApp"),
+  pups: () => import("@/pups/ui/PupsApp"),
+  plank: () => import("@/plank/ui/PlankApp"),
+  splash: () => import("@/splash/ui/SplashApp"),
+  rope: () => import("@/rope/ui/RopeApp"),
+  band: () => import("@/band/ui/BandApp"),
+  tac: () => import("@/tac/ui/TacApp"),
+  bead: () => import("@/bead/ui/BeadApp"),
+  wiggle: () => import("@/wiggle/ui/WiggleApp"),
   arcade: () => import("@/arcade/ArcadeHost"),
 };
 
@@ -164,6 +184,16 @@ export function GameView({ game: g, mode }: { game: Game; mode?: Difficulty }) {
     case "clash": return <ClashApp slug={slug} title={g.title} />;
     case "crumble": return <CrumbleApp slug={slug} title={g.title} />;
     case "vanguard": return <VanguardApp slug={slug} title={g.title} />;
+    case "melon": return <MelonApp slug={slug} title={g.title} />;
+    case "unveil": return <UnveilApp slug={slug} title={g.title} />;
+    case "pups": return <PupsApp slug={slug} title={g.title} />;
+    case "plank": return <PlankApp slug={slug} title={g.title} />;
+    case "splash": return <SplashApp slug={slug} title={g.title} />;
+    case "rope": return <RopeApp slug={slug} title={g.title} />;
+    case "band": return <BandApp slug={slug} title={g.title} />;
+    case "tac": return <TacApp slug={slug} title={g.title} />;
+    case "bead": return <BeadApp slug={slug} title={g.title} />;
+    case "wiggle": return <WiggleApp slug={slug} title={g.title} />;
     default: return <Arcade g={g} />;
   }
 }

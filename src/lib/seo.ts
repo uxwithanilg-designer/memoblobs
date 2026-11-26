@@ -229,6 +229,56 @@ export const GAME_SEO: Record<string, GameSeo> = {
     description: "Drive a monster truck with a loose load and deliver as much as you can over bumps, mud and bridges. A free 2D cargo truck game — play in your browser.",
     keywords: ["monster truck delivery game", "cargo truck game", "truck delivery game", "monster truck game", "2d truck physics game", "cargo transport game", "delivery driving game"],
   },
+  "wiggle-way": {
+    title: "Wiggle Way — Free 3D Gravity Worm Puzzle Online, 600+ Levels",
+    description: "Eat apples, grow longer and wriggle into the portal before gravity pulls your worm down. A free, hard 3D worm puzzle with 600+ levels — play in your browser.",
+    keywords: ["apple worm", "worm puzzle", "gravity worm game", "snake puzzle", "worm game online", "3d puzzle game", "brain puzzle"],
+  },
+  "bead-rush": {
+    title: "Bead Rush — Free 3D Snake vs Blocks Runner Online, 600+ Levels",
+    description: "Steer a bead snake up a 3D track, eat orbs to grow and chew through number blocks. A free, hard snake and blocks runner with 600+ levels — play in your browser.",
+    keywords: ["snake vs block", "snake blocks game", "3d snake game", "snake runner", "number blocks game", "hyper snake", "arcade runner online"],
+  },
+  "neon-tac-duel": {
+    title: "Neon Tac Duel — Free 3D Tic Tac Toe Puzzles Online, 600+ Levels",
+    description: "Neon 3D tic tac toe with a twist: win in N moves against a rival that never misses a block. Gravity, pillars, Infinity marks and 600+ levels — play free in your browser.",
+    keywords: ["tic tac toe", "tic tac toe 3d", "neon tic tac toe", "tic tac toe puzzle", "noughts and crosses", "4 in a row", "infinity tic tac toe", "strategy puzzle game"],
+  },
+  "band-bend": {
+    title: "Band Bend — Free 3D Line Connect Rubber Band Puzzle, 600+ Levels",
+    description: "Stretch rubber bands over the pins until they draw the shape on the card. A free, hard 3D line connect puzzle with 600+ levels — play in your browser.",
+    keywords: ["line connect", "rubber band puzzle", "line puzzle 3d", "connect the lines game", "pegboard puzzle", "geometry puzzle online", "brain puzzle game"],
+  },
+  "rope-loop": {
+    title: "Rope Loop — Free 3D Rope Color Sort Puzzle Online, 600+ Levels",
+    description: "Wind coloured ropes from spool to spool until every colour has its own. A free, hard 3D rope colour sort puzzle with 600+ levels — play in your browser.",
+    keywords: ["rope color sort", "rope sort 3d", "color sort puzzle", "spool sort game", "rope sort puzzle", "sorting game online", "3d puzzle game"],
+  },
+  "slide-splash": {
+    title: "Slide Splash — Free Slide & Paint Maze Puzzle Online, 600+ Levels",
+    description: "Swipe the cube to slide and paint every tile of the maze, and dodge the spiky mines. A free 3D slide paint puzzle with 600+ hard levels — play in your browser.",
+    keywords: ["just slide", "slide and paint", "paint maze puzzle", "amaze game", "slide puzzle 3d", "maze painting game", "logic puzzle online"],
+  },
+  "plank-panic": {
+    title: "Plank Panic — Free Wood Screw Puzzle Online, 600+ Levels",
+    description: "Unscrew the bolts, move them to free holes and drop every wooden plank. A free 3D wood screw and nuts & bolts puzzle with 600+ levels — play in your browser.",
+    keywords: ["wood screw puzzle", "screw puzzle", "nuts and bolts puzzle", "wood nuts bolts", "unscrew puzzle game", "screw pin puzzle", "brain puzzle online"],
+  },
+  "noodle-pups": {
+    title: "Noodle Pups — Free Dogs Out Puzzle Game Online, 600+ Levels",
+    description: "Tap the long noodle dogs to send them out of the yard in the right order. A free, hard dogs out logic puzzle with 600+ levels — play in your browser.",
+    keywords: ["dogs out", "dogs out puzzle", "snake dog puzzle", "tap away puzzle", "dog escape puzzle", "logic puzzle online", "hard puzzle game"],
+  },
+  "arrow-unveil": {
+    title: "Arrow Unveil — Free Arrow Slide Puzzle Online, 600+ Levels",
+    description: "Tap the arrows to slide them off the board in the right order and reveal the hidden painting. A free arrow puzzle escape game with 600+ levels — play in your browser.",
+    keywords: ["arrow slide puzzle", "arrows puzzle", "arrow escape puzzle", "arrow puzzle game", "tap away arrows", "logic puzzle online", "hidden picture puzzle"],
+  },
+  "melon-merge-fiesta": {
+    title: "Melon Merge Fiesta — Free Watermelon Fruit Merge Game Online, 500+ Levels",
+    description: "Drop cute fruits into a crate and merge equal ones all the way to the watermelon. A free watermelon fruit merge physics puzzle with 500+ levels, boosters and goals — play in your browser.",
+    keywords: ["watermelon game", "fruit merge", "watermelon merge", "merge fruits game", "suika style game", "fruit drop puzzle", "watermelon fruit merge"],
+  },
   "marble-merge-2048": {
     title: "Marble Merge 2048 — Free 2048 Balls Drop & Merge Game Online, 500+ Levels",
     description: "Drop numbered balls into a jar, merge equal balls and chain the pops to reach each level's goal. A free 2048 balls physics merge puzzle with 500+ levels — play in your browser.",
