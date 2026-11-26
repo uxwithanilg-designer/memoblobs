@@ -197,10 +197,21 @@ export const GAME_SEO: Record<string, GameSeo> = {
     description: "Race speedboats through lagoons, canyons, neon harbours and glacier fjords: jump ramps, ride waterfalls and beat the pack. A free 3D boat racing game — play in your browser.",
     keywords: ["boat racing game", "speedboat game", "3d boat game", "jet ski racing", "water racing game", "boat driving game", "powerboat racing online"],
   },
+  "voxel-vanguard": {
+    title: "Voxel Vanguard — Free 3D Pixel Shooter with a Jetpack, 1200 Operations",
+    description: "Run, gun and jetpack with your squad through long missions against a robot army in a blocky 3D world. A free voxel third-person shooter with bosses — play in your browser.",
+    keywords: ["pixel shooter game", "voxel shooter", "3d shooting game", "blocky gun game", "jetpack shooter", "robot shooter game", "third person shooter online"],
+  },
   "rumble-rally": {
     title: "Rumble Rally — Free Monster Truck Racing Game with Rockets & Nitro, 600+ Races",
     description: "Race three rival monster trucks, ram them, fire homing rockets and burn nitro to the finish line. A free 2D monster truck racing game — play in your browser.",
     keywords: ["monster truck racing game", "monster truck race", "truck racing game", "2d monster truck game", "racing game with rockets", "nitro truck race", "monster truck challenge game"],
+  },
+  "crumble-crew": {
+    title: "Crumble Crew — Free 3D Voxel Destruction Heist Game, Smash & Grab",
+    description: "Smash into blocky buildings with a mallet, drill and dynamite, grab the gold and fight off robot security in a free 3D voxel destruction game. Play in your browser.",
+    keywords: ["voxel destruction game", "smash buildings game", "heist game online", "destroy building game", "3d smash game", "block breaking game", "sledgehammer game", "robbery game browser"],
+    updated: "2026-11-26",
   },
   "cube-clash": {
     title: "Cube Clash — Free 3D Sky Wars Block Shooter",

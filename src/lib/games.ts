@@ -31,7 +31,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "wake" | "clash";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "vanguard" | "wake" | "clash" | "crumble";
   host?: string;
 }
 
@@ -1745,6 +1745,51 @@ export const GAMES: Game[] = [
     engine: "storm",
   },
   {
+    slug: "voxel-vanguard",
+    title: "Voxel Vanguard",
+    short: "A 3D pixel shooter: run, gun and jetpack with your squad through 1200 long operations against a robot army, then endless remixes",
+    tagline: "Run, gun and jetpack — the robot army is landing.",
+    description:
+      "Voxel Vanguard is a free 3D pixel shooter where everything is made of blocks. Ace and the squad — Juno and Brick — drop from the sky on jet flames, and the robot army never stops coming: scouts with one big eye, troopers, rolling ball bots that blow up beside you, quad-rotor drones, hulking brutes with arm cannons, snipers whose charging beam you can see and dodge, and four-legged spiders that lob mortar shells. Every operation has its own codename and is one long fight across several sectors — new arenas named after places in the world, with the day moving on from morning to night — and every sector is a run of mission phases: clear the robots out, survive the onslaught, defend the core while robots rush it, destroy the robot beacons that keep calling in reinforcements, stand in the relay rings until they are yours, and beat a squad of gold elites. Each operation ends with a boss: the Titan Walker with missile pods, the Hive Carrier full of drones, or the crowned Overlord. An operation runs about half an hour at the start and grows past an hour, with hundreds of robots and more of them at once the further you go. Move with the left thumb, drag on the right to aim and hold FIRE — the crosshair settles on the robot nearest it — tap JET to jump and hold it to fly. The jetpack burns oil, so grab oil cans, and collect coins, hearts for health and extra lives, and power cubes: rapid fire, double damage, a shield, a coin magnet and a speed boost. Carry two of six blasters — the Zapper, a Pulse Rifle, a Scatter Blaster, the piercing Rail Lance, the Boom Tube rocket launcher and the chain-lightning Arc Caster — and upgrade them, your armour, jetpack and boots in the Armory, or pick one of six outfits. Switch between an over-the-shoulder view and first person at any time. There are 1200 operations across twelve worlds — Meadow Outpost, Sandstone Canyon, Frostbite Ridge, Neon Metro, Emerald Jungle, Magma Foundry, Coral Lagoon, Sky Docks, Blossom Valley, the low-gravity Lunar Base, the Crystal Wastes and the Chrome Citadel — each with its own block set, arena layouts, scenery, music, weather and time of day, and after operation 1200 the remix operations never end. Your progress is saved after every phase, so you always come back to where you left off, and when an operation is won the next one starts by itself.",
+    status: "live",
+    category: "shoot",
+    ages: "",
+    accent: "#5CF08A",
+    accent2: "#FFD23F",
+    cover: "/games/voxel-vanguard/card.webp",
+    hero: "/games/voxel-vanguard/cover.webp",
+    character: "/games/voxel-vanguard/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Campaign", color: "#5CF08A", desc: "1200 operations across 12 worlds, then endless remix operations", coins: 0 },
+    ],
+    howTo: [
+      { title: "Move and aim", text: "On a phone, move with your left thumb and drag on the right side to aim. On a computer, click to aim with the mouse and move with WASD." },
+      { title: "Fire and fly", text: "Hold FIRE to shoot — the crosshair settles on the nearest robot. Tap JET to jump and hold it to fly; the jetpack burns oil, so grab oil cans." },
+      { title: "Win every phase", text: "Each operation is a run of mission phases across several sectors: clear the robots, survive, defend the core, destroy the robot beacons, capture the relay rings, beat the elites — then the boss. Progress is saved after every phase." },
+      { title: "Gear up", text: "Collect coins, hearts and power cubes. Buy and upgrade blasters, armour, jetpack and boots in the Armory." },
+    ],
+    controls: [
+      { keys: "Left thumb / WASD", action: "Move (Shift to run)" },
+      { keys: "Drag right side / Mouse", action: "Aim and look" },
+      { keys: "FIRE / Left click", action: "Shoot" },
+      { keys: "JET / Space", action: "Jump, hold to fly" },
+      { keys: "SWAP / Q · R · V", action: "Swap blaster · Reload · Change view" },
+    ],
+    faq: [
+      { q: "Is Voxel Vanguard free?", a: "Yes. Voxel Vanguard is free to play in your browser with no sign-up and nothing to download." },
+      { q: "What kind of game is it?", a: "A 3D third-person shooter in a blocky pixel style: you and two squad mates fight a robot army with blasters and a jetpack, in long operations of many mission phases." },
+      { q: "How many levels are there?", a: "1200 operations across twelve worlds. Each one is a long fight — about 30 minutes at the start, over an hour later on — across several sectors and phases, with a boss at the end. After that the remix operations never end: each one mixes two worlds, their robots, times of day and twists." },
+      { q: "What if I stop in the middle of an operation?", a: "Your progress is saved after every phase, so you come back to the same sector and phase. If you run out of lives, only the phase starts over — never the whole operation." },
+      { q: "Can I play in first person?", a: "Yes. Switch between the over-the-shoulder view and first person at any time with the VIEW button (or V on a keyboard)." },
+      { q: "Does it work on phones?", a: "Yes. Voxel Vanguard is made for touch screens first — a move stick, drag-to-aim and big fire and jet buttons, with aim help — and works with a keyboard and mouse on computers. Your progress, coins and gear are saved on your device." },
+    ],
+    skills: ["Aim", "Reflexes", "Strategy", "Movement"],
+    released: "2026-11-25",
+    art: "cover",
+    engine: "vanguard",
+  },
+  {
     slug: "wake-racers",
     title: "Wake Racers",
     short: "A 3D speedboat racing game: race rivals through 600 stages across twelve water worlds, then endless remixes",
@@ -1832,6 +1877,50 @@ export const GAMES: Game[] = [
     released: "2026-11-26",
     art: "cover",
     engine: "clash",
+  },
+  {
+    slug: "crumble-crew",
+    title: "Crumble Crew",
+    short: "A 3D voxel smash-and-grab: break into blocky buildings with a mallet, drill and dynamite, grab the loot and fight off robot security",
+    tagline: "Smash in, grab the gold, get to the van.",
+    description:
+      "Crumble Crew is a free 3D voxel destruction game where every building is made of blocks and every block can be broken. You are Rocco, a raccoon in an orange hoodie with a tool belt, and Pip the fox is waiting in the getaway van: Baron Bolt's robot company has locked the town's gold away in banks, jewelers, museums, casinos, mansions, warehouses, temples, observatories, labs and vault halls, and the crew is taking it back. Smash a window, hammer through brick with the Crumble Mallet, bore through steel with the Power Drill, throw a Boom Ball, light Dynamite against the vault or fire the Rocket Tube — and watch walls, roofs and whole floors come crashing down when you knock out what holds them up. The first block you break trips the alarm, and Bolt Security teleports in: guard bots with blasters, hound bots that bite, drones overhead, wall turrets, riot bots behind plate shields, heavies with rockets and, at the end of each heist, the Vault Warden mech. Blast them with the Zap Blaster or the Mallet. Grab cash stacks, gold bars, gems and paintings, break safes and gold blocks for more, and collect coins, hearts for health and extra lives, oil cans for the drill, ammo crates and power cubes: a mega mallet, a shield, a loot magnet, speed, x-ray eyes and double loot. Every heist has its own codename and runs across several sites, each a run of goals — break in, grab the loot quota, crack the vault, hold off security, bring the building down and get back to the van — about half an hour at the start and an hour later on. There are 1200 heists across twelve districts — Maple Town, Dune City, Frost Harbor, the Neon Strip, Jungle Ruins, Lava Works, Pirate Cove, the Cloud Isles, Blossom Market, the low-gravity Moon Colony, the Crystal Mines and Bolt Tower City — each with its own blocks, buildings, scenery, music, weather and time of day, and after that the remix heists never end. Play in first person or over the shoulder, spend coins in the Shop on tools, upgrades, explosives, the suit and hoodies, and pick up right where you left off: progress is saved after every goal, and the next site starts by itself.",
+    status: "live",
+    category: "shoot",
+    ages: "",
+    accent: "#FF8A3A",
+    accent2: "#2AB8B0",
+    cover: "/games/crumble-crew/card.webp",
+    hero: "/games/crumble-crew/cover.webp",
+    character: "/games/crumble-crew/cover.webp",
+    shots: [],
+    modes: [
+      { id: "heists", label: "Heists", color: "#FF8A3A", desc: "1200 heists across 12 districts, then endless remix jobs", coins: 0 },
+    ],
+    howTo: [
+      { title: "Move and look", text: "On a phone, move with your left thumb and drag on the right side to look. On a computer, click to look with the mouse and move with WASD." },
+      { title: "Smash and grab", text: "Hold USE to swing the Mallet, drill, throw or fire. Every block breaks to the right tool — and what loses its support comes down. Grab the cash, gold, gems and art." },
+      { title: "Beat security", text: "Breaking in trips the alarm and security robots teleport in. Blast them with the Zap Blaster or the Mallet; a Vault Warden waits at the end of each heist." },
+      { title: "Get to the van", text: "Each site is a run of goals ending with the escape to Pip's van; the next site starts by itself. Spend coins in the Shop on tools, upgrades and explosives." },
+    ],
+    controls: [
+      { keys: "Left thumb / WASD", action: "Move (Shift to run)" },
+      { keys: "Drag right side / Mouse", action: "Look and aim" },
+      { keys: "USE / Left click", action: "Use the tool in hand" },
+      { keys: "JUMP / Space", action: "Jump" },
+      { keys: "TOOL / 1–7 · Q E · C · V", action: "Switch tools · Paint colour · Change view" },
+    ],
+    faq: [
+      { q: "Is Crumble Crew free?", a: "Yes. Crumble Crew is free to play in your browser with no sign-up and nothing to download." },
+      { q: "What kind of game is it?", a: "A 3D voxel destruction and shooting game: you break into blocky buildings with a mallet, a drill and explosives, grab the loot, fight off robot security and escape in a van." },
+      { q: "Can I really break everything?", a: "Every block of every building breaks to the right tool — the Mallet smashes wood, glass and brick, the Drill bores steel, and dynamite cracks vault steel. Knock out what holds a wall or a floor up and it comes crashing down." },
+      { q: "How many levels are there?", a: "1200 heists across twelve districts. Each one runs across several sites and goals — about half an hour at the start, an hour later on — with a boss at the end. After that the remix heists never end." },
+      { q: "Does it work on phones?", a: "Yes. Crumble Crew is made for touch screens first — a move stick, drag-to-look, a big USE button and a tool bar — and works with a keyboard and mouse on computers. Your progress is saved on your device after every goal." },
+    ],
+    skills: ["Aim", "Strategy", "Creativity", "Reflexes"],
+    released: "2026-11-26",
+    art: "cover",
+    engine: "crumble",
   },
 ];
 
