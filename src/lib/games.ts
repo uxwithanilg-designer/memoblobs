@@ -31,7 +31,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "vanguard" | "wake" | "clash" | "crumble" | "melon" | "unveil" | "pups" | "plank" | "splash" | "rope" | "band" | "tac" | "bead" | "wiggle";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "vanguard" | "wake" | "clash" | "crumble" | "melon" | "unveil" | "pups" | "plank" | "splash" | "rope" | "band" | "tac" | "bead" | "wiggle" | "skyrift";
   host?: string;
 }
 
@@ -2333,6 +2333,47 @@ export const GAMES: Game[] = [
     released: "2026-11-26",
     art: "cover",
     engine: "wiggle",
+  },
+  {
+    slug: "skyrift-gems",
+    title: "Skyrift Gems: Match 3 Duel",
+    short: "Match glittering 3D gems on floating sky islands — goal quests and head-to-head duels, with endless levels",
+    tagline: "Swap, match, blast. A 3D match 3 adventure where every second level is a duel.",
+    description:
+      "Skyrift Gems is a free online 3D match 3 game set on floating islands in the sky. Swap neighbouring gems to make lines of three or more of one colour and watch them pop. Line up four to make a line gem that clears a whole row or column, make an L or T shape for a bomb, and five in a row for a rainbow prism that clears every gem of one colour — then swap two specials together for a giant blast. Quest levels give you goals within a move limit: collect gems of a colour, crack the ice under the board, chip away rocks and bring treasure chests down to the bottom. Every second level is a duel: you and a rival take turns on the same board, every match scores, and the higher score when the moves run out wins. Levels never end and arrive one after another: 1000 designed levels across twenty sky islands — Cloud Meadow, Sunrise Isle, Crystal Spire, Wind Harbor, Rainbow Falls, Moonlit Keep, Ember Peak, Frost Atoll and more, up to Celestial Crown — each with its own sky and music, a big level halfway and a finale. After level 1000 the levels keep coming forever as remixes. Every quest's move limit is tuned by a test player, and hammers, shuffles, hints and saved progress help along the way.",
+    status: "live",
+    category: "puzzle",
+    ages: "",
+    accent: "#5A6AFF",
+    accent2: "#FF3A4A",
+    cover: "/games/skyrift-gems/card.webp",
+    hero: "/games/skyrift-gems/cover.webp",
+    character: "/games/skyrift-gems/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Endless levels", color: "#5A6AFF", desc: "1000 designed quests and duels across twenty sky islands, then endless remixes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Swap and match", text: "Swipe a gem into a neighbour (or tap one, then the other) to make a line of three or more." },
+      { title: "Make specials", text: "Four in a line makes a line gem, an L or T a bomb, five in a line a rainbow prism. Swap two specials together for a mega blast." },
+      { title: "Finish quests", text: "Collect gems, crack ice, chip rocks and bring chests down before the moves run out." },
+      { title: "Win duels", text: "Every second level, take turns with a rival on one board. The higher score when the moves run out wins." },
+    ],
+    controls: [
+      { keys: "Swipe / Drag", action: "Swap a gem with a neighbour" },
+      { keys: "Tap, tap", action: "Pick a gem, then the one to swap it with" },
+    ],
+    faq: [
+      { q: "Is Skyrift Gems free?", a: "Yes. Skyrift Gems is free to play in your browser with no sign-up and nothing to download." },
+      { q: "How do duels work?", a: "You and a rival take turns on the same board with the same number of moves. Every match scores points, combos and specials score more, and the higher score wins." },
+      { q: "How do I make special gems?", a: "Match four in a line for a line gem, five in a line for a rainbow prism, and make an L or T shape for a bomb." },
+      { q: "How many levels are there?", a: "1000 designed levels across twenty sky islands, and after that the levels keep coming forever as fresh remixes." },
+      { q: "Does it work on phones?", a: "Yes. Skyrift Gems is a light 3D game made for touch screens as well as mouse, and it saves your level on the device." },
+    ],
+    skills: ["Pattern spotting", "Planning", "Strategy", "Focus"],
+    released: "2026-11-27",
+    art: "cover",
+    engine: "skyrift",
   },
 ];
 

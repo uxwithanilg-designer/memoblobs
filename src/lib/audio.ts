@@ -203,7 +203,11 @@ export type ArcadeSfx =
   | "bead_lose" | "bead_win" | "bead_star" | "bead_world" | "bead_open"
   // Wiggle Way pack (scripts/gen_wiggle_audio.py)
   | "wiggle_step" | "wiggle_land" | "wiggle_eat" | "wiggle_plum" | "wiggle_die" | "wiggle_portal" | "wiggle_bump"
-  | "wiggle_hint" | "wiggle_undo" | "wiggle_win" | "wiggle_star" | "wiggle_world" | "wiggle_open";
+  | "wiggle_hint" | "wiggle_undo" | "wiggle_win" | "wiggle_star" | "wiggle_world" | "wiggle_open"
+  // Skyrift Gems pack (scripts/gen_skyrift_audio.py)
+  | "skyrift_swap" | "skyrift_bad" | "skyrift_match" | "skyrift_make" | "skyrift_line" | "skyrift_bomb" | "skyrift_prism"
+  | "skyrift_ice" | "skyrift_rock" | "skyrift_chest" | "skyrift_land" | "skyrift_shuffle" | "skyrift_hammer" | "skyrift_turn"
+  | "skyrift_win" | "skyrift_lose" | "skyrift_star" | "skyrift_world" | "skyrift_open";
 
 /** "a:<arcade sfx>" or "v:<character>_<mood>" (file: /audio/arcade/voice_<x>.mp3) */
 export type Sound = SfxName | `a:${ArcadeSfx}` | `v:${string}`;
@@ -473,6 +477,28 @@ const MUSIC_META: Record<string, { loop: number; gain?: number }> = {
   "a:rope_lantern_action": { loop: 43.636364 },
   "a:rope_snow_action": { loop: 40.0 },
   "a:rope_neon_action": { loop: 34.909091 },
+  // Skyrift Gems (scripts/gen_skyrift_audio.py)
+  "a:skyrift_title_calm": { loop: 20.869565 },
+  "a:skyrift_meadow_action": { loop: 38.4 },
+  "a:skyrift_sunrise_action": { loop: 41.73913 },
+  "a:skyrift_spire_action": { loop: 31.47541 },
+  "a:skyrift_harbor_action": { loop: 30.47619 },
+  "a:skyrift_falls_action": { loop: 39.183673 },
+  "a:skyrift_keep_action": { loop: 33.684211 },
+  "a:skyrift_ember_action": { loop: 32.542373 },
+  "a:skyrift_frost_action": { loop: 36.923077 },
+  "a:skyrift_jade_action": { loop: 42.666667 },
+  "a:skyrift_coral_action": { loop: 43.636364 },
+  "a:skyrift_storm_action": { loop: 40.0 },
+  "a:skyrift_lotus_action": { loop: 34.909091 },
+  "a:skyrift_amber_action": { loop: 35.555556 },
+  "a:skyrift_aurora_action": { loop: 38.4 },
+  "a:skyrift_thunder_action": { loop: 29.538462 },
+  "a:skyrift_petal_action": { loop: 28.656716 },
+  "a:skyrift_starfall_action": { loop: 36.226415 },
+  "a:skyrift_mist_action": { loop: 31.47541 },
+  "a:skyrift_bastion_action": { loop: 30.47619 },
+  "a:skyrift_crown_action": { loop: 34.285714 },
   // Wiggle Way (scripts/gen_wiggle_audio.py)
   "a:wiggle_title_calm": { loop: 20.869565 },
   "a:wiggle_meadow_action": { loop: 38.4 },

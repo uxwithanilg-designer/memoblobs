@@ -60,6 +60,7 @@ const BandApp = dynamic(() => import("@/band/ui/BandApp"), { ssr: false });
 const TacApp = dynamic(() => import("@/tac/ui/TacApp"), { ssr: false });
 const BeadApp = dynamic(() => import("@/bead/ui/BeadApp"), { ssr: false });
 const WiggleApp = dynamic(() => import("@/wiggle/ui/WiggleApp"), { ssr: false });
+const SkyriftApp = dynamic(() => import("@/skyrift/ui/SkyriftApp"), { ssr: false });
 const ArcadeHost = dynamic(() => import("@/arcade/ArcadeHost").then((m) => m.ArcadeHost), { ssr: false });
 
 /** each engine's code (the same chunks the players below load) */
@@ -112,6 +113,7 @@ const ENGINE_CODE: Record<string, () => Promise<unknown>> = {
   tac: () => import("@/tac/ui/TacApp"),
   bead: () => import("@/bead/ui/BeadApp"),
   wiggle: () => import("@/wiggle/ui/WiggleApp"),
+  skyrift: () => import("@/skyrift/ui/SkyriftApp"),
   arcade: () => import("@/arcade/ArcadeHost"),
 };
 
@@ -194,6 +196,7 @@ export function GameView({ game: g, mode }: { game: Game; mode?: Difficulty }) {
     case "tac": return <TacApp slug={slug} title={g.title} />;
     case "bead": return <BeadApp slug={slug} title={g.title} />;
     case "wiggle": return <WiggleApp slug={slug} title={g.title} />;
+    case "skyrift": return <SkyriftApp slug={slug} title={g.title} />;
     default: return <Arcade g={g} />;
   }
 }

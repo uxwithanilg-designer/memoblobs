@@ -229,6 +229,11 @@ export const GAME_SEO: Record<string, GameSeo> = {
     description: "Drive a monster truck with a loose load and deliver as much as you can over bumps, mud and bridges. A free 2D cargo truck game — play in your browser.",
     keywords: ["monster truck delivery game", "cargo truck game", "truck delivery game", "monster truck game", "2d truck physics game", "cargo transport game", "delivery driving game"],
   },
+  "skyrift-gems": {
+    title: "Skyrift Gems — Free 3D Match 3 Duel Game Online, 1000+ Levels",
+    description: "Match glittering gems on floating sky islands: make bombs and rainbow prisms, finish goal quests and win head-to-head duels. A free 3D match 3 game with 1000+ levels.",
+    keywords: ["match 3", "match 3 games", "gem match", "jewel puzzle", "match three online", "3d match 3", "match 3 duel", "puzzle games online"],
+  },
   "wiggle-way": {
     title: "Wiggle Way — Free 3D Gravity Worm Puzzle Online, 600+ Levels",
     description: "Eat apples, grow longer and wriggle into the portal before gravity pulls your worm down. A free, hard 3D worm puzzle with 600+ levels — play in your browser.",
