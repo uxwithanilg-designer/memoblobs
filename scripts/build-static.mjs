@@ -10,14 +10,19 @@ import { readRemoteList } from "./r2/remote-list.mjs";
 // the light games list for browser code and each game's about.json (from src/lib/games.ts), before anything is built
 const gen = spawnSync("node scripts/gen-game-index.mjs", { stdio: "inherit", shell: true });
 if (gen.status !== 0) process.exit(gen.status ?? 1);
+// the 640-px "-sm" copies of each game's cover and poster that cards load (src/lib/image-loader.ts)
+const small = spawnSync("node scripts/gen-small-art.mjs", { stdio: "inherit", shell: true });
+if (small.status !== 0) process.exit(small.status ?? 1);
 // (the bucket's upload list gives the sizes of game files that aren't on disk, as in GitHub Actions)
 const { version, versions, bundles, files: assets } = writeIndex(listAssets((await readRemoteList()) ?? {}));
 // every live game needs its pictures (on disk, or in git for GitHub Actions): the card cover (hero), the game page's
-// poster and the link-preview image. A missing one would show as a broken picture on the live site.
+// poster and the link-preview image, and the small copies of the cover and poster that cards load. A missing one would
+// show as a broken picture on the live site.
 {
   const have = new Set(assets.map((f) => f.key));
   const { games: live } = JSON.parse(readFileSync("public/data/catalog.json", "utf8"));
-  const missing = live.flatMap((g) => [g.hero.replace(/^\//, ""), `games/${g.slug}/poster.webp`, `games/${g.slug}/og.jpg`].filter((k) => !have.has(k)));
+  const smallOf = (k) => (/^games\/[^/]+\/(cover|hero|thumb|poster)\.webp$/.test(k) ? [k, k.replace(/\.webp$/, "-sm.webp")] : [k]);
+  const missing = live.flatMap((g) => [...smallOf(g.hero.replace(/^\//, "")), ...smallOf(`games/${g.slug}/poster.webp`), `games/${g.slug}/og.jpg`].filter((k) => !have.has(k)));
   if (missing.length) {
     console.error(`build-static: live games are missing pictures (put them in public/ and commit them):\n  - ${missing.join("\n  - ")}`);
     process.exit(1);

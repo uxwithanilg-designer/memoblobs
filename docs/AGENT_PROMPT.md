@@ -54,7 +54,10 @@ exactly. If a request would break one of these rules, stop and ask the owner ins
 - Put them in:
   - `public/games/<slug>/` — every live game: `cover.webp` (1280×720, cards), `poster.webp` (1000×1500, its page) and
     `og.jpg` (1200×630, link previews); own-engine games also `card.webp` (600×800). The build fails when a live game
-    is missing `cover.webp`, `poster.webp` or `og.jpg`.
+    is missing `cover.webp`, `poster.webp` or `og.jpg`. `npm run build:static` also makes `cover-sm.webp` and
+    `poster-sm.webp` (640 px wide, `scripts/gen-small-art.mjs`): cards and the poster load these small copies, so
+    commit them too. Save pictures as WebP (quality ~80); keep `og.jpg` a JPEG and app icons PNG, since link-preview
+    apps and app stores expect those.
   - `public/audio/` — sounds and music
   - `public/brand/` — characters, logos
   - `public/fonts/`

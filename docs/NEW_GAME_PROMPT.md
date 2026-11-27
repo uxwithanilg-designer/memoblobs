@@ -86,7 +86,10 @@ Everything goes under `public/` and is committed to git. When you push, GitHub u
   | `poster.webp` | 1000×1500 | the game page |
   | `og.jpg` | 1200×630 | link previews when the page is shared |
 
-  The build fails if `cover.webp`, `poster.webp` or `og.jpg` is missing for a live game.
+  The build fails if `cover.webp`, `poster.webp` or `og.jpg` is missing for a live game. Save the `.webp` files at
+  quality ~80 (WebP works in every browser and in Android and iOS apps); keep `og.jpg` a JPEG for link previews.
+  `npm run build:static` then writes `cover-sm.webp` and `poster-sm.webp` (640 px wide) next to them: the small
+  copies that cards and the poster load. Commit them with the rest of the folder.
 - `public/audio/arcade/sfx_<family>_<name>.mp3` and `music_<family>_<name>.mp3`, from a
   `scripts/gen_<family>_audio.py` (copy `scripts/gen_marble_audio.py`). Don't change any other game's files. If a
   generator rewrote some, restore them with `git checkout -- <file>`.
@@ -118,7 +121,8 @@ fails and you can't fix it, stop and report; don't push half-working work.
    - the game's code;
    - the changed shared files from step 2;
    - `src/lib/game-index.ts`;
-   - `public/games/<slug>/` and the new `public/audio/arcade/*_<family>_*` files;
+   - `public/games/<slug>/` (with the `-sm.webp` copies the build made) and the new
+     `public/audio/arcade/*_<family>_*` files;
    - your art and audio scripts.
 
    Never add `.claude/`, `out/`, `.r2-uploaded.json` or anything with a secret. Generated JSON files are already
@@ -158,7 +162,8 @@ A small 2D round-based game can use the shared arcade engine instead of its own;
 - `src/lib/arcade-catalog.ts`: add `A({ slug, title, host, live: true, category, accent, accent2, short, tagline,
   description, modes, howTo, skills, controls })`.
 - `src/lib/seo.ts`: add an entry. `src/lib/audio.ts`: add new sound names and music loops.
-- Files in `public/games/<slug>/`: `cover.webp` (1280×720), `poster.webp` (1000×1500) and `og.jpg` (1200×630).
+- Files in `public/games/<slug>/`: `cover.webp` (1280×720), `poster.webp` (1000×1500) and `og.jpg` (1200×630),
+  plus the `cover-sm.webp` / `poster-sm.webp` copies `npm run build:static` makes.
 
 Then test, commit, push and check exactly as in steps 4–6.
 

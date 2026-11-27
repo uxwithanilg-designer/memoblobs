@@ -16,9 +16,10 @@ const nextConfig: NextConfig = {
   // dev only: let phones on the home Wi-Fi (http://192.168.x.x:3000) load dev chunks + the HMR socket;
   // without this Next blocks them and client-only games (Nitro Rush) never leave the loading screen
   allowedDevOrigins: ["192.168.1.4", "192.168.*.*", "10.*.*.*"],
-  // static build: pictures load from the R2 bucket (src/lib/image-loader.ts); they're already sized .webp files
+  // static build: pictures load from the R2 bucket (src/lib/image-loader.ts); they're already sized .webp files, and a
+  // game's cover/poster has a 640-px "-sm" copy that the 640w srcset entry points at (cards, rows, the poster)
   images: STATIC
-    ? { loader: "custom" as const, loaderFile: "./src/lib/image-loader.ts", deviceSizes: [1920], imageSizes: [256] }
+    ? { loader: "custom" as const, loaderFile: "./src/lib/image-loader.ts", deviceSizes: [1920], imageSizes: [640] }
     :{ formats: ["image/avif", "image/webp"], minimumCacheTTL: 60 * 60 * 24 * 30 },
   turbopack: {
     rules: {
