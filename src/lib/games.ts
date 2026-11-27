@@ -31,7 +31,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "vanguard" | "wake" | "clash" | "crumble" | "melon" | "unveil" | "pups" | "plank" | "splash" | "rope" | "band" | "tac" | "bead" | "wiggle" | "skyrift" | "flutter";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "vanguard" | "wake" | "clash" | "crumble" | "melon" | "unveil" | "pups" | "plank" | "splash" | "rope" | "band" | "tac" | "bead" | "wiggle" | "skyrift" | "flutter" | "pedal";
   host?: string;
 }
 
@@ -2333,6 +2333,49 @@ export const GAMES: Game[] = [
     released: "2026-11-26",
     art: "cover",
     engine: "wiggle",
+  },
+  {
+    slug: "obby-bike-blaster",
+    title: "Obby Bike Blaster",
+    short: "A 3D pixel bike obby: ride, jump and blast through 1,200 obstacle courses, then endless remixes",
+    tagline: "Ride the sky obby, jump every gap — and blast whatever is in your way.",
+    description:
+      "Obby Bike Blaster is a free 3D bike obby in a blocky pixel style. Ride Pip's BMX along obstacle courses floating high in the sky: narrow checker bridges, gaps to hop, ramps to fly off, steps, zigzags and switchback climbs. Red kill blocks, laser gates, spinning bars and swinging hammers wait along the way, platforms slide and lift, glass tiles drop away under your wheels, ice makes you slide, conveyor belts push you sideways, jelly pads launch you high and boost strips fire you across long gaps. A blaster on the handlebar aims itself at what is ahead: shoot targets to fold out bridges, blast through crate walls and knock down the flying gremlins that try to push you off. Every level is a long named course of many checkpoint pads in sectors of six — fall and you lose a life and go back to the last checkpoint, run out of lives and you restart the sector. Pedalling uses chain oil, so grab the oil cans; collect coins, gems, hearts and ? boxes with Turbo, a Bubble shield, a Coin magnet, Wings for a double jump, Slow-mo traps and a Rapid blaster. Each level opens with a cinematic fly-over, big jumps switch to a slow-motion side shot, and when you cross the finish the camera orbits you through the fireworks and the next level starts by itself. There are 1,200 levels across twenty worlds — Sky Park, Candy Clouds, Canyon Rush, Jungle Ruins, Frost Rails, Pirate Docks, Neon Night, Lava Towers, Toy Room, Mushroom Hills, Haunted Rails, Cyber Grid, Blossom Temple, Clockwork Works, Crystal Mine, Space Station, the low-gravity Moon Craters, Thunder Peaks, Rainbow Road and the Glitch Core — each with its own blocks, giant landmark, skyline, weather, times of day and music. After level 1,200 the remixes never end. Spend coins in the Garage on five bikes, six upgrades and six riders. Your level and checkpoint are saved on your device, so you always come back to where you left off.",
+    status: "live",
+    category: "shoot",
+    ages: "",
+    accent: "#3EC5FF",
+    accent2: "#FFD23F",
+    cover: "/games/obby-bike-blaster/card.webp",
+    hero: "/games/obby-bike-blaster/cover.webp",
+    character: "/games/obby-bike-blaster/cover.webp",
+    shots: [],
+    modes: [
+      { id: "levels", label: "Sky obby tour", color: "#3EC5FF", desc: "1,200 obstacle courses across 20 worlds, then endless remixes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Ride and steer", text: "On a phone the bike pedals by itself: drag the left side to steer and pull back to brake. On a computer, W pedals, S brakes and A/D steer." },
+      { title: "Jump the gaps", text: "Tap JUMP (or Space) to hop gaps, steps and spinning bars. Ramps, jelly pads and boost strips send you flying — land on the next platform." },
+      { title: "Blast your way through", text: "Hold FIRE (or F): the handlebar blaster aims itself. Shoot targets to open bridges, crates to break walls and gremlins before they knock you off." },
+      { title: "Checkpoints, oil and lives", text: "Checkpoint pads save your place. A fall costs a life; pedalling uses chain oil, so grab the oil cans. Hearts and ? boxes help you through." },
+    ],
+    controls: [
+      { keys: "Left thumb / A and D", action: "Steer (pull the stick back, or S, to brake)" },
+      { keys: "W", action: "Pedal (automatic on phones)" },
+      { keys: "JUMP / Space", action: "Jump" },
+      { keys: "FIRE / F", action: "Shoot the handlebar blaster" },
+    ],
+    faq: [
+      { q: "Is Obby Bike Blaster free?", a: "Yes. Obby Bike Blaster is free to play in your browser with no sign-up and nothing to download." },
+      { q: "What is an obby on a bike?", a: "An obby is an obstacle course: narrow paths, gaps, traps and moving platforms you have to get across without falling. Here you ride it on a BMX, with a blaster on the handlebar to open bridges and clear the way." },
+      { q: "How many levels are there?", a: "1,200 long levels across twenty worlds, and after that the remix levels never end — each one mixes two worlds and every kind of obstacle with twists like night rides, fog and turbo pads." },
+      { q: "What happens when I fall?", a: "You lose a life and go back to the last checkpoint pad. If you run out of lives you restart the current sector of six checkpoints with three fresh lives. Hearts give extra lives." },
+      { q: "Does it work on phones?", a: "Yes. Obby Bike Blaster is made for touch screens first — the bike pedals by itself, you steer with your thumb and tap JUMP and FIRE — and works with a keyboard on computers. Your level, checkpoint, coins and garage are saved on your device." },
+    ],
+    skills: ["Timing", "Balance", "Aim", "Reflexes"],
+    released: "2026-11-27",
+    art: "cover",
+    engine: "pedal",
   },
   {
     slug: "skyrift-gems",

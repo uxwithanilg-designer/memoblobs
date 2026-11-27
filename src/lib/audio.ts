@@ -113,6 +113,16 @@ export type ArcadeSfx =
   | "clash_clear" | "clash_worldClear" | "clash_stageStart" | "clash_wave" | "clash_beep" | "clash_tap" | "clash_open" | "clash_buy" | "clash_upgrade" | "clash_whoosh"
   | "clash_birdA" | "clash_birdB" | "clash_wind" | "clash_gull" | "clash_owl" | "clash_crickets" | "clash_lava" | "clash_chimes" | "clash_frog" | "clash_beeps"
   | "clash_bells" | "clash_crow" | "clash_bubbles"
+  // Obby Bike Blaster (scripts/gen_pedal_audio.py)
+  | "pedal_tick" | "pedal_roll" | "pedal_jump" | "pedal_land" | "pedal_landHard" | "pedal_bell" | "pedal_bounce"
+  | "pedal_boost" | "pedal_coin" | "pedal_gem" | "pedal_oil" | "pedal_heart" | "pedal_power" | "pedal_shield"
+  | "pedal_shieldPop" | "pedal_wings" | "pedal_checkpoint" | "pedal_sector" | "pedal_finish" | "pedal_worldClear"
+  | "pedal_levelStart" | "pedal_go" | "pedal_crash" | "pedal_fall" | "pedal_respawn" | "pedal_wall" | "pedal_squeak"
+  | "pedal_lowOil" | "pedal_lifeLost" | "pedal_outOfLives" | "pedal_shoot" | "pedal_targetHit" | "pedal_bridge"
+  | "pedal_crate" | "pedal_gremlin" | "pedal_gremlinPop" | "pedal_laser" | "pedal_whoosh" | "pedal_tap"
+  | "pedal_open" | "pedal_buy" | "pedal_upgrade" | "pedal_birdA" | "pedal_birdB" | "pedal_wind" | "pedal_city"
+  | "pedal_owl" | "pedal_crickets" | "pedal_lava" | "pedal_bubbles" | "pedal_gull" | "pedal_gears" | "pedal_chimes"
+  | "pedal_frog" | "pedal_beeps" | "pedal_glitch" | "pedal_thunder" | "pedal_crow" | "pedal_space"
   // Blockstorm (scripts/gen_storm_audio.py)
   | "storm_shoot" | "storm_shootDry" | "storm_rocket" | "storm_boom" | "storm_hit" | "storm_hitBlock" | "storm_breakSoft" | "storm_breakWood" | "storm_breakStone"
   | "storm_breakMetal" | "storm_breakGlass" | "storm_breakGloom" | "storm_collapse" | "storm_crumble" | "storm_coreBreak" | "storm_enemyDie" | "storm_enemyDieBig"

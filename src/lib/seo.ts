@@ -219,6 +219,11 @@ export const GAME_SEO: Record<string, GameSeo> = {
     keywords: ["sky wars game", "bed wars game online", "block shooter game", "3d block building game", "build and shoot game", "obby parkour game", "zombie survival block game", "blocky io style game"],
     updated: "2026-11-26",
   },
+  "obby-bike-blaster": {
+    title: "Obby Bike Blaster — 3D Pixel Bike Obby, 1200+ Levels",
+    description: "Ride a pixel BMX through sky obby courses: jump gaps, dodge kill blocks and blast targets to open bridges. A free 3D bike obby game — play in your browser.",
+    keywords: ["obby bike game", "bike obby", "obby on a bike", "3d obby game", "bicycle obby", "obby parkour game", "pixel obby game", "obby games online"],
+  },
   blockstorm: {
     title: "Blockstorm — Free 3D Pixel Block Shooter, 1000+ Stages",
     description: "Blast blocky monsters and tear block towers down onto them in a free 3D pixel shooter with bosses, friends and 1000+ stages. Play in your browser.",
