@@ -9,6 +9,6 @@ export type { Game, GameAbout, GameCard, PlayerGame } from "./game-types";
 /** renamed games: old slug → new slug, so old links (/play?g=…, /games/…) still open the game */
 export const SLUG_ALIASES: Record<string, string> = {"momo-clayland":"puddo-clayland"};
 /** the version of /data/catalog.json (it changes whenever the list does) */
-export const CATALOG_VERSION = "5761cb70a9";
+export const CATALOG_VERSION = "9dcdb82e2c";
 /** how many games are live (counts shown before the list has loaded) */
-export const GAME_COUNT = 82;
+export const GAME_COUNT = 83;

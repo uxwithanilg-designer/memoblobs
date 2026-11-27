@@ -207,7 +207,11 @@ export type ArcadeSfx =
   // Skyrift Gems pack (scripts/gen_skyrift_audio.py)
   | "skyrift_swap" | "skyrift_bad" | "skyrift_match" | "skyrift_make" | "skyrift_line" | "skyrift_bomb" | "skyrift_prism"
   | "skyrift_ice" | "skyrift_rock" | "skyrift_chest" | "skyrift_land" | "skyrift_shuffle" | "skyrift_hammer" | "skyrift_turn"
-  | "skyrift_win" | "skyrift_lose" | "skyrift_star" | "skyrift_world" | "skyrift_open";
+  | "skyrift_win" | "skyrift_lose" | "skyrift_star" | "skyrift_world" | "skyrift_open"
+  // Flutter Pairs pack (scripts/gen_flutter_audio.py)
+  | "flutter_hop" | "flutter_land" | "flutter_pop" | "flutter_flap" | "flutter_topple" | "flutter_erase" | "flutter_belt"
+  | "flutter_select" | "flutter_swap" | "flutter_deny" | "flutter_hint" | "flutter_undo" | "flutter_win" | "flutter_lose"
+  | "flutter_star" | "flutter_world" | "flutter_open";
 
 /** "a:<arcade sfx>" or "v:<character>_<mood>" (file: /audio/arcade/voice_<x>.mp3) */
 export type Sound = SfxName | `a:${ArcadeSfx}` | `v:${string}`;
@@ -477,6 +481,28 @@ const MUSIC_META: Record<string, { loop: number; gain?: number }> = {
   "a:rope_lantern_action": { loop: 43.636364 },
   "a:rope_snow_action": { loop: 40.0 },
   "a:rope_neon_action": { loop: 34.909091 },
+  // Flutter Pairs (scripts/gen_flutter_audio.py)
+  "a:flutter_title_calm": { loop: 20.869565 },
+  "a:flutter_meadow_action": { loop: 38.4 },
+  "a:flutter_orchard_action": { loop: 41.73913 },
+  "a:flutter_pond_action": { loop: 31.47541 },
+  "a:flutter_garden_action": { loop: 30.47619 },
+  "a:flutter_forest_action": { loop: 39.183673 },
+  "a:flutter_dunes_action": { loop: 33.684211 },
+  "a:flutter_cliffs_action": { loop: 32.542373 },
+  "a:flutter_berry_action": { loop: 36.923077 },
+  "a:flutter_snow_action": { loop: 42.666667 },
+  "a:flutter_autumn_action": { loop: 43.636364 },
+  "a:flutter_lagoon_action": { loop: 40.0 },
+  "a:flutter_night_action": { loop: 34.909091 },
+  "a:flutter_sunset_action": { loop: 35.555556 },
+  "a:flutter_mint_action": { loop: 38.4 },
+  "a:flutter_lavender_action": { loop: 29.538462 },
+  "a:flutter_honey_action": { loop: 28.656716 },
+  "a:flutter_coral_action": { loop: 36.226415 },
+  "a:flutter_storm_action": { loop: 31.47541 },
+  "a:flutter_rainbow_action": { loop: 30.47619 },
+  "a:flutter_starry_action": { loop: 34.285714 },
   // Skyrift Gems (scripts/gen_skyrift_audio.py)
   "a:skyrift_title_calm": { loop: 20.869565 },
   "a:skyrift_meadow_action": { loop: 38.4 },

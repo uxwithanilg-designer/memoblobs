@@ -229,6 +229,11 @@ export const GAME_SEO: Record<string, GameSeo> = {
     description: "Drive a monster truck with a loose load and deliver as much as you can over bumps, mud and bridges. A free 2D cargo truck game — play in your browser.",
     keywords: ["monster truck delivery game", "cargo truck game", "truck delivery game", "monster truck game", "2d truck physics game", "cargo transport game", "delivery driving game"],
   },
+  "flutter-pairs": {
+    title: "Flutter Pairs — Free 3D Stack Match Puzzle Online, 1000+ Levels",
+    description: "Drop felt blocks on the stacks: matching pairs sprout wings and fly away, but never let a stack pass the rope. A cosy, hard 3D stack puzzle with 1000+ levels — play free.",
+    keywords: ["stack puzzle", "match pairs puzzle", "block stacking game", "color match puzzle", "felt puzzle game", "logic puzzle online", "brain game"],
+  },
   "skyrift-gems": {
     title: "Skyrift Gems — Free 3D Match 3 Duel Game Online, 1000+ Levels",
     description: "Match glittering gems on floating sky islands: make bombs and rainbow prisms, finish goal quests and win head-to-head duels. A free 3D match 3 game with 1000+ levels.",

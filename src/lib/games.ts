@@ -31,7 +31,7 @@ export interface Game {
   released?: string;
   /** "cover" = screenshot cover art, "character" = clay character on a colour card */
   art?: "cover" | "character";
-  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "vanguard" | "wake" | "clash" | "crumble" | "melon" | "unveil" | "pups" | "plank" | "splash" | "rope" | "band" | "tac" | "bead" | "wiggle" | "skyrift";
+  engine?: "momo" | "arcade" | "racing" | "brigade" | "boing" | "dash" | "jungle" | "roll" | "escape" | "clayland" | "slurp" | "vine" | "jelly" | "rush" | "sudoku" | "trail" | "quilt" | "glow" | "crown" | "tide" | "vial" | "treat" | "sprout" | "relic" | "breeze" | "picnic" | "jade" | "nova" | "marble" | "orbi" | "rover" | "haul" | "gizmo" | "rumble" | "storm" | "vanguard" | "wake" | "clash" | "crumble" | "melon" | "unveil" | "pups" | "plank" | "splash" | "rope" | "band" | "tac" | "bead" | "wiggle" | "skyrift" | "flutter";
   host?: string;
 }
 
@@ -2374,6 +2374,48 @@ export const GAMES: Game[] = [
     released: "2026-11-27",
     art: "cover",
     engine: "skyrift",
+  },
+  {
+    slug: "flutter-pairs",
+    title: "Flutter Pairs: Stack Pop 3D",
+    short: "Drop felt blocks on the stacks — matching pairs sprout wings and fly away. A 3D stack puzzle with endless levels",
+    tagline: "Drop, pair, flutter. A cosy 3D felt stack puzzle that makes you think ahead.",
+    description:
+      "Flutter Pairs is a free online 3D stack puzzle with cosy felt-and-wood art. A wooden belt brings soft felt blocks one at a time, and a few stacks stand on tree stumps. You can always see the block in your hand and the next five. Tap a stack to drop your block on it: if the top block is the same colour, both pop, sprout little felt wings and flutter away; if not, your block joins the stack. A leafy rope hangs across the board and marks how high a stack may grow — drop a different block on a stack that already reaches the rope and the whole stack topples. Clear every stack by the time the belt runs out to win. Read the belt, keep room on your stacks and set up the pairs before they arrive. Move and Swap powers help when you're stuck, and erase balls turn up later on. Levels never end and arrive one after another: 1000 designed levels across twenty felt worlds — Felt Meadow, Button Orchard, Lily Pond, Thimble Garden, Woolly Woods and more, up to Starry Spindle — each with its own colours and music, a long belt halfway and a finale. After level 1000 the levels keep coming forever as remixes. Every level is built from a plan, so there is always a way through.",
+    status: "live",
+    category: "puzzle",
+    ages: "",
+    accent: "#FF7A5A",
+    accent2: "#4AC86A",
+    cover: "/games/flutter-pairs/card.webp",
+    hero: "/games/flutter-pairs/cover.webp",
+    character: "/games/flutter-pairs/cover.webp",
+    shots: [],
+    modes: [
+      { id: "stages", label: "Endless levels", color: "#FF7A5A", desc: "1000 designed felt stack puzzles across twenty worlds, then endless remixes", coins: 0 },
+    ],
+    howTo: [
+      { title: "Drop a block", text: "Tap a stack (or press 1 to 5) to drop the block in your hand on it." },
+      { title: "Make a pair", text: "If the stack's top block is the same colour, both grow wings and fly away." },
+      { title: "Mind the rope", text: "A stack can't grow past the leafy rope: a different block on a full stack makes it topple." },
+      { title: "Read the belt", text: "You see the next five blocks. Clear every stack by the time the belt is empty. Move and Swap help when stuck." },
+    ],
+    controls: [
+      { keys: "Tap / Click", action: "Drop the block in your hand on a stack" },
+      { keys: "1 – 5", action: "Drop on the first to fifth stack" },
+      { keys: "M / S / Esc", action: "Move power, Swap power, cancel" },
+    ],
+    faq: [
+      { q: "Is Flutter Pairs free?", a: "Yes. Flutter Pairs is free to play in your browser with no sign-up and nothing to download." },
+      { q: "What makes a stack topple?", a: "The leafy rope marks the height limit. Dropping a block of a different colour on a stack that already reaches the rope makes it topple. A matching block is always safe." },
+      { q: "Can every level be cleared?", a: "Yes. Every level is built from a plan that clears all the stacks, so there is always a way through." },
+      { q: "How many levels are there?", a: "1000 designed levels across twenty felt worlds, and after that the levels keep coming forever as fresh remixes." },
+      { q: "Does it work on phones?", a: "Yes. Flutter Pairs is a light 3D game made for touch screens in portrait, as well as mouse and keyboard, and it saves your level on the device." },
+    ],
+    skills: ["Planning", "Logic", "Memory", "Focus"],
+    released: "2026-11-28",
+    art: "cover",
+    engine: "flutter",
   },
 ];
 
